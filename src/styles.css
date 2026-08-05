@@ -2928,6 +2928,28 @@ textarea:focus {
   min-height: 132px;
 }
 
+.upload-field {
+  border: 1px dashed rgba(0, 82, 255, 0.24);
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 12px;
+}
+
+.upload-field input[type="file"] {
+  border: 0;
+  background: transparent;
+  padding: 8px 0 4px;
+  min-height: auto;
+}
+
+.upload-field small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
 .document-library {
   margin-bottom: 14px;
   padding: 20px 22px;

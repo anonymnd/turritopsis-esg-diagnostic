@@ -335,10 +335,11 @@ function documentsForQuestion(question, documents) {
     .map((document) => {
       const content = `${document.title} ${document.type} ${document.content}`.toLowerCase();
       const matches = keywords.filter((word) => content.includes(word));
-      return { ...document, matches, pillarMatch: documentMatchesPillar(question, content) };
+      const explicitMatch = document.questionCodes?.includes(question.code);
+      return { ...document, matches, explicitMatch, pillarMatch: explicitMatch || documentMatchesPillar(question, content) };
     })
-    .filter((document) => document.matches.length >= 3 && document.pillarMatch)
-    .sort((a, b) => b.matches.length - a.matches.length)
+    .filter((document) => document.explicitMatch || (document.matches.length >= 3 && document.pillarMatch))
+    .sort((a, b) => Number(b.explicitMatch) - Number(a.explicitMatch) || b.matches.length - a.matches.length)
     .slice(0, 3);
 }
 
@@ -355,6 +356,54 @@ function auditRecommendation(question, missing, suggestedScore) {
   if (suggestedScore === "0.5") return `Completer l'audit ${question.code} avec ${missing.slice(0, 2).join(" et ") || "une preuve plus directe"}.`;
   if (suggestedScore === "NA") return "Verifier que la non-applicabilite est justifiee par le secteur, le perimetre ou l'activite.";
   return `Audit ${question.code}: demander une preuve source, une date et un indicateur avant de valider le score.`;
+}
+
+function parseDocumentQuestionCodes(value, allQuestions = []) {
+  const allowed = new Set(allQuestions.map((question) => question.code));
+  return [...new Set(String(value || "")
+    .toUpperCase()
+    .split(/[,;\s]+/)
+    .map((code) => code.trim())
+    .filter((code) => allowed.has(code)))];
+}
+
+function readableFileSize(size = 0) {
+  if (size < 1024) return `${size} o`;
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} Ko`;
+  return `${(size / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function canExtractFileText(file) {
+  const name = file.name.toLowerCase();
+  return file.type.startsWith("text/")
+    || [".txt", ".md", ".csv", ".json", ".log"].some((extension) => name.endsWith(extension));
+}
+
+async function documentFromFile(file, currentDraft) {
+  const baseDocument = {
+    ...currentDraft,
+    title: currentDraft.title || file.name.replace(/\.[^.]+$/, ""),
+    type: currentDraft.type === "Document" ? (file.type.includes("pdf") ? "PDF" : file.type.startsWith("image/") ? "Photo" : "Document") : currentDraft.type,
+    fileName: file.name,
+    fileType: file.type || "type inconnu",
+    fileSize: file.size,
+    extractionStatus: "metadata"
+  };
+
+  if (!canExtractFileText(file)) {
+    return {
+      ...baseDocument,
+      content: currentDraft.content || `Document joint: ${file.name} (${baseDocument.fileType}, ${readableFileSize(file.size)}). Ajoutez un resume manuel pour que l'IA puisse analyser le contenu.`,
+      extractionStatus: "manual-summary-needed"
+    };
+  }
+
+  const text = await file.text();
+  return {
+    ...baseDocument,
+    content: currentDraft.content || text.slice(0, 12000),
+    extractionStatus: text ? "text-extracted" : "empty-file"
+  };
 }
 
 function proofReview(question, answer, documents = []) {
@@ -1205,7 +1254,8 @@ function QuestionCard({ question, answer, review, actions, pillarScore }) {
 }
 
 function ProofsPage({ route, state, actions }) {
-  const [draftDocument, setDraftDocument] = useState({ title: "", type: "Document", content: "" });
+  const [draftDocument, setDraftDocument] = useState({ title: "", type: "Document", content: "", questionCodesText: "" });
+  const [fileStatus, setFileStatus] = useState("");
   const proofRows = state.allQuestions.filter((question) => {
     const answer = state.answers[question.code] || emptyAnswer();
     const review = state.reviews[question.code] || emptyReview();
@@ -1213,8 +1263,28 @@ function ProofsPage({ route, state, actions }) {
   });
   function submitDocument(event) {
     event.preventDefault();
-    actions.addDocument(draftDocument);
-    setDraftDocument({ title: "", type: "Document", content: "" });
+    actions.addDocument({
+      ...draftDocument,
+      questionCodes: parseDocumentQuestionCodes(draftDocument.questionCodesText, state.allQuestions)
+    });
+    setDraftDocument({ title: "", type: "Document", content: "", questionCodesText: "" });
+    setFileStatus("");
+  }
+  async function attachFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setFileStatus("Lecture du fichier...");
+    try {
+      const nextDocument = await documentFromFile(file, draftDocument);
+      setDraftDocument((current) => ({ ...current, ...nextDocument }));
+      setFileStatus(canExtractFileText(file)
+        ? `Texte extrait depuis ${file.name}.`
+        : `${file.name} joint. Ajoutez ou verifiez le resume avant analyse.`);
+    } catch (error) {
+      setFileStatus(`Lecture impossible: ${error.message}`);
+    } finally {
+      event.target.value = "";
+    }
   }
   return (
     <div className="page app-page proofs-page">
@@ -1252,6 +1322,11 @@ function ProofsPage({ route, state, actions }) {
               </div>
             </div>
             <form className="document-form" onSubmit={submitDocument}>
+              <label className="wide upload-field">
+                Fichier preuve
+                <input type="file" onChange={attachFile} accept=".txt,.md,.csv,.json,.pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" />
+                <small>{fileStatus || "Ajoutez un fichier, ou collez simplement un resume de preuve."}</small>
+              </label>
               <label>
                 Nom du document
                 <input value={draftDocument.title} onChange={(event) => setDraftDocument((current) => ({ ...current, title: event.target.value }))} placeholder="Audit energie 2025" />
@@ -1265,7 +1340,13 @@ function ProofsPage({ route, state, actions }) {
                   <option>Politique</option>
                   <option>PV</option>
                   <option>Certificat</option>
+                  <option>PDF</option>
+                  <option>Photo</option>
                 </select>
+              </label>
+              <label className="wide">
+                Criteres lies optionnels
+                <input value={draftDocument.questionCodesText} onChange={(event) => setDraftDocument((current) => ({ ...current, questionCodesText: event.target.value }))} placeholder="Ex: E1, E2, S5" />
               </label>
               <label className="wide">
                 Contenu ou resume de la preuve
@@ -1282,7 +1363,10 @@ function ProofsPage({ route, state, actions }) {
             </div>
             <div className="document-chips">
               {state.documents.map((document) => (
-                <span key={document.id}>{document.type} - {document.title}</span>
+                <span key={document.id}>
+                  {document.type} - {document.title}
+                  {document.questionCodes?.length ? ` (${document.questionCodes.join(", ")})` : ""}
+                </span>
               ))}
               {!state.documents.length && <span>Ajoutez une preuve manuellement.</span>}
             </div>
@@ -1841,9 +1925,14 @@ function App() {
       id: `doc-${Date.now()}`,
       title: document.title?.trim() || "Document sans titre",
       type: document.type?.trim() || "Document",
-      content: document.content?.trim()
+      content: document.content?.trim(),
+      questionCodes: document.questionCodes || [],
+      fileName: document.fileName,
+      fileType: document.fileType,
+      fileSize: document.fileSize,
+      extractionStatus: document.extractionStatus || "manual"
     };
-    if (!cleanDocument.content) return;
+    if (!cleanDocument.content && !cleanDocument.fileName) return;
     setDocuments((current) => [cleanDocument, ...current]);
   }
 
