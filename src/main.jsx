@@ -208,6 +208,7 @@ const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "product
 const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const AUTH_REDIRECT_URL = import.meta.env.VITE_AUTH_REDIRECT_URL || window.location.origin;
 const supabaseAuth = SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
   ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: {
@@ -1681,6 +1682,10 @@ function App() {
 
     const { data } = supabaseAuth.auth.onAuthStateChange((_event, session) => {
       setAuthState({ loading: false, session, user: session?.user || null });
+      if (session && (window.location.hash.includes("access_token=") || window.location.hash.includes("type=signup"))) {
+        window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}#/onboarding`);
+        setRoute("/onboarding");
+      }
     });
 
     return () => {
@@ -1728,6 +1733,7 @@ function App() {
         email: nextProfile.email,
         password: nextProfile.password,
         options: {
+          emailRedirectTo: AUTH_REDIRECT_URL,
           data: {
             company_name: nextProfile.companyName,
             country: nextProfile.country,
