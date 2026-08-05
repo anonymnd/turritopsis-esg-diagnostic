@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: turritopsis-esg-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run api:hosted
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AI_API_BASE_URL
+        value: https://api.openai.com/v1
+      - key: AI_MODEL
+        value: gpt-4o-mini
+      - key: AI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
