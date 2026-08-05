@@ -5,13 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5174",
+    "dev:test": "vite --mode test --host 127.0.0.1 --port 5174",
     "start": "npm run api:hosted",
     "build": "vite build",
+    "build:test": "vite build --mode test",
+    "build:production": "vite build --mode production",
     "api:ollama": "node scripts/ollama-api.js",
     "api:hosted": "node scripts/hosted-api.js",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.0",
     "@vitejs/plugin-react": "^5.0.0",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",

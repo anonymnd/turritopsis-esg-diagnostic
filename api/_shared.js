@@ -41,6 +41,51 @@ export function supabaseConfig() {
   };
 }
 
+export function authRequired() {
+  return process.env.AUTH_REQUIRED !== "false";
+}
+
+function getBearerToken(req) {
+  const header = req.headers.authorization || req.headers.Authorization || "";
+  const match = /^Bearer\s+(.+)$/i.exec(header);
+  return match?.[1] || "";
+}
+
+export async function requireUser(req) {
+  if (!authRequired()) {
+    return { id: "test-user", email: "test@turritopsis.local", role: "test" };
+  }
+
+  const token = getBearerToken(req);
+  if (!token) {
+    const error = new Error("Authentication required.");
+    error.status = 401;
+    throw error;
+  }
+
+  const { url, key } = supabaseConfig();
+  if (!url || !key) {
+    const error = new Error("Authentication service is not configured.");
+    error.status = 500;
+    throw error;
+  }
+
+  const response = await fetch(`${url.replace(/\/$/, "")}/auth/v1/user`, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    const error = new Error("Invalid or expired session.");
+    error.status = 401;
+    throw error;
+  }
+
+  return response.json();
+}
+
 export function memoryGet(companyId) {
   return memoryStore.get(companyId) || null;
 }

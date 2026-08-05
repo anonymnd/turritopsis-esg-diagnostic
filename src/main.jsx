@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { createClient } from "@supabase/supabase-js";
 import {
   AlertTriangle,
   ArrowRight,
@@ -203,6 +204,19 @@ const turritopsisAssets = {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? "" : "http://127.0.0.1:3001");
 const AI_REVIEW_API = `${API_BASE_URL}/api/review-question`;
 const SNAPSHOT_API = `${API_BASE_URL}/api/snapshot`;
+const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "production" : "test");
+const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const supabaseAuth = SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        persistSession: true
+      }
+    })
+  : null;
 
 const sampleDocuments = [
   {
@@ -378,6 +392,31 @@ function proofReview(question, answer, documents = []) {
     risk,
     recommendation,
     audit: `Audit ${question.code}: score IA ${suggestedScore}, risque ${risk}, ${matchedDocuments.length} document(s) relie(s).`
+  };
+}
+
+function normalizeRemoteReview(question, answer, remoteReview, documents = []) {
+  const local = proofReview(question, answer, documents);
+  const suggestedScore = remoteReview?.suggestedScore === 1 || remoteReview?.suggestedScore === "1"
+    ? "1"
+    : remoteReview?.suggestedScore === 0.5 || remoteReview?.suggestedScore === "0.5"
+      ? "0.5"
+      : remoteReview?.suggestedScore === "NA"
+        ? "NA"
+        : "0";
+  const missing = remoteReview?.missingEvidence || remoteReview?.missing || local.missing;
+  const risk = remoteReview?.riskLevel || remoteReview?.risk || local.risk;
+
+  return {
+    ...local,
+    source: "Backend IA securise",
+    suggestedScore,
+    confidence: Number(remoteReview?.confidence || local.confidence),
+    summary: remoteReview?.summary || local.summary,
+    missing,
+    risk,
+    recommendation: remoteReview?.recommendation || auditRecommendation(question, missing, suggestedScore),
+    audit: remoteReview?.audit || `Audit ${question.code}: score IA ${suggestedScore}, risque ${risk}. ${(remoteReview?.auditQuestions || []).join(" ")}`
   };
 }
 
@@ -626,9 +665,23 @@ function PublicPage({ route, state }) {
   );
 }
 
-function AuthPage({ route, profile, setProfile }) {
+function AuthPage({ route, profile, setProfile, authActions, authState }) {
+  const [formStatus, setFormStatus] = useState({ type: "", message: "" });
+
   function update(field, value) {
     setProfile((current) => ({ ...current, [field]: value }));
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    setFormStatus({ type: "loading", message: "Creation du compte en cours..." });
+    try {
+      await authActions.signUp(profile);
+      setFormStatus({ type: "success", message: "Compte cree. Vous pouvez continuer le profil entreprise." });
+      window.location.hash = "/onboarding";
+    } catch (error) {
+      setFormStatus({ type: error.info ? "success" : "error", message: error.message });
+    }
   }
 
   return (
@@ -663,7 +716,7 @@ function AuthPage({ route, profile, setProfile }) {
             <div className="orbit-path" />
           </div>
         </section>
-        <section className="auth-panel enterprise-form">
+        <form className="auth-panel enterprise-form" onSubmit={submit}>
           <div className="auth-form-header">
             <span className="form-badge"><Lock size={15} /> Acces securise</span>
             <div>
@@ -675,11 +728,11 @@ function AuthPage({ route, profile, setProfile }) {
           <div className="auth-form-fields">
             <label>
               Nom de l'entreprise
-              <input value={profile.companyName} onChange={(event) => update("companyName", event.target.value)} placeholder="Ex: Atlas Green Foods" />
+              <input value={profile.companyName} onChange={(event) => update("companyName", event.target.value)} placeholder="Ex: Atlas Green Foods" required />
             </label>
             <label>
               Email professionnel
-              <input type="email" value={profile.email} onChange={(event) => update("email", event.target.value)} placeholder="contact@entreprise.com" />
+              <input type="email" value={profile.email} onChange={(event) => update("email", event.target.value)} placeholder="contact@entreprise.com" required />
             </label>
             <div className="form-grid">
               <label>
@@ -707,34 +760,52 @@ function AuthPage({ route, profile, setProfile }) {
             <label>
               Mot de passe
               <span className="password-field">
-                <input type="password" value={profile.password} onChange={(event) => update("password", event.target.value)} placeholder="********" />
+                <input type="password" value={profile.password} onChange={(event) => update("password", event.target.value)} placeholder="Minimum 8 caracteres" minLength={8} required />
                 <Eye size={18} />
               </span>
             </label>
           </div>
+          {formStatus.message && <p className={`auth-message ${formStatus.type}`}>{formStatus.message}</p>}
+          {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configure dans cet environnement.</p>}
           <p className="auth-form-note">
             <Info size={18} />
             Le profil legal, l'activite et l'annee de reporting seront completes juste apres.
           </p>
-          <a className="btn primary full" href="#/onboarding">
+          <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>
             Creer l'espace et continuer <ChevronRight size={18} />
-          </a>
+          </button>
           <a className="login-link" href="#/auth/login">
             <LogIn size={16} />
             J'ai deja un compte
           </a>
-        </section>
+        </form>
       </main>
     </div>
   );
 }
 
-function LoginPage({ route }) {
+function LoginPage({ route, authActions, authState, notice }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formStatus, setFormStatus] = useState({ type: notice ? "info" : "", message: notice || "" });
+
+  async function submit(event) {
+    event.preventDefault();
+    setFormStatus({ type: "loading", message: "Connexion en cours..." });
+    try {
+      await authActions.signIn(email, password);
+      setFormStatus({ type: "success", message: "Connexion reussie." });
+      window.location.hash = "/app";
+    } catch (error) {
+      setFormStatus({ type: "error", message: error.message });
+    }
+  }
+
   return (
     <div className="page auth-page compact">
       <TopNav route={route} />
       <main className="auth-layout login-layout">
-        <section className="auth-panel">
+        <form className="auth-panel" onSubmit={submit}>
           <div className="panel-title">
             <LogIn size={22} />
             <div>
@@ -744,14 +815,17 @@ function LoginPage({ route }) {
           </div>
           <label>
             Email
-            <input placeholder="contact@entreprise.com" />
+            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="contact@entreprise.com" required />
           </label>
           <label>
             Mot de passe
-            <input type="password" placeholder="********" />
+            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="********" required />
           </label>
-          <a className="btn primary full" href="#/app">Entrer</a>
-        </section>
+          {formStatus.message && <p className={`auth-message ${formStatus.type}`}>{formStatus.message}</p>}
+          {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configure dans cet environnement.</p>}
+          <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>Entrer</button>
+          <a className="login-link" href="#/auth/enterprise">Creer un compte entreprise</a>
+        </form>
       </main>
     </div>
   );
@@ -882,6 +956,10 @@ function EnterpriseSidebar({ route }) {
           {label}
         </a>
       ))}
+      <button className="sidebar-logout" type="button" onClick={() => supabaseAuth?.auth.signOut().then(() => { window.location.hash = "/auth/login"; })}>
+        <LogIn size={18} />
+        Deconnexion
+      </button>
     </aside>
   );
 }
@@ -987,10 +1065,12 @@ function QuestionnairePage({ route, state, actions }) {
               <h1>Questionnaire ESG guide.</h1>
               <p>Secteur {sectorMeta.code}: {sectorMeta.label}. Repondez simplement, puis ajoutez les preuves disponibles.</p>
             </div>
-            <button className="btn secondary" type="button" onClick={actions.fillTestProofs}>
-              <FileText size={18} />
-              Remplir test
-            </button>
+            {state.enableTestTools && (
+              <button className="btn secondary" type="button" onClick={actions.fillTestProofs}>
+                <FileText size={18} />
+                Remplir test
+              </button>
+            )}
           </div>
 
           <section className="sector-picker">
@@ -1155,7 +1235,7 @@ function ProofsPage({ route, state, actions }) {
                 <span>{state.aiStatus.message}</span>
               </div>
               <div className="document-actions">
-                <button className="btn secondary" type="button" onClick={actions.fillTestDocuments}>Documents test</button>
+                {state.enableTestTools && <button className="btn secondary" type="button" onClick={actions.fillTestDocuments}>Documents test</button>}
                 <button className="btn primary" type="button" onClick={actions.scanDocuments} disabled={!state.documents.length || state.aiStatus.status === "scanning"}>
                   <Bot size={18} />
                   {state.aiStatus.status === "scanning" ? "Scan en cours..." : "Scanner les documents"}
@@ -1195,7 +1275,7 @@ function ProofsPage({ route, state, actions }) {
               {state.documents.map((document) => (
                 <span key={document.id}>{document.type} - {document.title}</span>
               ))}
-              {!state.documents.length && <span>Ajoutez une preuve ou utilisez les documents test.</span>}
+              {!state.documents.length && <span>Ajoutez une preuve manuellement.</span>}
             </div>
           </section>
 
@@ -1530,6 +1610,33 @@ function createGlobalAnalysis(allQuestions, answers, reviews, reviewedGlobalScor
   };
 }
 
+function ProtectedRoute({ route, authState, authActions, children }) {
+  if (authState.loading) {
+    return (
+      <div className="page auth-page compact">
+        <TopNav route={route} />
+        <main className="auth-layout login-layout">
+          <section className="auth-panel">
+            <div className="panel-title">
+              <Lock size={22} />
+              <div>
+                <h2>Verification de la session</h2>
+                <p>Controle de l'acces securise en cours.</p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (!authState.session) {
+    return <LoginPage route="/auth/login" authActions={authActions} authState={authState} notice="Connectez-vous pour acceder a cet espace." />;
+  }
+
+  return children;
+}
+
 function App() {
   const [route, setRoute] = useState(() => window.location.hash.replace("#", "") || "/");
   const [sector, setSector] = useState("industry");
@@ -1539,25 +1646,47 @@ function App() {
   const [documents, setDocuments] = useState([]);
   const [aiStatus, setAiStatus] = useState({ status: "local", message: "Mode local pret. Lancez le serveur Ollama pour une vraie analyse LLM." });
   const [globalAnalysis, setGlobalAnalysis] = useState(emptyGlobalAnalysis);
-  const [profile, setProfile] = useState({
-    companyName: "Atlas Green Foods",
-    email: "contact@atlasgreen.ma",
+  const [authState, setAuthState] = useState({ loading: true, session: null, user: null });
+  const [profile, setProfile] = useState(() => ({
+    companyName: ENABLE_TEST_TOOLS ? "Atlas Green Foods" : "",
+    email: ENABLE_TEST_TOOLS ? "contact@atlasgreen.ma" : "",
     password: "",
     country: "Maroc",
     size: "51-250",
     sector: "industry",
-    legalName: "Atlas Green Foods SARL",
+    legalName: ENABLE_TEST_TOOLS ? "Atlas Green Foods SARL" : "",
     registration: "",
-    activity: "Transformation alimentaire",
+    activity: ENABLE_TEST_TOOLS ? "Transformation alimentaire" : "",
     year: "2026",
-    address: "Casablanca, Maroc",
+    address: ENABLE_TEST_TOOLS ? "Casablanca, Maroc" : "",
     proofReadiness: "Preuves partielles"
-  });
+  }));
 
   React.useEffect(() => {
     const onHash = () => setRoute(window.location.hash.replace("#", "") || "/");
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  React.useEffect(() => {
+    if (!supabaseAuth) {
+      setAuthState({ loading: false, session: null, user: null });
+      return undefined;
+    }
+
+    let mounted = true;
+    supabaseAuth.auth.getSession().then(({ data }) => {
+      if (mounted) setAuthState({ loading: false, session: data.session, user: data.session?.user || null });
+    });
+
+    const { data } = supabaseAuth.auth.onAuthStateChange((_event, session) => {
+      setAuthState({ loading: false, session, user: session?.user || null });
+    });
+
+    return () => {
+      mounted = false;
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   React.useEffect(() => {
@@ -1589,6 +1718,51 @@ function App() {
     return question.priority && (!answer.value || answer.value === "unknown" || answer.value === "0" || answer.value === "0.5");
   });
 
+  const authActions = {
+    async signUp(nextProfile) {
+      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configure.");
+      if (!nextProfile.email || !nextProfile.password) throw new Error("Email et mot de passe obligatoires.");
+      if (nextProfile.password.length < 8) throw new Error("Le mot de passe doit contenir au moins 8 caracteres.");
+
+      const { data, error } = await supabaseAuth.auth.signUp({
+        email: nextProfile.email,
+        password: nextProfile.password,
+        options: {
+          data: {
+            company_name: nextProfile.companyName,
+            country: nextProfile.country,
+            size: nextProfile.size,
+            sector: nextProfile.sector
+          }
+        }
+      });
+
+      if (error) throw error;
+      if (!data.session) {
+        const confirmation = new Error("Compte cree. Confirmez l'email si Supabase le demande, puis connectez-vous.");
+        confirmation.info = true;
+        window.location.hash = "/auth/login";
+        throw confirmation;
+      }
+    },
+    async signIn(email, password) {
+      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configure.");
+      const { error } = await supabaseAuth.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    },
+    async signOut() {
+      await supabaseAuth?.auth.signOut();
+      window.location.hash = "/auth/login";
+    }
+  };
+
+  function authHeaders(extraHeaders = {}) {
+    return {
+      ...extraHeaders,
+      ...(authState.session?.access_token ? { Authorization: `Bearer ${authState.session.access_token}` } : {})
+    };
+  }
+
   function updateAnswer(code, patch) {
     setAnswers((current) => ({ ...current, [code]: { ...emptyAnswer(), ...(current[code] || {}), ...patch } }));
   }
@@ -1600,15 +1774,22 @@ function App() {
     try {
       const response = await fetch(AI_REVIEW_API, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, answer, documents })
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          question,
+          selectedScore: answer.value,
+          proof: [answer.evidence, ...documentsForQuestion(question, documents).map((document) => `${document.title}: ${document.content}`)].filter(Boolean).join("\n"),
+          justification: answer.justification,
+          answer,
+          documents
+        })
       });
       const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(payload.error || "Ollama indisponible.");
-      setAiStatus({ status: "ollama", message: "Analyse realisee avec Ollama local." });
-      return payload.review;
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Analyse IA indisponible.");
+      setAiStatus({ status: "ollama", message: "Analyse realisee avec le backend securise." });
+      return normalizeRemoteReview(question, answer, payload.review, documents);
     } catch (error) {
-      setAiStatus({ status: "fallback", message: `Ollama indisponible: fallback local utilise. ${error.message}` });
+      setAiStatus({ status: "fallback", message: `Analyse IA indisponible: fallback local utilise. ${error.message}` });
       return proofReview(question, answer, documents);
     }
   }
@@ -1621,6 +1802,7 @@ function App() {
   }
 
   function fillTestProofs() {
+    if (!ENABLE_TEST_TOOLS) return;
     const nextAnswers = {};
     const nextReviews = {};
     allQuestions.forEach((question, index) => {
@@ -1646,6 +1828,7 @@ function App() {
   }
 
   function fillTestDocuments() {
+    if (!ENABLE_TEST_TOOLS) return;
     setDocuments(sampleDocuments);
     setGlobalAnalysis(emptyGlobalAnalysis());
   }
@@ -1751,7 +1934,7 @@ function App() {
     try {
       const response = await fetch(SNAPSHOT_API, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ company_id: companyId, data: snapshotData() })
       });
       const payload = await response.json();
@@ -1766,7 +1949,9 @@ function App() {
     const companyId = profile.companyName || "demo";
     setAiStatus({ status: "scanning", message: "Chargement du dossier en cours..." });
     try {
-      const response = await fetch(`${SNAPSHOT_API}?company_id=${encodeURIComponent(companyId)}`);
+      const response = await fetch(`${SNAPSHOT_API}?company_id=${encodeURIComponent(companyId)}`, {
+        headers: authHeaders()
+      });
       const payload = await response.json();
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Chargement impossible.");
       restoreSnapshot(payload.data);
@@ -1798,21 +1983,22 @@ function App() {
     reviewCompletion,
     priorityQuestions,
     globalAnalysis,
-    profile
+    profile,
+    enableTestTools: ENABLE_TEST_TOOLS
   };
   const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic };
 
-  if (route === "/auth/enterprise") return <AuthPage route={route} profile={profile} setProfile={setProfile} />;
-  if (route === "/auth/login") return <LoginPage route={route} />;
-  if (route === "/onboarding") return <OnboardingPage route={route} profile={profile} setProfile={setProfile} />;
-  if (route === "/app") return <DashboardPage route={route} state={state} actions={actions} />;
-  if (route === "/app/company-profile") return <CompanyProfilePage route={route} profile={profile} setProfile={setProfile} />;
-  if (route === "/app/questionnaire") return <QuestionnairePage route={route} state={state} actions={actions} />;
-  if (route === "/app/proofs") return <ProofsPage route={route} state={state} actions={actions} />;
-  if (route === "/app/analysis") return <AnalysisPage route={route} state={state} actions={actions} />;
-  if (route === "/app/report") return <ReportPage route={route} state={state} actions={actions} />;
-  if (route === "/review" || route === "/review/dossiers" || route.startsWith("/review/dossiers/")) return <ReviewerPage route={route} state={state} />;
-  if (route === "/admin/questionnaire") return <AdminQuestionnairePage route={route} state={state} />;
+  if (route === "/auth/enterprise") return <AuthPage route={route} profile={profile} setProfile={setProfile} authActions={authActions} authState={authState} />;
+  if (route === "/auth/login") return <LoginPage route={route} authActions={authActions} authState={authState} />;
+  if (route === "/onboarding") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><OnboardingPage route={route} profile={profile} setProfile={setProfile} /></ProtectedRoute>;
+  if (route === "/app") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><DashboardPage route={route} state={state} actions={actions} /></ProtectedRoute>;
+  if (route === "/app/company-profile") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><CompanyProfilePage route={route} profile={profile} setProfile={setProfile} /></ProtectedRoute>;
+  if (route === "/app/questionnaire") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><QuestionnairePage route={route} state={state} actions={actions} /></ProtectedRoute>;
+  if (route === "/app/proofs") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ProofsPage route={route} state={state} actions={actions} /></ProtectedRoute>;
+  if (route === "/app/analysis") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><AnalysisPage route={route} state={state} actions={actions} /></ProtectedRoute>;
+  if (route === "/app/report") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ReportPage route={route} state={state} actions={actions} /></ProtectedRoute>;
+  if (route === "/review" || route === "/review/dossiers" || route.startsWith("/review/dossiers/")) return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ReviewerPage route={route} state={state} /></ProtectedRoute>;
+  if (route === "/admin/questionnaire") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><AdminQuestionnairePage route={route} state={state} /></ProtectedRoute>;
   return <PublicPage route="/" state={state} />;
 }
 

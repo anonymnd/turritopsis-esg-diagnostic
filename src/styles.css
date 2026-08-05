@@ -2017,6 +2017,36 @@ textarea {
   color: var(--orange-strong);
 }
 
+.auth-message {
+  margin: 0;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.auth-message.error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
+}
+
+.auth-message.success {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.auth-message.loading,
+.auth-message.info {
+  background: #f8fafc;
+  border-color: #dbeafe;
+  color: #1f3b68;
+}
+
 textarea {
   min-height: 110px;
   resize: vertical;
@@ -2259,6 +2289,27 @@ textarea:focus {
   align-items: center;
   gap: 10px;
   font-weight: 850;
+}
+
+.sidebar-logout {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.sidebar-logout:hover {
+  border-color: rgba(245, 158, 46, 0.45);
+  color: var(--blue);
 }
 
 .side-nav a.active {

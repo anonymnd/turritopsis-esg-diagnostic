@@ -1,4 +1,4 @@
-import { aiConfig, handleOptions, readJson, sendJson } from "./_shared.js";
+import { aiConfig, handleOptions, readJson, requireUser, sendJson } from "./_shared.js";
 
 function fallbackReview(question, selectedScore, proof, justification) {
   const text = `${proof || ""} ${justification || ""}`.toLowerCase();
@@ -29,12 +29,21 @@ export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
 
+  try {
+    await requireUser(req);
+  } catch (error) {
+    return sendJson(res, error.status || 500, { ok: false, error: error.message });
+  }
+
   const body = await readJson(req);
-  const { question, selectedScore, proof, justification } = body;
+  const { question, selectedScore, proof, justification, answer, documents = [] } = body;
+  const effectiveScore = selectedScore ?? answer?.value;
+  const effectiveProof = proof ?? [answer?.evidence, ...documents.map((document) => `${document.title}: ${document.content}`)].filter(Boolean).join("\n");
+  const effectiveJustification = justification ?? answer?.justification;
   const ai = aiConfig();
 
   if (!ai.apiKey) {
-    return sendJson(res, 200, fallbackReview(question, selectedScore, proof, justification));
+    return sendJson(res, 200, { ok: true, review: fallbackReview(question, effectiveScore, effectiveProof, effectiveJustification) });
   }
 
   try {
@@ -44,9 +53,9 @@ export default async function handler(req, res) {
       "Scores autorises: 0, 0.5, 1. Pour NA ou incertain, sois prudent.",
       "",
       `Question: ${JSON.stringify(question)}`,
-      `Score declare: ${selectedScore}`,
-      `Preuve: ${proof || ""}`,
-      `Justification: ${justification || ""}`
+      `Score declare: ${effectiveScore}`,
+      `Preuve: ${effectiveProof || ""}`,
+      `Justification: ${effectiveJustification || ""}`
     ].join("\n");
 
     const response = await fetch(`${ai.baseUrl.replace(/\/$/, "")}/chat/completions`, {
@@ -67,11 +76,14 @@ export default async function handler(req, res) {
 
     const payload = await response.json();
     const content = payload.choices?.[0]?.message?.content || "{}";
-    return sendJson(res, 200, JSON.parse(content));
+    return sendJson(res, 200, { ok: true, review: JSON.parse(content) });
   } catch (error) {
     return sendJson(res, 200, {
-      ...fallbackReview(question, selectedScore, proof, justification),
-      summary: `Analyse IA indisponible, revue heuristique utilisee. Detail technique: ${error.message.slice(0, 120)}`
+      ok: true,
+      review: {
+        ...fallbackReview(question, effectiveScore, effectiveProof, effectiveJustification),
+        summary: `Analyse IA indisponible, revue heuristique utilisee. Detail technique: ${error.message.slice(0, 120)}`
+      }
     });
   }
 }
