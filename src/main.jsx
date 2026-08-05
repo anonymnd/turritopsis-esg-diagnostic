@@ -219,6 +219,14 @@ const supabaseAuth = SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
     })
   : null;
 
+function hasAuthCallbackHash() {
+  return window.location.hash.includes("access_token=") || window.location.hash.includes("type=signup");
+}
+
+function cleanAuthCallbackUrl() {
+  window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}#/onboarding`);
+}
+
 const sampleDocuments = [
   {
     id: "doc-energy-2025",
@@ -1677,13 +1685,19 @@ function App() {
 
     let mounted = true;
     supabaseAuth.auth.getSession().then(({ data }) => {
-      if (mounted) setAuthState({ loading: false, session: data.session, user: data.session?.user || null });
+      if (mounted) {
+        setAuthState({ loading: false, session: data.session, user: data.session?.user || null });
+        if (data.session && hasAuthCallbackHash()) {
+          cleanAuthCallbackUrl();
+          setRoute("/onboarding");
+        }
+      }
     });
 
     const { data } = supabaseAuth.auth.onAuthStateChange((_event, session) => {
       setAuthState({ loading: false, session, user: session?.user || null });
-      if (session && (window.location.hash.includes("access_token=") || window.location.hash.includes("type=signup"))) {
-        window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}#/onboarding`);
+      if (session && hasAuthCallbackHash()) {
+        cleanAuthCallbackUrl();
         setRoute("/onboarding");
       }
     });
