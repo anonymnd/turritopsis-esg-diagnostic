@@ -29,6 +29,7 @@ function makeAuditPrompt(question, selectedScore, proof, justification) {
   return [
     "Tu es un auditeur ESG pour PME. Analyse la reponse, la justification et la preuve.",
     "Retourne uniquement un JSON valide avec: suggestedScore, confidence, proofStrength, riskLevel, summary, auditQuestions, missingEvidence.",
+    "N'utilise pas Markdown. N'ajoute pas de bloc ```json. La reponse doit commencer par { et finir par }.",
     "Scores autorises: 0, 0.5, 1. Pour NA ou incertain, sois prudent.",
     "",
     `Question: ${JSON.stringify(question)}`,
@@ -36,6 +37,33 @@ function makeAuditPrompt(question, selectedScore, proof, justification) {
     `Preuve: ${proof || ""}`,
     `Justification: ${justification || ""}`
   ].join("\n");
+}
+
+function parseAiJson(content) {
+  const raw = String(content || "").trim();
+  const unfenced = raw
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+  const start = unfenced.indexOf("{");
+  const end = unfenced.lastIndexOf("}");
+  const jsonText = start >= 0 && end > start ? unfenced.slice(start, end + 1) : unfenced;
+  return JSON.parse(jsonText);
+}
+
+function normalizeAiReview(review) {
+  const confidence = Number(review.confidence || 0);
+  return {
+    ...review,
+    confidence: confidence > 0 && confidence <= 1 ? Math.round(confidence * 100) : confidence,
+    proofStrength: typeof review.proofStrength === "number"
+      ? review.proofStrength >= 0.75 ? "forte" : review.proofStrength >= 0.45 ? "moyenne" : "faible"
+      : review.proofStrength,
+    riskLevel: String(review.riskLevel || "")
+      .replace(/^low$/i, "faible")
+      .replace(/^medium$/i, "modere")
+      .replace(/^high$/i, "eleve")
+  };
 }
 
 async function callOpenAiCompatible(ai, prompt) {
@@ -108,13 +136,13 @@ export default async function handler(req, res) {
     const content = ai.provider === "ollama"
       ? await callOllama(ai, prompt)
       : await callOpenAiCompatible(ai, prompt);
-    return sendJson(res, 200, { ok: true, review: JSON.parse(content) });
+    return sendJson(res, 200, { ok: true, review: normalizeAiReview(parseAiJson(content)) });
   } catch (error) {
     return sendJson(res, 200, {
       ok: true,
       review: {
         ...fallbackReview(question, effectiveScore, effectiveProof, effectiveJustification),
-        summary: `Analyse IA indisponible, revue heuristique utilisee. Detail technique: ${error.message.slice(0, 120)}`
+        summary: `Analyse IA indisponible, revue heuristique utilisee. Detail technique: ${(error.message || "format de reponse IA illisible").slice(0, 120)}`
       }
     });
   }
