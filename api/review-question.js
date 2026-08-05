@@ -25,6 +25,62 @@ function fallbackReview(question, selectedScore, proof, justification) {
   };
 }
 
+function makeAuditPrompt(question, selectedScore, proof, justification) {
+  return [
+    "Tu es un auditeur ESG pour PME. Analyse la reponse, la justification et la preuve.",
+    "Retourne uniquement un JSON valide avec: suggestedScore, confidence, proofStrength, riskLevel, summary, auditQuestions, missingEvidence.",
+    "Scores autorises: 0, 0.5, 1. Pour NA ou incertain, sois prudent.",
+    "",
+    `Question: ${JSON.stringify(question)}`,
+    `Score declare: ${selectedScore}`,
+    `Preuve: ${proof || ""}`,
+    `Justification: ${justification || ""}`
+  ].join("\n");
+}
+
+async function callOpenAiCompatible(ai, prompt) {
+  const response = await fetch(`${ai.baseUrl.replace(/\/$/, "")}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${ai.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: ai.model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      response_format: { type: "json_object" }
+    })
+  });
+
+  if (!response.ok) throw new Error(await response.text());
+
+  const payload = await response.json();
+  return payload.choices?.[0]?.message?.content || "{}";
+}
+
+async function callOllama(ai, prompt) {
+  const response = await fetch(`${ai.baseUrl.replace(/\/$/, "")}/chat`, {
+    method: "POST",
+    headers: {
+      ...(ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {}),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: ai.model,
+      messages: [{ role: "user", content: prompt }],
+      stream: false,
+      format: "json",
+      options: { temperature: 0.2 }
+    })
+  });
+
+  if (!response.ok) throw new Error(await response.text());
+
+  const payload = await response.json();
+  return payload.message?.content || payload.response || "{}";
+}
+
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
@@ -41,41 +97,17 @@ export default async function handler(req, res) {
   const effectiveProof = proof ?? [answer?.evidence, ...documents.map((document) => `${document.title}: ${document.content}`)].filter(Boolean).join("\n");
   const effectiveJustification = justification ?? answer?.justification;
   const ai = aiConfig();
+  const localOllama = ai.provider === "ollama" && /^http:\/\/(127\.0\.0\.1|localhost)/.test(ai.baseUrl);
 
-  if (!ai.apiKey) {
+  if (!ai.apiKey && !localOllama) {
     return sendJson(res, 200, { ok: true, review: fallbackReview(question, effectiveScore, effectiveProof, effectiveJustification) });
   }
 
   try {
-    const prompt = [
-      "Tu es un auditeur ESG pour PME. Analyse la reponse, la justification et la preuve.",
-      "Retourne uniquement un JSON valide avec: suggestedScore, confidence, proofStrength, riskLevel, summary, auditQuestions, missingEvidence.",
-      "Scores autorises: 0, 0.5, 1. Pour NA ou incertain, sois prudent.",
-      "",
-      `Question: ${JSON.stringify(question)}`,
-      `Score declare: ${effectiveScore}`,
-      `Preuve: ${effectiveProof || ""}`,
-      `Justification: ${effectiveJustification || ""}`
-    ].join("\n");
-
-    const response = await fetch(`${ai.baseUrl.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${ai.apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: ai.model,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) throw new Error(await response.text());
-
-    const payload = await response.json();
-    const content = payload.choices?.[0]?.message?.content || "{}";
+    const prompt = makeAuditPrompt(question, effectiveScore, effectiveProof, effectiveJustification);
+    const content = ai.provider === "ollama"
+      ? await callOllama(ai, prompt)
+      : await callOpenAiCompatible(ai, prompt);
     return sendJson(res, 200, { ok: true, review: JSON.parse(content) });
   } catch (error) {
     return sendJson(res, 200, {

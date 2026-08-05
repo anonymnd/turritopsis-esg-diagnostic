@@ -27,10 +27,12 @@ export async function readJson(req) {
 }
 
 export function aiConfig() {
+  const baseUrl = process.env.AI_API_BASE_URL || "https://api.openai.com/v1";
   return {
-    baseUrl: process.env.AI_API_BASE_URL || "https://api.openai.com/v1",
+    provider: process.env.AI_PROVIDER || (baseUrl.includes("ollama.com") ? "ollama" : "openai"),
+    baseUrl,
     model: process.env.AI_MODEL || "gpt-4o-mini",
-    apiKey: process.env.AI_API_KEY
+    apiKey: process.env.AI_API_KEY || process.env.OLLAMA_API_KEY
   };
 }
 

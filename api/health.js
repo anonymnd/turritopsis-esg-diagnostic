@@ -5,11 +5,13 @@ export default function handler(req, res) {
 
   const ai = aiConfig();
   const supabase = supabaseConfig();
+  const localOllama = ai.provider === "ollama" && /^http:\/\/(127\.0\.0\.1|localhost)/.test(ai.baseUrl);
 
   sendJson(res, 200, {
     ok: true,
+    aiProvider: ai.provider,
     aiModel: ai.model,
-    aiConfigured: Boolean(ai.apiKey),
+    aiConfigured: Boolean(ai.apiKey || localOllama),
     databaseConfigured: Boolean(supabase.url && supabase.key)
   });
 }
