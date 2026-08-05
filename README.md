@@ -34,6 +34,8 @@ npm run api:ollama
 npm run api:hosted
 ```
 
+Le projet contient aussi des fonctions Vercel dans `api/`, pour deployer le frontend et le backend au meme endroit quand Render demande une carte bancaire.
+
 ## Build
 
 ```bash
@@ -43,10 +45,16 @@ npm run preview
 
 ## Deploiement
 
-Architecture cible:
+Architecture cible initiale:
 
 ```text
 Vercel frontend -> Render backend -> Supabase database -> Hosted AI API
+```
+
+Architecture gratuite utilisee si Render bloque sur la carte bancaire:
+
+```text
+Vercel frontend + API functions -> Supabase database -> Hosted AI API
 ```
 
 Voir:
@@ -59,6 +67,7 @@ Voir:
 - `src/main.jsx` - logique applicative, scoring, documents, analyse IA et routing.
 - `src/styles.css` - design system et styles.
 - `scripts/hosted-api.js` - backend deployable Render/Fly avec API IA compatible OpenAI et Supabase.
+- `api/` - backend serverless deployable sur Vercel.
 - `scripts/ollama-api.js` - backend local Ollama.
 - `supabase/schema.sql` - schema MVP de sauvegarde des dossiers.
 - `render.yaml` - configuration Render.

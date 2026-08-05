@@ -200,7 +200,7 @@ const turritopsisAssets = {
   governance: "https://turritopsis.org/wp-content/uploads/2025/11/Untitled-Facebook-Post-1170x725.png"
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:3001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? "" : "http://127.0.0.1:3001");
 const AI_REVIEW_API = `${API_BASE_URL}/api/review-question`;
 const SNAPSHOT_API = `${API_BASE_URL}/api/snapshot`;
 
