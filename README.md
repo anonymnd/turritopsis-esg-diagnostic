@@ -52,7 +52,7 @@ Avec `VITE_ENABLE_PAYMENTS=false`, l'application ne montre pas le bouton de paie
 
 ## Rôles
 
-Chaque compte a un rôle stocké dans `app_metadata.role` (jamais `user_metadata`, que le SDK client peut modifier lui-même). Une inscription via `/auth/enterprise` reçoit automatiquement `pme` (voir `api/finalize-signup.js`) ; c'est aussi la valeur par défaut si le rôle n'est pas encore défini.
+Chaque compte a un rôle stocké dans `app_metadata.role` (jamais `user_metadata`, que le SDK client peut modifier lui-même). Une inscription via `/auth/enterprise` reçoit automatiquement `pme` si aucun rôle n'existe encore (voir `api/finalize-signup.js`) ; c'est aussi la valeur par défaut si le rôle n'est pas encore défini.
 
 `/review*` exige `reviewer` ou `admin`. `/admin/questionnaire` exige `admin`. Il n'existe aucune inscription libre-service vers ces rôles : pour promouvoir un compte, dans Supabase → Authentication → Users → éditer l'utilisateur → `app_metadata` → ajouter `{"role": "reviewer"}` (ou `"admin"`).
 

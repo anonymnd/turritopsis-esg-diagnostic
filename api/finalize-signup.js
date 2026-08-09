@@ -19,6 +19,20 @@ export default async function handler(req, res) {
   if (!userId) return sendJson(res, 400, { ok: false, error: "userId manquant." });
 
   try {
+    const currentResponse = await fetch(`${url.replace(/\/$/, "")}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`
+      }
+    });
+    if (!currentResponse.ok) throw new Error(await currentResponse.text());
+
+    const currentUser = await currentResponse.json();
+    const currentMetadata = currentUser.app_metadata || {};
+    if (currentMetadata.role) {
+      return sendJson(res, 200, { ok: true, skipped: true });
+    }
+
     const response = await fetch(`${url.replace(/\/$/, "")}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
       method: "PUT",
       headers: {
@@ -26,7 +40,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ app_metadata: { role: "pme" } })
+      body: JSON.stringify({ app_metadata: { ...currentMetadata, role: "pme" } })
     });
     if (!response.ok) throw new Error(await response.text());
     return sendJson(res, 200, { ok: true });
