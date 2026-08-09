@@ -44,9 +44,9 @@ import "./styles.css";
 
 const sectors = [
   { id: "industry", label: "Industrie", description: "Production, transformation, maintenance", icon: Factory, code: "A" },
-  { id: "services", label: "Services", description: "Conseil, numerique, operations B2B", icon: Building2, code: "B" },
+  { id: "services", label: "Services", description: "Conseil, numérique, opérations B2B", icon: Building2, code: "B" },
   { id: "commerce", label: "Commerce", description: "Distribution, retail, logistique", icon: Store, code: "C" },
-  { id: "agri", label: "Agri / Agro", description: "Agriculture, agroalimentaire, filieres", icon: Sprout, code: "D" }
+  { id: "agri", label: "Agri / Agro", description: "Agriculture, agroalimentaire, filières", icon: Sprout, code: "D" }
 ];
 
 const pillars = [
@@ -58,26 +58,26 @@ const pillars = [
 const sharedQuestions = {
   E: [
     ["E1", "Management environnemental", "La PME a une politique environnementale, des objectifs et une revue annuelle.", "Politique environnementale, objectifs, rapport annuel, certificat ISO 14001"],
-    ["E2", "Efficacite energetique", "La PME mesure et reduit sa consommation d'energie.", "Factures energie, audit energetique, tableau kWh, plan de reduction", true],
-    ["E3", "Gestion des dechets", "La PME trie, suit et valorise ses dechets via des filieres documentees.", "Registre dechets, contrats de collecte, certificats de recyclage"],
-    ["E4", "Consommation d'eau", "La PME suit sa consommation d'eau et agit pour la reduire.", "Factures eau, tableau m3, plan d'economie, recyclage eaux usees"],
-    ["E5", "Emissions climat", "La PME identifie ses emissions et dispose d'un plan de reduction.", "Bilan GES, estimation CO2, plan climat, suivi annuel", true],
-    ["E6", "Sensibilisation environnementale", "Les equipes sont sensibilisees aux pratiques environnementales.", "Supports de formation, listes de presence, campagnes internes"]
+    ["E2", "Efficacité énergétique", "La PME mesure et réduit sa consommation d'énergie.", "Factures énergie, audit énergétique, tableau kWh, plan de réduction", true],
+    ["E3", "Gestion des déchets", "La PME trie, suit et valorise ses déchets via des filières documentées.", "Registre déchets, contrats de collecte, certificats de recyclage"],
+    ["E4", "Consommation d'eau", "La PME suit sa consommation d'eau et agit pour la réduire.", "Factures eau, tableau m3, plan d'économie, recyclage eaux usées"],
+    ["E5", "Émissions climat", "La PME identifie ses émissions et dispose d'un plan de réduction.", "Bilan GES, estimation CO2, plan climat, suivi annuel", true],
+    ["E6", "Sensibilisation environnementale", "Les équipes sont sensibilisées aux pratiques environnementales.", "Supports de formation, listes de présence, campagnes internes"]
   ],
   S: [
-    ["S1", "Formation et developpement", "La PME suit les competences et organise des formations.", "Plan de formation, attestations, heures par salarie"],
-    ["S2", "Conditions de travail", "La PME suit la qualite de vie au travail et corrige les irritants.", "Enquete interne, taux absenteisme, plan QVT, PV de reunion", true],
-    ["S3", "Diversite et inclusion", "La PME agit pour l'egalite, l'inclusion et la non-discrimination.", "Charte diversite, indicateurs, politique RH, actions inclusion"],
-    ["S4", "Sante et securite", "La PME identifie les risques et protege les collaborateurs.", "Document risques, formations securite, registre incidents, EPI"],
-    ["S5", "Dialogue social", "La PME maintient un dialogue structure avec les collaborateurs.", "PV de reunion, barometre social, canal de reclamation, accords", true],
-    ["S6", "Impact communautaire", "La PME cree un impact positif dans son territoire.", "Partenariats locaux, dons, achats locaux, rapport impact"]
+    ["S1", "Formation et développement", "La PME suit les compétences et organise des formations.", "Plan de formation, attestations, heures par salarié"],
+    ["S2", "Conditions de travail", "La PME suit la qualité de vie au travail et corrige les irritants.", "Enquête interne, taux absentéisme, plan QVT, PV de réunion", true],
+    ["S3", "Diversité et inclusion", "La PME agit pour l'égalité, l'inclusion et la non-discrimination.", "Charte diversité, indicateurs, politique RH, actions inclusion"],
+    ["S4", "Santé et sécurité", "La PME identifie les risques et protège les collaborateurs.", "Document risques, formations sécurité, registre incidents, EPI"],
+    ["S5", "Dialogue social", "La PME maintient un dialogue structuré avec les collaborateurs.", "PV de réunion, baromètre social, canal de réclamation, accords", true],
+    ["S6", "Impact communautaire", "La PME crée un impact positif dans son territoire.", "Partenariats locaux, dons, achats locaux, rapport impact"]
   ],
   G: [
-    ["G1", "Structure de gouvernance", "La PME clarifie les roles, responsabilites et decisions.", "Organigramme, delegations, PV de direction, comite", true],
-    ["G2", "Ethique et anti-corruption", "La PME formalise ses regles d'ethique et de prevention corruption.", "Code de conduite, politique cadeaux, formation, registre alertes", true],
+    ["G1", "Structure de gouvernance", "La PME clarifie les rôles, responsabilités et décisions.", "Organigramme, délégations, PV de direction, comité", true],
+    ["G2", "Éthique et anti-corruption", "La PME formalise ses règles d'éthique et de prévention corruption.", "Code de conduite, politique cadeaux, formation, registre alertes", true],
     ["G3", "Gestion des risques ESG", "La PME identifie et suit ses principaux risques ESG.", "Cartographie risques, plan mitigation, revue annuelle"],
-    ["G4", "Transparence", "La PME communique ses informations financieres et ESG de maniere claire.", "Rapport annuel, tableau ESG, communication investisseurs"],
-    ["G5", "Parties prenantes", "La PME identifie ses parties prenantes et collecte leurs attentes.", "Cartographie, consultations, enquete clients/fournisseurs"],
+    ["G4", "Transparence", "La PME communique ses informations financières et ESG de manière claire.", "Rapport annuel, tableau ESG, communication investisseurs"],
+    ["G5", "Parties prenantes", "La PME identifie ses parties prenantes et collecte leurs attentes.", "Cartographie, consultations, enquête clients/fournisseurs"],
     ["G6", "KPI et pilotage", "La PME suit ses indicateurs et ses plans d'action.", "Tableau de bord, objectifs, compte-rendu de revue"]
   ]
 };
@@ -85,95 +85,95 @@ const sharedQuestions = {
 const sectorQuestions = {
   industry: {
     E: [
-      ["E7", "Matieres premieres", "La PME optimise l'usage des matieres et reduit les pertes.", "Rendement matiere, taux rebut, registre consommation"],
-      ["E8", "Process industriel", "Les equipements critiques sont suivis pour reduire l'energie.", "Compteurs dedies, maintenance preventive, ISO 50001"],
-      ["E9", "Rejets industriels", "Les rejets atmospheriques ou liquides sont controles.", "Rapports analyse, autorisations, registre rejets"]
+      ["E7", "Matières premières", "La PME optimise l'usage des matières et réduit les pertes.", "Rendement matière, taux rebut, registre consommation"],
+      ["E8", "Process industriel", "Les équipements critiques sont suivis pour réduire l'énergie.", "Compteurs dédiés, maintenance préventive, ISO 50001"],
+      ["E9", "Rejets industriels", "Les rejets atmosphériques ou liquides sont contrôlés.", "Rapports analyse, autorisations, registre rejets"]
     ],
     S: [
-      ["S7", "Ergonomie", "La PME reduit la penibilite et les risques physiques.", "Etudes de postes, actions ergonomie, indicateurs TMS"],
+      ["S7", "Ergonomie", "La PME réduit la pénibilité et les risques physiques.", "Études de postes, actions ergonomie, indicateurs TMS"],
       ["S8", "Formation technique", "Les collaborateurs ont les habilitations techniques utiles.", "Certificats, habilitations, plan technique"],
-      ["S9", "Emploi local", "La PME soutient l'emploi local et l'insertion.", "Partenariats, alternance, donnees emploi local"]
+      ["S9", "Emploi local", "La PME soutient l'emploi local et l'insertion.", "Partenariats, alternance, données emploi local"]
     ],
     G: [
-      ["G7", "Conformite industrielle", "La PME suit les obligations propres au site industriel.", "Autorisations, registre conformite, veille reglementaire"],
-      ["G8", "Tracabilite", "Les lots, produits et matieres sont tracables.", "Registre lots, audits fournisseurs, systeme tracabilite"],
+      ["G7", "Conformité industrielle", "La PME suit les obligations propres au site industriel.", "Autorisations, registre conformité, veille réglementaire"],
+      ["G8", "Traçabilité", "Les lots, produits et matières sont traçables.", "Registre lots, audits fournisseurs, système traçabilité"],
       ["G9", "Certifications", "La PME maintient ses normes et certifications critiques.", "ISO 9001, ISO 14001, ISO 45001, audits"]
     ]
   },
   services: {
     E: [
-      ["E7", "Achats responsables", "La PME integre des criteres ESG dans ses achats.", "Charte fournisseurs, questionnaire RSE, labels"],
-      ["E8", "Numerique responsable", "La PME reduit l'impact de ses equipements et donnees.", "Politique IT, recyclage materiel, cloud responsable"],
-      ["E9", "Mobilite durable", "La PME reduit les emissions de deplacements.", "Plan mobilite, teletravail, suivi deplacements"]
+      ["E7", "Achats responsables", "La PME intègre des critères ESG dans ses achats.", "Charte fournisseurs, questionnaire RSE, labels"],
+      ["E8", "Numérique responsable", "La PME réduit l'impact de ses équipements et données.", "Politique IT, recyclage matériel, cloud responsable"],
+      ["E9", "Mobilité durable", "La PME réduit les émissions de déplacements.", "Plan mobilité, télétravail, suivi déplacements"]
     ],
     S: [
-      ["S7", "Satisfaction client", "La PME mesure et ameliore la satisfaction client.", "NPS, reclamations, taux resolution, enquete"],
-      ["S8", "Flexibilite et QVT", "La PME encadre le travail hybride et l'equilibre.", "Accord teletravail, charte QVT, enquete interne"],
-      ["S9", "Accessibilite", "Les services sont accessibles aux personnes vulnerables ou handicapees.", "Audit accessibilite, plan adaptation, formation"]
+      ["S7", "Satisfaction client", "La PME mesure et améliore la satisfaction client.", "NPS, réclamations, taux résolution, enquête"],
+      ["S8", "Flexibilité et QVT", "La PME encadre le travail hybride et l'équilibre.", "Accord télétravail, charte QVT, enquête interne"],
+      ["S9", "Accessibilité", "Les services sont accessibles aux personnes vulnérables ou handicapées.", "Audit accessibilité, plan adaptation, formation"]
     ],
     G: [
-      ["G7", "Protection donnees", "La PME protege les donnees clients et collaborateurs.", "Registre traitements, politique securite, DPO"],
-      ["G8", "Continuite d'activite", "La PME peut maintenir son activite en cas d'incident.", "PCA/PRA, tests annuels, procedures"],
-      ["G9", "Contrats clients", "Les contrats et engagements sont clairs et suivis.", "CGV, contrats, audit juridique, revision annuelle"]
+      ["G7", "Protection données", "La PME protège les données clients et collaborateurs.", "Registre traitements, politique sécurité, DPO"],
+      ["G8", "Continuité d'activité", "La PME peut maintenir son activité en cas d'incident.", "PCA/PRA, tests annuels, procédures"],
+      ["G9", "Contrats clients", "Les contrats et engagements sont clairs et suivis.", "CGV, contrats, audit juridique, révision annuelle"]
     ]
   },
   commerce: {
     E: [
       ["E7", "Assortiment responsable", "La PME favorise les produits responsables.", "Labels produits, politique achats verts, indicateurs"],
-      ["E8", "Transport", "La PME optimise sa logistique et ses livraisons.", "Taux remplissage, transporteurs, suivi emissions"],
-      ["E9", "Emballages", "La PME reduit et recycle ses emballages.", "Politique emballage, taux recyclable, eco-conception"]
+      ["E8", "Transport", "La PME optimise sa logistique et ses livraisons.", "Taux remplissage, transporteurs, suivi émissions"],
+      ["E9", "Emballages", "La PME réduit et recycle ses emballages.", "Politique emballage, taux recyclable, éco-conception"]
     ],
     S: [
-      ["S7", "Experience client", "La PME traite les reclamations et mesure l'experience.", "NPS, reclamations, delai resolution"],
-      ["S8", "Organisation du travail", "Les horaires et charges sont suivis equitablement.", "Planning, accords horaires, indicateurs turnover"],
-      ["S9", "Information consommateur", "La PME informe clairement les clients.", "Etiquettes, guides, labels, affichage transparent"]
+      ["S7", "Expérience client", "La PME traite les réclamations et mesure l'expérience.", "NPS, réclamations, délai résolution"],
+      ["S8", "Organisation du travail", "Les horaires et charges sont suivis équitablement.", "Planning, accords horaires, indicateurs turnover"],
+      ["S9", "Information consommateur", "La PME informe clairement les clients.", "Étiquettes, guides, labels, affichage transparent"]
     ],
     G: [
-      ["G7", "Tracabilite produits", "La PME connait l'origine des produits sensibles.", "Registre fournisseurs, audits, labels"],
-      ["G8", "Conformite commerciale", "La PME controle ses pratiques commerciales.", "Registre conformite, formations, controles internes"],
-      ["G9", "Donnees clients", "Les donnees clients sont protegees.", "Registre traitements, politique securite, consentements"]
+      ["G7", "Traçabilité produits", "La PME connaît l'origine des produits sensibles.", "Registre fournisseurs, audits, labels"],
+      ["G8", "Conformité commerciale", "La PME contrôle ses pratiques commerciales.", "Registre conformité, formations, contrôles internes"],
+      ["G9", "Données clients", "Les données clients sont protégées.", "Registre traitements, politique sécurité, consentements"]
     ]
   },
   agri: {
     E: [
       ["E7", "Eau et intrants", "La PME suit l'irrigation et les intrants.", "Registre irrigation, bilan intrants, labels"],
-      ["E8", "Sols et biodiversite", "La PME preserve les sols et la biodiversite.", "Diagnostic sols, plan biodiversite, certifications"],
-      ["E9", "Energie agricole", "La PME optimise l'energie des exploitations.", "Audit energie, solaire, plan reduction"]
+      ["E8", "Sols et biodiversité", "La PME préserve les sols et la biodiversité.", "Diagnostic sols, plan biodiversité, certifications"],
+      ["E9", "Énergie agricole", "La PME optimise l'énergie des exploitations.", "Audit énergie, solaire, plan réduction"]
     ],
     S: [
-      ["S7", "Travailleurs et producteurs", "Les conditions sont decentes pour producteurs et saisonniers.", "Contrats, audits sociaux, certifications"],
-      ["S8", "Securite agricole", "La PME previent les risques agricoles.", "EPI, formations, registre incidents"],
-      ["S9", "Formation agricole", "La PME developpe les competences agricoles.", "Programmes, partenariats, attestations"]
+      ["S7", "Travailleurs et producteurs", "Les conditions sont décentes pour producteurs et saisonniers.", "Contrats, audits sociaux, certifications"],
+      ["S8", "Sécurité agricole", "La PME prévient les risques agricoles.", "EPI, formations, registre incidents"],
+      ["S9", "Formation agricole", "La PME développe les compétences agricoles.", "Programmes, partenariats, attestations"]
     ],
     G: [
-      ["G7", "Tracabilite agricole", "La PME suit la tracabilite de la parcelle au client.", "Lots, certificats, systeme tracabilite"],
-      ["G8", "Certifications agricoles", "La PME maintient les certifications de filiere.", "Global GAP, AB, ONSSA, audits"],
-      ["G9", "Conformite filiere", "La PME suit les regles sanitaires et filiere.", "Registre ONSSA, controles, veille"]
+      ["G7", "Traçabilité agricole", "La PME suit la traçabilité de la parcelle au client.", "Lots, certificats, système traçabilité"],
+      ["G8", "Certifications agricoles", "La PME maintient les certifications de filière.", "Global GAP, AB, ONSSA, audits"],
+      ["G9", "Conformité filière", "La PME suit les règles sanitaires et filière.", "Registre ONSSA, contrôles, veille"]
     ]
   }
 };
 
 const scoreOptions = [
   { value: "0", label: "0", title: "Absent", detail: "Aucune pratique ou preuve." },
-  { value: "0.5", label: "0.5", title: "Partiel", detail: "Pratique lancee mais incomplete." },
-  { value: "1", label: "1", title: "Maitrise", detail: "Pratique suivie et prouvee." },
+  { value: "0.5", label: "0.5", title: "Partiel", detail: "Pratique lancée mais incomplète." },
+  { value: "1", label: "1", title: "Maîtrise", detail: "Pratique suivie et prouvée." },
   { value: "unknown", label: "?", title: "Incertain", detail: "Besoin d'aide pour se situer." },
-  { value: "NA", label: "NA", title: "Non applicable", detail: "Hors activite, avec justification." }
+  { value: "NA", label: "NA", title: "Non applicable", detail: "Hors activité, avec justification." }
 ];
 
 const maturityLevels = [
-  { min: 80, label: "ESG Leader", tone: "Excellent niveau de maturite et de preuve." },
-  { min: 60, label: "ESG Performant", tone: "Base solide avec quelques corrections ciblees." },
-  { min: 40, label: "ESG Structure", tone: "Organisation visible, preuves encore irregulieres." },
-  { min: 20, label: "ESG Initial", tone: "Demarrage engage, priorites essentielles a formaliser." },
-  { min: 0, label: "ESG Minimal", tone: "Point de depart clair pour construire la methode." }
+  { min: 80, label: "ESG Leader", tone: "Excellent niveau de maturité et de preuve." },
+  { min: 60, label: "ESG Performant", tone: "Base solide avec quelques corrections ciblées." },
+  { min: 40, label: "ESG Structuré", tone: "Organisation visible, preuves encore irrégulières." },
+  { min: 20, label: "ESG Initial", tone: "Démarrage engagé, priorités essentielles à formaliser." },
+  { min: 0, label: "ESG Minimal", tone: "Point de départ clair pour construire la méthode." }
 ];
 
 const publicStats = [
   {
     value: "27",
-    label: "criteres",
-    detail: "Un questionnaire adapte au secteur de la PME",
+    label: "critères",
+    detail: "Un questionnaire adapté au secteur de la PME",
     icon: Leaf,
     tone: "blue"
   },
@@ -186,8 +186,8 @@ const publicStats = [
   },
   {
     value: "IA",
-    label: "pre-revue",
-    detail: "Les preuves faibles sont signalees avant validation humaine",
+    label: "pré-revue",
+    detail: "Les preuves faibles sont signalées avant validation humaine",
     icon: Bot,
     tone: "orange"
   }
@@ -204,6 +204,8 @@ const turritopsisAssets = {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? "" : "http://127.0.0.1:3001");
 const AI_REVIEW_API = `${API_BASE_URL}/api/review-question`;
 const SNAPSHOT_API = `${API_BASE_URL}/api/snapshot`;
+const CERTIFICATE_STATUS_API = `${API_BASE_URL}/api/certificate-status`;
+const CHECKOUT_API = `${API_BASE_URL}/api/create-checkout-session`;
 const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "production" : "test");
 const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -230,45 +232,50 @@ function cleanAuthCallbackUrl() {
 const sampleDocuments = [
   {
     id: "doc-energy-2025",
-    title: "Audit energie 2025",
+    title: "Audit énergie 2025",
     type: "Audit",
-    content: "Audit energie 2025, factures energie mensuelles, tableau kWh par site, plan de reduction valide par la direction et suivi trimestriel des economies."
+    content: "Audit énergie 2025, factures énergie mensuelles, tableau kWh par site, plan de réduction validé par la direction et suivi trimestriel des économies."
   },
   {
     id: "doc-social-qvt",
     title: "PV social et conditions de travail",
     type: "PV",
-    content: "PV de reunion 2025, conditions de travail, registre incidents, indicateur absenteisme, dialogue social, action corrective RH et suivi trimestriel."
+    content: "PV de réunion 2025, conditions de travail, registre incidents, indicateur absentéisme, dialogue social, action corrective RH et suivi trimestriel."
   },
   {
     id: "doc-governance",
     title: "Dossier gouvernance",
     type: "Politique",
-    content: "Organigramme, structure de gouvernance, politique ethique anti-corruption, registre alertes, roles et responsabilites, revue annuelle de direction 2025."
+    content: "Organigramme, structure de gouvernance, politique éthique anti-corruption, registre alertes, rôles et responsabilités, revue annuelle de direction 2025."
   }
 ];
 
 const methodCards = [
   {
     title: "Choisir un niveau",
-    detail: "Absent, partiel, maitrise, incertain ou non applicable: la PME peut avancer meme si elle hesite.",
+    detail: "Absent, partiel, maîtrise, incertain ou non applicable : la PME peut avancer même si elle hésite.",
     icon: HelpCircle
   },
   {
     title: "Ajouter une preuve",
-    detail: "Document, indicateur, facture, audit, photo ou commentaire: le score doit etre justifie.",
+    detail: "Document, indicateur, facture, audit, photo ou commentaire : le score doit être justifié.",
     icon: Upload
   },
   {
     title: "Relire le dossier",
-    detail: "L'analyse aide a reperer les incoherences. Le reviewer garde la decision finale.",
+    detail: "L'analyse aide à repérer les incohérences. Le reviewer garde la décision finale.",
     icon: FileSearch
   }
 ];
 
 function normalizeQuestion(item, pillar, sector) {
   const [code, title, description, evidence, priority = false] = item;
-  return { code, title, description, evidence, priority, pillar, sector };
+  // `id` namespaces the answer/review/document state key by sector: E7-E9,
+  // S7-S9 and G7-G9 are reused codes with different content per sector, so
+  // indexing state by the bare `code` would silently carry an answer over
+  // to an unrelated question when the user switches sectors. `code` itself
+  // stays short (e.g. "E7") for display and for document-code matching.
+  return { id: `${sector}-${code}`, code, title, description, evidence, priority, pillar, sector };
 }
 
 function buildQuestions(sector) {
@@ -284,6 +291,11 @@ function buildQuestions(sector) {
 
 function getLevel(score) {
   return maturityLevels.find((level) => score >= level.min) || maturityLevels[maturityLevels.length - 1];
+}
+
+function formatDateFr(isoDate) {
+  if (!isoDate) return "";
+  return new Date(isoDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
 function emptyAnswer() {
@@ -322,9 +334,9 @@ function questionKeywords(question) {
 
 function documentMatchesPillar(question, content) {
   const signals = {
-    E: ["environnement", "energie", "energetique", "kwh", "eau", "dechets", "climat", "co2", "ges", "emissions", "emballage", "transport"],
-    S: ["social", "travail", "rh", "formation", "absenteisme", "securite", "sante", "diversite", "dialogue", "client", "qvt"],
-    G: ["gouvernance", "ethique", "corruption", "risque", "transparence", "organigramme", "conformite", "donnees", "registre", "roles"]
+    E: ["environnement", "énergie", "énergétique", "kwh", "eau", "déchets", "climat", "co2", "ges", "émissions", "emballage", "transport"],
+    S: ["social", "travail", "rh", "formation", "absentéisme", "sécurité", "santé", "diversité", "dialogue", "client", "qvt"],
+    G: ["gouvernance", "éthique", "corruption", "risque", "transparence", "organigramme", "conformité", "données", "registre", "rôles"]
   };
   return signals[question.pillar].some((signal) => content.includes(signal));
 }
@@ -352,10 +364,10 @@ function evidenceFromDocuments(question, documents) {
 }
 
 function auditRecommendation(question, missing, suggestedScore) {
-  if (suggestedScore === "1" && !missing.length) return "Pratique bien documentee. Le reviewer peut confirmer si le document est authentique et recent.";
-  if (suggestedScore === "0.5") return `Completer l'audit ${question.code} avec ${missing.slice(0, 2).join(" et ") || "une preuve plus directe"}.`;
-  if (suggestedScore === "NA") return "Verifier que la non-applicabilite est justifiee par le secteur, le perimetre ou l'activite.";
-  return `Audit ${question.code}: demander une preuve source, une date et un indicateur avant de valider le score.`;
+  if (suggestedScore === "1" && !missing.length) return "Pratique bien documentée. Le reviewer peut confirmer si le document est authentique et récent.";
+  if (suggestedScore === "0.5") return `Compléter l'audit ${question.code} avec ${missing.slice(0, 2).join(" et ") || "une preuve plus directe"}.`;
+  if (suggestedScore === "NA") return "Vérifier que la non-applicabilité est justifiée par le secteur, le périmètre ou l'activité.";
+  return `Audit ${question.code} : demander une preuve source, une date et un indicateur avant de valider le score.`;
 }
 
 function parseDocumentQuestionCodes(value, allQuestions = []) {
@@ -393,7 +405,7 @@ async function documentFromFile(file, currentDraft) {
   if (!canExtractFileText(file)) {
     return {
       ...baseDocument,
-      content: currentDraft.content || `Document joint: ${file.name} (${baseDocument.fileType}, ${readableFileSize(file.size)}). Ajoutez un resume manuel pour que l'IA puisse analyser le contenu.`,
+      content: currentDraft.content || `Document joint : ${file.name} (${baseDocument.fileType}, ${readableFileSize(file.size)}). Ajoutez un résumé manuel pour que l'IA puisse analyser le contenu.`,
       extractionStatus: "manual-summary-needed"
     };
   }
@@ -423,12 +435,12 @@ function proofReview(question, answer, documents = []) {
   const missing = [];
 
   if (!hasDoc) missing.push("type de document");
-  if (!hasMetric) missing.push("indicateur ou valeur mesuree");
-  if (!hasDate) missing.push("periode ou date");
-  if (matches < 2) missing.push("lien direct avec le critere");
+  if (!hasMetric) missing.push("indicateur ou valeur mesurée");
+  if (!hasDate) missing.push("période ou date");
+  if (matches < 2) missing.push("lien direct avec le critère");
   const matchedDocuments = documentsForQuestion(question, documents);
   const evidence = answer.evidence || documentEvidence;
-  const risk = suggestedScore === "1" ? "faible" : suggestedScore === "0.5" ? "modere" : suggestedScore === "NA" ? "a verifier" : "eleve";
+  const risk = suggestedScore === "1" ? "faible" : suggestedScore === "0.5" ? "modéré" : suggestedScore === "NA" ? "à vérifier" : "élevé";
   const recommendation = auditRecommendation(question, missing, suggestedScore);
 
   return {
@@ -438,18 +450,18 @@ function proofReview(question, answer, documents = []) {
     confidence: Math.min(94, 36 + signal * 10),
     summary:
       suggestedScore === "1"
-        ? "La preuve semble documentee, mesurable et coherente."
+        ? "La preuve semble documentée, mesurable et cohérente."
         : suggestedScore === "0.5"
           ? "La preuve contient des signaux utiles, mais reste partielle."
           : suggestedScore === "NA"
-            ? "Le critere est traite comme non applicable et doit rester justifie."
-            : "La preuve est trop faible pour soutenir une note elevee.",
+            ? "Le critère est traité comme non applicable et doit rester justifié."
+            : "La preuve est trop faible pour soutenir une note élevée.",
     missing,
     evidence,
     documents: matchedDocuments.map((document) => document.title),
     risk,
     recommendation,
-    audit: `Audit ${question.code}: score IA ${suggestedScore}, risque ${risk}, ${matchedDocuments.length} document(s) relie(s).`
+    audit: `Audit ${question.code} : score IA ${suggestedScore}, risque ${risk}, ${matchedDocuments.length} document(s) relié(s).`
   };
 }
 
@@ -467,22 +479,22 @@ function normalizeRemoteReview(question, answer, remoteReview, documents = []) {
 
   return {
     ...local,
-    source: "Backend IA securise",
+    source: "Backend IA sécurisé",
     suggestedScore,
     confidence: Number(remoteReview?.confidence || local.confidence),
     summary: remoteReview?.summary || local.summary,
     missing,
     risk,
     recommendation: remoteReview?.recommendation || auditRecommendation(question, missing, suggestedScore),
-    audit: remoteReview?.audit || `Audit ${question.code}: score IA ${suggestedScore}, risque ${risk}. ${(remoteReview?.auditQuestions || []).join(" ")}`
+    audit: remoteReview?.audit || `Audit ${question.code} : score IA ${suggestedScore}, risque ${risk}. ${(remoteReview?.auditQuestions || []).join(" ")}`
   };
 }
 
 function scorePillar(questions, answers, reviews, reviewed = false) {
   const values = questions.map((question) => {
-    const answer = answers[question.code] || emptyAnswer();
+    const answer = answers[question.id] || emptyAnswer();
     if (!reviewed || answer.value === "NA" || answer.value === "unknown") return answer.value;
-    const review = reviews[question.code] || emptyReview();
+    const review = reviews[question.id] || emptyReview();
     if (review.status !== "done" || review.evidence !== answer.evidence) return answer.value;
     return String(Math.min(Number(answer.value), Number(review.suggestedScore)));
   });
@@ -504,18 +516,18 @@ function scorePillar(questions, answers, reviews, reviewed = false) {
 function suggestedGuidance(question) {
   return [
     `Si ${question.code} est seulement une intention sans document, choisissez 0.`,
-    "Si une pratique existe mais sans suivi regulier, choisissez 0.5.",
-    "Si la pratique est formalisee, suivie et prouvee, choisissez 1."
+    "Si une pratique existe mais sans suivi régulier, choisissez 0.5.",
+    "Si la pratique est formalisée, suivie et prouvée, choisissez 1."
   ];
 }
 
 function makeTestEvidence(question) {
   const common = {
-    E: "Rapport interne 2025, tableau de bord mensuel, indicateur suivi par la direction et plan d'action valide.",
-    S: "PV de reunion 2025, registre RH, indicateur trimestriel et action corrective suivie par le responsable RH.",
-    G: "Politique approuvee en 2025, registre de controle, compte-rendu de direction et revue annuelle documentee."
+    E: "Rapport interne 2025, tableau de bord mensuel, indicateur suivi par la direction et plan d'action validé.",
+    S: "PV de réunion 2025, registre RH, indicateur trimestriel et action corrective suivie par le responsable RH.",
+    G: "Politique approuvée en 2025, registre de contrôle, compte-rendu de direction et revue annuelle documentée."
   };
-  return `${question.evidence}. ${common[question.pillar]} Exemple: ${question.code} suivi avec un objectif et une preuve disponible.`;
+  return `${question.evidence}. ${common[question.pillar]} Exemple : ${question.code} suivi avec un objectif et une preuve disponible.`;
 }
 
 function NavLink({ route, currentRoute, children }) {
@@ -602,7 +614,7 @@ function PublicPage({ route, state }) {
           <p className="eyebrow">Diagnostic ESG pour PME</p>
           <h1>Turritopsis ESG <span className="gradient-text">Diagnostic</span></h1>
           <p>
-            Un outil pour renseigner un profil entreprise, repondre aux criteres ESG, joindre les preuves et preparer
+            Un outil pour renseigner un profil entreprise, répondre aux critères ESG, joindre les preuves et préparer
             un rapport relisible.
           </p>
           <div className="hero-actions">
@@ -626,7 +638,7 @@ function PublicPage({ route, state }) {
           </div>
           <div className="floating-note note-b">
             <span>Parcours</span>
-            <strong>Niveaux expliques</strong>
+            <strong>Niveaux expliqués</strong>
             <small>Pour choisir sans jargon</small>
             <i />
           </div>
@@ -634,7 +646,7 @@ function PublicPage({ route, state }) {
             <strong>Rapport final</strong>
             <b>ESG</b>
             <em><span style={{ width: "72%" }} /></em>
-            <small>Pret a partager</small>
+            <small>Prêt à partager</small>
           </div>
           <div className="dot-grid" />
         </div>
@@ -647,10 +659,10 @@ function PublicPage({ route, state }) {
         <section className="overview-section" id="overview">
           <Reveal className="overview-heading">
             <p className="eyebrow overview-badge">Ce que l'app couvre</p>
-            <h2>Un diagnostic court, documente, relisible.</h2>
+            <h2>Un diagnostic court, documenté, relisible.</h2>
             <p>
-              L'objectif n'est pas de produire un score flatteur. L'objectif est de montrer ce qui est deja en place,
-              ce qui manque de preuve et ce qui doit etre ameliore en premier.
+              L'objectif n'est pas de produire un score flatteur. L'objectif est de montrer ce qui est déjà en place,
+              ce qui manque de preuve et ce qui doit être amélioré en premier.
             </p>
           </Reveal>
           <div className="metric-strip" aria-label="Indicateurs">
@@ -672,11 +684,11 @@ function PublicPage({ route, state }) {
 
         <section className="journey-section public-band band-dashboard">
           <Reveal className="journey-copy">
-            <p className="eyebrow">Resultat attendu</p>
+            <p className="eyebrow">Résultat attendu</p>
             <h2>Un score qui explique ses limites.</h2>
             <p>
-              Le rapport separe la note declaree, la note apres revue des preuves et les criteres qui demandent
-              encore une verification.
+              Le rapport sépare la note déclarée, la note après revue des preuves et les critères qui demandent
+              encore une vérification.
             </p>
           </Reveal>
           <Reveal className="score-story" delay={120}>
@@ -686,8 +698,8 @@ function PublicPage({ route, state }) {
             </div>
             <div className="score-note">
               <span>Exemple de rapport</span>
-              <h3>68/100 avec reserves</h3>
-              <p>La PME voit son niveau global, le detail E/S/G et les preuves qui influencent le resultat.</p>
+              <h3>68/100 avec réserves</h3>
+              <p>La PME voit son niveau global, le détail E/S/G et les preuves qui influencent le résultat.</p>
               <div className="pillar-mini" aria-label="Scores par pilier">
                 <div><b>Environnement</b><i><em style={{ width: "62%" }} /></i><strong>62</strong></div>
                 <div><b>Social</b><i><em style={{ width: "71%" }} /></i><strong>71</strong></div>
@@ -700,8 +712,8 @@ function PublicPage({ route, state }) {
         <section className="method-section public-band band-standards">
           <Reveal className="method-heading">
             <p className="eyebrow">Logique du questionnaire</p>
-            <h2>Quand une PME hesite, l'app l'aide a choisir.</h2>
-            <p>Chaque critere explique les niveaux possibles, accepte l'option incertain et demande une preuve adaptee.</p>
+            <h2>Quand une PME hésite, l'app l'aide à choisir.</h2>
+            <p>Chaque critère explique les niveaux possibles, accepte l'option incertain et demande une preuve adaptée.</p>
           </Reveal>
           <div className="method-grid">
             {methodCards.map((item, index) => {
@@ -732,10 +744,10 @@ function AuthPage({ route, profile, setProfile, authActions, authState }) {
 
   async function submit(event) {
     event.preventDefault();
-    setFormStatus({ type: "loading", message: "Creation du compte en cours..." });
+    setFormStatus({ type: "loading", message: "Création du compte en cours..." });
     try {
       await authActions.signUp(profile);
-      setFormStatus({ type: "success", message: "Compte cree. Vous pouvez continuer le profil entreprise." });
+      setFormStatus({ type: "success", message: "Compte créé. Vous pouvez continuer le profil entreprise." });
       window.location.hash = "/onboarding";
     } catch (error) {
       setFormStatus({ type: error.info ? "success" : "error", message: error.message });
@@ -751,12 +763,12 @@ function AuthPage({ route, profile, setProfile, authActions, authState }) {
             <img src={turritopsisAssets.mark} alt="Turritopsis" />
             <div>
               <strong>TURRITOPSIS</strong>
-              <span>Institut Strategique de Developpement Durable</span>
+              <span>Institut Stratégique de Développement Durable</span>
             </div>
           </div>
           <div className="auth-divider" aria-hidden="true" />
           <p className="auth-brand-intro">
-            Creez votre espace entreprise et avancez dans une demarche ESG fiable, structuree et reconnue.
+            Créez votre espace entreprise et avancez dans une démarche ESG fiable, structurée et reconnue.
           </p>
           <div className="auth-illustration" aria-hidden="true">
             <div className="earth-visual">
@@ -776,11 +788,11 @@ function AuthPage({ route, profile, setProfile, authActions, authState }) {
         </section>
         <form className="auth-panel enterprise-form" onSubmit={submit}>
           <div className="auth-form-header">
-            <span className="form-badge"><Lock size={15} /> Acces securise</span>
+            <span className="form-badge"><Lock size={15} /> Accès sécurisé</span>
             <div>
-              <span className="step-kicker">Etape 1 sur 2</span>
-              <h2>Creer l'espace entreprise</h2>
-              <p>Seulement les informations necessaires pour ouvrir le dossier.</p>
+              <span className="step-kicker">Étape 1 sur 2</span>
+              <h2>Créer l'espace entreprise</h2>
+              <p>Seulement les informations nécessaires pour ouvrir le dossier.</p>
             </div>
           </div>
           <div className="auth-form-fields">
@@ -818,23 +830,23 @@ function AuthPage({ route, profile, setProfile, authActions, authState }) {
             <label>
               Mot de passe
               <span className="password-field">
-                <input type="password" value={profile.password} onChange={(event) => update("password", event.target.value)} placeholder="Minimum 8 caracteres" minLength={8} required />
+                <input type="password" value={profile.password} onChange={(event) => update("password", event.target.value)} placeholder="Minimum 8 caractères" minLength={8} required />
                 <Eye size={18} />
               </span>
             </label>
           </div>
           {formStatus.message && <p className={`auth-message ${formStatus.type}`}>{formStatus.message}</p>}
-          {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configure dans cet environnement.</p>}
+          {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configuré dans cet environnement.</p>}
           <p className="auth-form-note">
             <Info size={18} />
-            Le profil legal, l'activite et l'annee de reporting seront completes juste apres.
+            Le profil légal, l'activité et l'année de reporting seront complétés juste après.
           </p>
           <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>
-            Creer l'espace et continuer <ChevronRight size={18} />
+            Créer l'espace et continuer <ChevronRight size={18} />
           </button>
           <a className="login-link" href="#/auth/login">
             <LogIn size={16} />
-            J'ai deja un compte
+            J'ai déjà un compte
           </a>
         </form>
       </main>
@@ -852,7 +864,7 @@ function LoginPage({ route, authActions, authState, notice }) {
     setFormStatus({ type: "loading", message: "Connexion en cours..." });
     try {
       await authActions.signIn(email, password);
-      setFormStatus({ type: "success", message: "Connexion reussie." });
+      setFormStatus({ type: "success", message: "Connexion réussie." });
       window.location.hash = "/app";
     } catch (error) {
       setFormStatus({ type: "error", message: error.message });
@@ -868,7 +880,7 @@ function LoginPage({ route, authActions, authState, notice }) {
             <LogIn size={22} />
             <div>
               <h2>Connexion</h2>
-              <p>Acces entreprise ou reviewer.</p>
+              <p>Accès entreprise ou reviewer.</p>
             </div>
           </div>
           <label>
@@ -880,9 +892,9 @@ function LoginPage({ route, authActions, authState, notice }) {
             <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="********" required />
           </label>
           {formStatus.message && <p className={`auth-message ${formStatus.type}`}>{formStatus.message}</p>}
-          {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configure dans cet environnement.</p>}
+          {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configuré dans cet environnement.</p>}
           <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>Entrer</button>
-          <a className="login-link" href="#/auth/enterprise">Creer un compte entreprise</a>
+          <a className="login-link" href="#/auth/enterprise">Créer un compte entreprise</a>
         </form>
       </main>
     </div>
@@ -904,7 +916,7 @@ function OnboardingPage({ route, profile, setProfile }) {
             <div>
               <p className="eyebrow">Profil entreprise</p>
               <h1>Finaliser le profil PME.</h1>
-              <p>Quelques informations suffisent pour adapter le questionnaire au secteur, a la taille et au niveau de preuves disponible.</p>
+              <p>Quelques informations suffisent pour adapter le questionnaire au secteur, à la taille et au niveau de preuves disponible.</p>
             </div>
           </section>
 
@@ -918,14 +930,14 @@ function OnboardingPage({ route, profile, setProfile }) {
             <article className="progress-panel onboarding-status-card">
               <ClipboardList size={22} />
               <span>Questionnaire</span>
-              <strong>Pret</strong>
-              <small>apres validation du profil</small>
+              <strong>Prêt</strong>
+              <small>après validation du profil</small>
             </article>
             <article className="progress-panel onboarding-status-card">
               <Upload size={22} />
               <span>Preuves</span>
               <strong>Plus tard</strong>
-              <small>ajoutees critere par critere</small>
+              <small>ajoutées critère par critère</small>
             </article>
           </section>
 
@@ -933,14 +945,14 @@ function OnboardingPage({ route, profile, setProfile }) {
             <article className="onboarding-form-card">
               <div className="card-heading onboarding-card-heading">
                 <div>
-                  <span>Etape 1</span>
+                  <span>Étape 1</span>
                   <h2>Informations de base</h2>
                 </div>
                 <small>Obligatoire avant le diagnostic</small>
               </div>
               <div className="profile-grid onboarding-profile-grid">
                 <label>
-                  Nom legal
+                  Nom légal
                   <input value={profile.legalName} onChange={(event) => update("legalName", event.target.value)} placeholder="Raison sociale" />
                 </label>
                 <label>
@@ -948,11 +960,11 @@ function OnboardingPage({ route, profile, setProfile }) {
                   <input value={profile.registration} onChange={(event) => update("registration", event.target.value)} placeholder="ICE, RC ou equivalent" />
                 </label>
                 <label>
-                  Activite principale
+                  Activité principale
                   <input value={profile.activity} onChange={(event) => update("activity", event.target.value)} placeholder="Transformation alimentaire" />
                 </label>
                 <label>
-                  Annee de reporting
+                  Année de reporting
                   <input value={profile.year} onChange={(event) => update("year", event.target.value)} placeholder="2026" />
                 </label>
                 <label className="wide">
@@ -960,30 +972,30 @@ function OnboardingPage({ route, profile, setProfile }) {
                   <input value={profile.address} onChange={(event) => update("address", event.target.value)} placeholder="Ville, pays" />
                 </label>
                 <label className="wide">
-                  Disponibilite des preuves
+                  Disponibilité des preuves
                   <select value={profile.proofReadiness} onChange={(event) => update("proofReadiness", event.target.value)}>
                     <option>Preuves disponibles</option>
                     <option>Preuves partielles</option>
-                    <option>Preuves a collecter</option>
+                    <option>Preuves à collecter</option>
                   </select>
                 </label>
               </div>
               <div className="onboarding-form-actions">
                 <a className="btn secondary" href="#/app">Voir dashboard</a>
-                <a className="btn primary" href="#/app/questionnaire">Acceder au questionnaire <ArrowRight size={18} /></a>
+                <a className="btn primary" href="#/app/questionnaire">Accéder au questionnaire <ArrowRight size={18} /></a>
               </div>
             </article>
 
             <aside className="onboarding-advisor">
               <h2>Avant de commencer</h2>
               <div className="onboarding-checklist">
-                <span><CheckCircle2 size={18} /> Identite de l'entreprise</span>
-                <span><CheckCircle2 size={18} /> Activite et annee de reporting</span>
+                <span><CheckCircle2 size={18} /> Identité de l'entreprise</span>
+                <span><CheckCircle2 size={18} /> Activité et année de reporting</span>
                 <span className="warning"><AlertTriangle size={18} /> Preuves ajoutables ensuite</span>
               </div>
               <div className="onboarding-tip">
                 <strong>Bon a savoir</strong>
-                <p>Le questionnaire expliquera chaque niveau quand l'entreprise ne sait pas encore ou se situer.</p>
+                <p>Le questionnaire expliquera chaque niveau quand l'entreprise ne sait pas encore où se situer.</p>
               </div>
             </aside>
           </section>
@@ -1016,7 +1028,7 @@ function EnterpriseSidebar({ route }) {
       ))}
       <button className="sidebar-logout" type="button" onClick={() => supabaseAuth?.auth.signOut().then(() => { window.location.hash = "/auth/login"; })}>
         <LogIn size={18} />
-        Deconnexion
+        Déconnexion
       </button>
     </aside>
   );
@@ -1035,8 +1047,32 @@ function DashboardPage({ route, state, actions }) {
               <p className="eyebrow">Dashboard PME</p>
               <h1>{state.profile.companyName || "Entreprise demo"}</h1>
               <p>{level.label} - {level.tone}</p>
+              {state.certificateStatus.active ? (
+                <span className="certificate-badge active">
+                  <ShieldCheck size={15} />
+                  {state.certificateStatus.certificate?.valid_until
+                    ? `Certificat valide jusqu'au ${formatDateFr(state.certificateStatus.certificate.valid_until)}`
+                    : "Certificat actif (mode test)"}
+                </span>
+              ) : (
+                <span className="certificate-badge inactive">
+                  <Lock size={15} />
+                  Aucun certificat actif
+                </span>
+              )}
             </div>
             <div className="cta-row compact">
+              {!state.certificateStatus.active && (
+                <button
+                  className="btn primary"
+                  type="button"
+                  onClick={actions.startCheckout}
+                  disabled={state.certificateStatus.status === "redirecting"}
+                >
+                  <Lock size={18} />
+                  {state.certificateStatus.status === "redirecting" ? "Redirection..." : "Payer et débloquer le score"}
+                </button>
+              )}
               <button className="btn secondary" type="button" onClick={actions.loadSnapshot}>Charger</button>
               <button className="btn primary" type="button" onClick={actions.saveSnapshot}>Sauvegarder</button>
             </div>
@@ -1086,15 +1122,15 @@ function DashboardPage({ route, state, actions }) {
               })}
             </div>
             <div className="next-actions">
-              <h2>Priorites</h2>
+              <h2>Priorités</h2>
               {state.priorityQuestions.slice(0, 5).map((question) => (
-                <a href="#/app/questionnaire" key={question.code}>
+                <a href="#/app/questionnaire" key={question.id}>
                   <span>{question.code}</span>
                   <strong>{question.title}</strong>
                   <ChevronRight size={18} />
                 </a>
               ))}
-              {!state.priorityQuestions.length && <p>Toutes les priorites universelles sont a un niveau satisfaisant.</p>}
+              {!state.priorityQuestions.length && <p>Toutes les priorités universelles sont à un niveau satisfaisant.</p>}
             </div>
           </section>
         </section>
@@ -1120,8 +1156,8 @@ function QuestionnairePage({ route, state, actions }) {
           <div className="workspace-heading rowed dashboard-heading questionnaire-heading">
             <div>
               <p className="eyebrow">Questionnaire PME</p>
-              <h1>Questionnaire ESG guide.</h1>
-              <p>Secteur {sectorMeta.code}: {sectorMeta.label}. Repondez simplement, puis ajoutez les preuves disponibles.</p>
+              <h1>Questionnaire ESG guidé.</h1>
+              <p>Secteur {sectorMeta.code} : {sectorMeta.label}. Répondez simplement, puis ajoutez les preuves disponibles.</p>
             </div>
             {state.enableTestTools && (
               <button className="btn secondary" type="button" onClick={actions.fillTestProofs}>
@@ -1160,7 +1196,7 @@ function QuestionnairePage({ route, state, actions }) {
 
             <div className="question-stack">
               {questions[activePillar].map((question) => (
-                <QuestionCard key={`${sector}-${question.code}`} question={question} answer={answers[question.code] || emptyAnswer()} review={reviews[question.code] || emptyReview()} actions={actions} pillarScore={pillarScores[activePillar]} />
+                <QuestionCard key={question.id} question={question} answer={answers[question.id] || emptyAnswer()} review={reviews[question.id] || emptyReview()} actions={actions} pillarScore={pillarScores[activePillar]} />
               ))}
             </div>
           </section>
@@ -1184,7 +1220,7 @@ function QuestionCard({ question, answer, review, actions, pillarScore }) {
           <h2>{question.title}</h2>
           <p>{question.description}</p>
         </div>
-        {question.priority && <b>Priorite</b>}
+        {question.priority && <b>Priorité</b>}
       </header>
 
       <div className="score-options">
@@ -1194,7 +1230,7 @@ function QuestionCard({ question, answer, review, actions, pillarScore }) {
             disabled={option.value === "NA" && naBlocked}
             key={option.value}
             type="button"
-            onClick={() => actions.updateAnswer(question.code, { value: option.value, guidance: option.value === "unknown" ? guidance.join("\n") : answer.guidance })}
+            onClick={() => actions.updateAnswer(question.id, { value: option.value, guidance: option.value === "unknown" ? guidance.join("\n") : answer.guidance })}
           >
             <strong>{option.label}</strong>
             <span>{option.title}</span>
@@ -1216,11 +1252,11 @@ function QuestionCard({ question, answer, review, actions, pillarScore }) {
       <div className="evidence-grid">
         <label>
           Preuves
-          <textarea value={answer.evidence} onChange={(event) => actions.updateAnswer(question.code, { evidence: event.target.value })} placeholder={question.evidence} />
+          <textarea value={answer.evidence} onChange={(event) => actions.updateAnswer(question.id, { evidence: event.target.value })} placeholder={question.evidence} />
         </label>
         <label>
           Justification
-          <textarea value={answer.justification} onChange={(event) => actions.updateAnswer(question.code, { justification: event.target.value })} placeholder="Decision, contexte, limite ou justification NA." />
+          <textarea value={answer.justification} onChange={(event) => actions.updateAnswer(question.id, { justification: event.target.value })} placeholder="Décision, contexte, limite ou justification NA." />
         </label>
       </div>
 
@@ -1229,7 +1265,7 @@ function QuestionCard({ question, answer, review, actions, pillarScore }) {
           <Bot size={18} />
           <strong>Analyse preuve</strong>
           {freshReview && <span>{review.source} - confiance {review.confidence}%</span>}
-          {staleReview && <span>A relancer</span>}
+          {staleReview && <span>À relancer</span>}
         </div>
         <button type="button" onClick={() => actions.reviewQuestion(question)}>
           <Sparkles size={16} />
@@ -1237,17 +1273,17 @@ function QuestionCard({ question, answer, review, actions, pillarScore }) {
         </button>
         {review.status === "done" && (
           <div className="review-body">
-            <strong>Score suggere: {review.suggestedScore}</strong>
+            <strong>Score suggéré : {review.suggestedScore}</strong>
             <p>{review.summary}</p>
             <div className="audit-meta">
-              <span>Risque: {review.risk || "a verifier"}</span>
-              <span>{review.documents.length ? `${review.documents.length} document(s) relie(s)` : "Aucun document relie"}</span>
+              <span>Risque : {review.risk || "à vérifier"}</span>
+              <span>{review.documents.length ? `${review.documents.length} document(s) relié(s)` : "Aucun document relié"}</span>
             </div>
             <p>{review.recommendation}</p>
-            {!!review.missing.length && <small>Manque: {review.missing.join(", ")}</small>}
+            {!!review.missing.length && <small>Manque : {review.missing.join(", ")}</small>}
           </div>
         )}
-        {review.status === "idle" && <p>Preuve non analysee.</p>}
+        {review.status === "idle" && <p>Preuve non analysée.</p>}
       </section>
     </article>
   );
@@ -1257,8 +1293,8 @@ function ProofsPage({ route, state, actions }) {
   const [draftDocument, setDraftDocument] = useState({ title: "", type: "Document", content: "", questionCodesText: "" });
   const [fileStatus, setFileStatus] = useState("");
   const proofRows = state.allQuestions.filter((question) => {
-    const answer = state.answers[question.code] || emptyAnswer();
-    const review = state.reviews[question.code] || emptyReview();
+    const answer = state.answers[question.id] || emptyAnswer();
+    const review = state.reviews[question.id] || emptyReview();
     return (answer.value && answer.value !== "NA") || review.status === "done";
   });
   function submitDocument(event) {
@@ -1279,9 +1315,9 @@ function ProofsPage({ route, state, actions }) {
       setDraftDocument((current) => ({ ...current, ...nextDocument }));
       setFileStatus(canExtractFileText(file)
         ? `Texte extrait depuis ${file.name}.`
-        : `${file.name} joint. Ajoutez ou verifiez le resume avant analyse.`);
+        : `${file.name} joint. Ajoutez ou vérifiez le résumé avant analyse.`);
     } catch (error) {
-      setFileStatus(`Lecture impossible: ${error.message}`);
+      setFileStatus(`Lecture impossible : ${error.message}`);
     } finally {
       event.target.value = "";
     }
@@ -1296,7 +1332,7 @@ function ProofsPage({ route, state, actions }) {
             <div>
               <p className="eyebrow">Preuves</p>
               <h1>Dossier documentaire.</h1>
-              <p>Les pieces justificatives seront regroupees ici apres les reponses au questionnaire.</p>
+              <p>Les pièces justificatives seront regroupées ici après les réponses au questionnaire.</p>
             </div>
             <button className="btn secondary" type="button" onClick={actions.reviewAllVisible} disabled={state.aiStatus.status === "scanning"}>
               <Sparkles size={18} />
@@ -1308,7 +1344,7 @@ function ProofsPage({ route, state, actions }) {
             <div className="document-scan-copy">
               <p className="eyebrow">Documents d'abord</p>
               <h2>Ajoutez les preuves, puis laissez l'IA proposer les scores.</h2>
-              <p>Le scan relie les documents aux criteres ESG, remplit les preuves trouvees et genere un mini-audit par pratique.</p>
+              <p>Le scan relie les documents aux critères ESG, remplit les preuves trouvées et génère un mini-audit par pratique.</p>
               <div className={`ai-status ${state.aiStatus.status}`}>
                 <Bot size={16} />
                 <span>{state.aiStatus.message}</span>
@@ -1325,11 +1361,11 @@ function ProofsPage({ route, state, actions }) {
               <label className="wide upload-field">
                 Fichier preuve
                 <input type="file" onChange={attachFile} accept=".txt,.md,.csv,.json,.pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" />
-                <small>{fileStatus || "Ajoutez un fichier, ou collez simplement un resume de preuve."}</small>
+                <small>{fileStatus || "Ajoutez un fichier, ou collez simplement un résumé de preuve."}</small>
               </label>
               <label>
                 Nom du document
-                <input value={draftDocument.title} onChange={(event) => setDraftDocument((current) => ({ ...current, title: event.target.value }))} placeholder="Audit energie 2025" />
+                <input value={draftDocument.title} onChange={(event) => setDraftDocument((current) => ({ ...current, title: event.target.value }))} placeholder="Audit énergie 2025" />
               </label>
               <label>
                 Type
@@ -1345,12 +1381,12 @@ function ProofsPage({ route, state, actions }) {
                 </select>
               </label>
               <label className="wide">
-                Criteres lies optionnels
+                Critères liés optionnels
                 <input value={draftDocument.questionCodesText} onChange={(event) => setDraftDocument((current) => ({ ...current, questionCodesText: event.target.value }))} placeholder="Ex: E1, E2, S5" />
               </label>
               <label className="wide">
-                Contenu ou resume de la preuve
-                <textarea value={draftDocument.content} onChange={(event) => setDraftDocument((current) => ({ ...current, content: event.target.value }))} placeholder="Collez ici le contenu utile: date, indicateur, responsable, resultat, action suivie..." />
+                Contenu ou résumé de la preuve
+                <textarea value={draftDocument.content} onChange={(event) => setDraftDocument((current) => ({ ...current, content: event.target.value }))} placeholder="Collez ici le contenu utile : date, indicateur, responsable, résultat, action suivie..." />
               </label>
               <button className="btn secondary" type="submit">Ajouter au dossier</button>
             </form>
@@ -1358,8 +1394,8 @@ function ProofsPage({ route, state, actions }) {
 
           <section className="document-library">
             <div>
-              <h2>Documents charges</h2>
-              <p>{state.documents.length ? `${state.documents.length} document(s) pret(s) pour le scan.` : "Aucun document ajoute pour le moment."}</p>
+              <h2>Documents chargés</h2>
+              <p>{state.documents.length ? `${state.documents.length} document(s) prêt(s) pour le scan.` : "Aucun document ajouté pour le moment."}</p>
             </div>
             <div className="document-chips">
               {state.documents.map((document) => (
@@ -1374,14 +1410,14 @@ function ProofsPage({ route, state, actions }) {
 
           <div className="proof-table">
             {proofRows.map((question) => {
-              const answer = state.answers[question.code] || emptyAnswer();
-              const review = state.reviews[question.code] || emptyReview();
+              const answer = state.answers[question.id] || emptyAnswer();
+              const review = state.reviews[question.id] || emptyReview();
               return (
-                <article key={question.code}>
+                <article key={question.id}>
                   <span>{question.code}</span>
                   <div>
                     <strong>{question.title}</strong>
-                    <p>{answer.evidence || review.evidence || "Aucune preuve renseignee."}</p>
+                    <p>{answer.evidence || review.evidence || "Aucune preuve renseignée."}</p>
                     {review.status === "done" && (
                       <small>{review.audit} {review.recommendation}</small>
                     )}
@@ -1394,8 +1430,8 @@ function ProofsPage({ route, state, actions }) {
               <section className="empty-proof-state">
                 <Upload size={24} />
                 <div>
-                  <h2>Aucune preuve a revoir pour le moment.</h2>
-                  <p>Commencez par noter quelques criteres dans le questionnaire. Les preuves ajoutees apparaitront ici avec leur statut de revue.</p>
+                  <h2>Aucune preuve à revoir pour le moment.</h2>
+                  <p>Commencez par noter quelques critères dans le questionnaire. Les preuves ajoutées apparaîtront ici avec leur statut de revue.</p>
                 </div>
                 <a className="btn primary" href="#/app/questionnaire">Ouvrir le questionnaire <ArrowRight size={18} /></a>
               </section>
@@ -1418,47 +1454,51 @@ function AnalysisPage({ route, state, actions }) {
             <div>
               <p className="eyebrow">Analyse IA</p>
               <h1>Analyse globale du dossier.</h1>
-              <p>Comparez le score declare, les preuves ajoutees et les points sensibles avant revue humaine.</p>
+              <p>Comparez le score déclaré, les preuves ajoutées et les points sensibles avant revue humaine.</p>
             </div>
-            <button className="btn primary" type="button" onClick={actions.runGlobalAnalysis}>
-              <Bot size={18} />
-              Analyser
-            </button>
+            {state.certificateStatus.active && (
+              <button className="btn primary" type="button" onClick={actions.runGlobalAnalysis}>
+                <Bot size={18} />
+                Analyser
+              </button>
+            )}
           </div>
-          <section className="analysis-layout">
-            <article className="analysis-score">
-              <div>
-                <span>Score declare</span>
-                <strong>{state.globalScore}</strong>
-              </div>
-              <div>
-                <span>Score revu</span>
-                <strong>{state.reviewedGlobalScore}</strong>
-              </div>
-            </article>
-            <article className={`analysis-result ${state.globalAnalysis.status}`}>
-              <div className="panel-title">
-                <Sparkles size={22} />
+          <PaywallGate certificateStatus={state.certificateStatus} actions={actions}>
+            <section className="analysis-layout">
+              <article className="analysis-score">
                 <div>
-                  <h2>{state.globalAnalysis.verdict || "Dossier en attente"}</h2>
-                  <p>{state.globalAnalysis.riskLevel ? `Risque ${state.globalAnalysis.riskLevel} - confiance ${state.globalAnalysis.confidence}%` : "Analyse non lancee."}</p>
-                </div>
-              </div>
-              <p>{state.globalAnalysis.executiveSummary || "Lancez l'analyse lorsque les reponses et preuves principales sont pretes."}</p>
-              <div className="analysis-columns">
-                <div>
-                  <h3>Forces</h3>
-                  <ul>{state.globalAnalysis.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+                  <span>Score déclaré</span>
+                  <strong>{state.globalScore}</strong>
                 </div>
                 <div>
-                  <h3>Risques</h3>
-                  <ul>{state.globalAnalysis.risks.map((item) => <li key={item}>{item}</li>)}</ul>
+                  <span>Score revu</span>
+                  <strong>{state.reviewedGlobalScore}</strong>
                 </div>
-              </div>
-              <h3>Roadmap</h3>
-              <ol>{state.globalAnalysis.roadmap.map((item) => <li key={item}>{item}</li>)}</ol>
-            </article>
-          </section>
+              </article>
+              <article className={`analysis-result ${state.globalAnalysis.status}`}>
+                <div className="panel-title">
+                  <Sparkles size={22} />
+                  <div>
+                    <h2>{state.globalAnalysis.verdict || "Dossier en attente"}</h2>
+                    <p>{state.globalAnalysis.riskLevel ? `Risque ${state.globalAnalysis.riskLevel} - confiance ${state.globalAnalysis.confidence}%` : "Analyse non lancée."}</p>
+                  </div>
+                </div>
+                <p>{state.globalAnalysis.executiveSummary || "Lancez l'analyse lorsque les réponses et preuves principales sont prêtes."}</p>
+                <div className="analysis-columns">
+                  <div>
+                    <h3>Forces</h3>
+                    <ul>{state.globalAnalysis.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+                  </div>
+                  <div>
+                    <h3>Risques</h3>
+                    <ul>{state.globalAnalysis.risks.map((item) => <li key={item}>{item}</li>)}</ul>
+                  </div>
+                </div>
+                <h3>Roadmap</h3>
+                <ol>{state.globalAnalysis.roadmap.map((item) => <li key={item}>{item}</li>)}</ol>
+              </article>
+            </section>
+          </PaywallGate>
         </section>
       </main>
     </div>
@@ -1467,6 +1507,7 @@ function AnalysisPage({ route, state, actions }) {
 
 function ReportPage({ route, state, actions }) {
   const level = getLevel(state.reviewedGlobalScore);
+  const unlocked = state.certificateStatus.active;
   return (
     <div className="page app-page report-page">
       <TopNav route={route} />
@@ -1476,44 +1517,51 @@ function ReportPage({ route, state, actions }) {
           <div className="workspace-heading rowed dashboard-heading report-heading">
             <div>
               <p className="eyebrow">Rapport ESG</p>
-              <h1>{level.label}</h1>
-              <p>{state.profile.companyName || "Entreprise demo"} - score revu {state.reviewedGlobalScore}/100.</p>
+              <h1>{unlocked ? level.label : "Certificat ESG"}</h1>
+              <p>
+                {state.profile.companyName || "Entreprise demo"}
+                {unlocked ? ` - score revu ${state.reviewedGlobalScore}/100.` : " - payez le diagnostic pour voir le score et le certificat."}
+              </p>
             </div>
-            <div className="cta-row compact">
-              <button className="btn secondary" type="button" onClick={actions.downloadReport}><Download size={18} /> TXT</button>
-              <button className="btn secondary" type="button" onClick={() => window.print()}><Printer size={18} /> Print</button>
-            </div>
-          </div>
-          <section className="report-sheet">
-            <div className="report-score-card">
-              <div className="report-score">
-                <div>
-                  <strong>{state.reviewedGlobalScore}</strong>
-                  <span>/100</span>
-                </div>
+            {unlocked && (
+              <div className="cta-row compact">
+                <button className="btn secondary" type="button" onClick={actions.downloadReport}><Download size={18} /> TXT</button>
+                <button className="btn secondary" type="button" onClick={() => window.print()}><Printer size={18} /> Print</button>
               </div>
-              <small>Score revu</small>
-            </div>
-            <div className="report-summary">
-              <h2>Synthese</h2>
-              <p>{state.globalAnalysis.executiveSummary || level.tone}</p>
-            </div>
-            <div className="pillar-chart printable">
-              {pillars.map((pillar) => {
-                const Icon = pillar.icon;
-                return (
-                  <article key={pillar.id}>
-                    <Icon size={20} />
-                    <div>
-                      <strong>{pillar.label}</strong>
-                      <div className="bar"><span style={{ width: `${state.reviewedScores[pillar.id]}%` }} /></div>
-                    </div>
-                    <b>{state.reviewedScores[pillar.id]}</b>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
+            )}
+          </div>
+          <PaywallGate certificateStatus={state.certificateStatus} actions={actions}>
+            <section className="report-sheet">
+              <div className="report-score-card">
+                <div className="report-score">
+                  <div>
+                    <strong>{state.reviewedGlobalScore}</strong>
+                    <span>/100</span>
+                  </div>
+                </div>
+                <small>Score revu</small>
+              </div>
+              <div className="report-summary">
+                <h2>Synthèse</h2>
+                <p>{state.globalAnalysis.executiveSummary || level.tone}</p>
+              </div>
+              <div className="pillar-chart printable">
+                {pillars.map((pillar) => {
+                  const Icon = pillar.icon;
+                  return (
+                    <article key={pillar.id}>
+                      <Icon size={20} />
+                      <div>
+                        <strong>{pillar.label}</strong>
+                        <div className="bar"><span style={{ width: `${state.reviewedScores[pillar.id]}%` }} /></div>
+                      </div>
+                      <b>{state.reviewedScores[pillar.id]}</b>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          </PaywallGate>
         </section>
       </main>
     </div>
@@ -1544,8 +1592,8 @@ function ReviewerSidebar({ route }) {
 
 function ReviewerPage({ route, state }) {
   const weakProofs = state.allQuestions.filter((question) => {
-    const answer = state.answers[question.code] || emptyAnswer();
-    const review = state.reviews[question.code] || emptyReview();
+    const answer = state.answers[question.id] || emptyAnswer();
+    const review = state.reviews[question.id] || emptyReview();
     return answer.value && answer.value !== "NA" && (review.status !== "done" || review.suggestedScore !== answer.value);
   });
   return (
@@ -1557,7 +1605,7 @@ function ReviewerPage({ route, state }) {
           <div className="workspace-heading dashboard-heading reviewer-heading">
             <p className="eyebrow">Workspace analyste</p>
             <h1>Validation des dossiers ESG.</h1>
-            <p>Vue operationnelle pour verifier les preuves, arbitrer les scores et preparer l'avis final.</p>
+            <p>Vue opérationnelle pour vérifier les preuves, arbitrer les scores et préparer l'avis final.</p>
           </div>
           <section className="review-grid">
             <article className="review-kpi">
@@ -1566,9 +1614,9 @@ function ReviewerPage({ route, state }) {
               <small>4 en revue</small>
             </article>
             <article className="review-kpi">
-              <span>Risque eleve</span>
+              <span>Risque élevé</span>
               <strong>{weakProofs.length}</strong>
-              <small>preuves a examiner</small>
+              <small>preuves à examiner</small>
             </article>
             <article className="review-kpi">
               <span>Score demo</span>
@@ -1591,12 +1639,12 @@ function ReviewerPage({ route, state }) {
             </div>
             <div className="evidence-review">
               <h2>{state.profile.companyName || "Atlas Green Foods"}</h2>
-              <p>Pieces prioritaires pour validation humaine.</p>
+              <p>Pièces prioritaires pour validation humaine.</p>
               {weakProofs.slice(0, 8).map((question) => {
-                const answer = state.answers[question.code] || emptyAnswer();
-                const review = state.reviews[question.code] || emptyReview();
+                const answer = state.answers[question.id] || emptyAnswer();
+                const review = state.reviews[question.id] || emptyReview();
                 return (
-                  <article key={question.code}>
+                  <article key={question.id}>
                     <span>{question.code}</span>
                     <div>
                       <strong>{question.title}</strong>
@@ -1610,8 +1658,8 @@ function ReviewerPage({ route, state }) {
                 <section className="review-empty-state">
                   <CheckCircle2 size={24} />
                   <div>
-                    <h3>Aucune preuve sensible a traiter.</h3>
-                    <p>Les preuves a arbitrer apparaitront ici quand le dossier contiendra des ecarts entre score declare et revue assistee.</p>
+                    <h3>Aucune preuve sensible à traiter.</h3>
+                    <p>Les preuves à arbitrer apparaîtront ici quand le dossier contiendra des écarts entre score déclaré et revue assistée.</p>
                   </div>
                 </section>
               )}
@@ -1637,7 +1685,7 @@ function AdminQuestionnairePage({ route, state }) {
           </div>
           <section className="admin-table">
             {state.allQuestions.map((question) => (
-              <article key={question.code}>
+              <article key={question.id}>
                 <span>{question.code}</span>
                 <strong>{question.title}</strong>
                 <p>{question.evidence}</p>
@@ -1665,45 +1713,49 @@ function emptyGlobalAnalysis() {
 }
 
 function createGlobalAnalysis(allQuestions, answers, reviews, reviewedGlobalScore, reviewedScores) {
-  const answered = allQuestions.filter((question) => answers[question.code]?.value);
-  const proofed = answered.filter((question) => answers[question.code]?.evidence || answers[question.code]?.value === "NA");
-  const reviewed = answered.filter((question) => reviews[question.code]?.status === "done");
+  const answered = allQuestions.filter((question) => answers[question.id]?.value);
+  const proofed = answered.filter((question) => answers[question.id]?.evidence || answers[question.id]?.value === "NA");
+  const reviewed = answered.filter((question) => reviews[question.id]?.status === "done");
   const weak = allQuestions.filter((question) => {
-    const answer = answers[question.code] || emptyAnswer();
-    const review = reviews[question.code] || emptyReview();
+    const answer = answers[question.id] || emptyAnswer();
+    const review = reviews[question.id] || emptyReview();
     return answer.value && answer.value !== "NA" && (answer.value === "0" || review.suggestedScore === "0");
   });
   const missingCritical = allQuestions.filter((question) => {
-    const answer = answers[question.code] || emptyAnswer();
+    const answer = answers[question.id] || emptyAnswer();
     return question.priority && (!answer.value || answer.value === "unknown" || answer.value === "0");
   });
-  const riskLevel = missingCritical.length > 2 || proofed.length < answered.length * 0.65 ? "eleve" : reviewedGlobalScore >= 60 ? "modere" : "important";
+  const riskLevel = missingCritical.length > 2 || proofed.length < answered.length * 0.65 ? "élevé" : reviewedGlobalScore >= 60 ? "modéré" : "important";
 
   return {
     status: "done",
-    verdict: reviewedGlobalScore >= 60 ? "Dossier exploitable avec reserves ciblees" : "Dossier a renforcer avant validation",
+    verdict: reviewedGlobalScore >= 60 ? "Dossier exploitable avec réserves ciblées" : "Dossier à renforcer avant validation",
     riskLevel,
     confidence: Math.min(94, 42 + reviewed.length * 2),
-    executiveSummary: `Le dossier obtient ${reviewedGlobalScore}/100 apres revue locale. Les piliers sont E ${reviewedScores.E}, S ${reviewedScores.S}, G ${reviewedScores.G}.`,
+    executiveSummary: `Le dossier obtient ${reviewedGlobalScore}/100 après revue locale. Les piliers sont E ${reviewedScores.E}, S ${reviewedScores.S}, G ${reviewedScores.G}.`,
     strengths: [
-      reviewedScores.E >= 60 ? "Pilotage environnemental visible." : "Premieres preuves environnementales identifiees.",
-      reviewedScores.S >= 60 ? "Socle social structure." : "Dialogue social et conditions de travail a consolider.",
-      reviewedScores.G >= 60 ? "Gouvernance documentee." : "Gouvernance a formaliser pour rassurer les reviewers."
+      reviewedScores.E >= 60 ? "Pilotage environnemental visible." : "Premières preuves environnementales identifiées.",
+      reviewedScores.S >= 60 ? "Socle social structuré." : "Dialogue social et conditions de travail à consolider.",
+      reviewedScores.G >= 60 ? "Gouvernance documentée." : "Gouvernance à formaliser pour rassurer les reviewers."
     ],
     risks: [
-      weak.length ? `${weak.length} criteres restent faibles ou peu prouves.` : "Peu de criteres faibles detectes.",
-      missingCritical.length ? `${missingCritical.length} priorites universelles demandent une attention immediate.` : "Priorites universelles globalement couvertes.",
-      proofed.length < answered.length ? "Certaines reponses manquent encore de preuve." : "Les reponses renseignees ont une preuve ou justification."
+      weak.length ? `${weak.length} critères restent faibles ou peu prouvés.` : "Peu de critères faibles détectés.",
+      missingCritical.length ? `${missingCritical.length} priorités universelles demandent une attention immédiate.` : "Priorités universelles globalement couvertes.",
+      proofed.length < answered.length ? "Certaines réponses manquent encore de preuve." : "Les réponses renseignées ont une preuve ou justification."
     ],
     roadmap: [
-      "Verifier les criteres universels E2, E5, S2, S5, G1 et G2.",
+      "Vérifier les critères universels E2, E5, S2, S5, G1 et G2.",
       "Ajouter dates, indicateurs et documents sources aux preuves faibles.",
-      "Soumettre le dossier au reviewer avec les pieces prioritaires."
+      "Soumettre le dossier au reviewer avec les pièces prioritaires."
     ]
   };
 }
 
 function ProtectedRoute({ route, authState, authActions, children }) {
+  if (ENABLE_TEST_TOOLS) {
+    return children;
+  }
+
   if (authState.loading) {
     return (
       <div className="page auth-page compact">
@@ -1713,8 +1765,8 @@ function ProtectedRoute({ route, authState, authActions, children }) {
             <div className="panel-title">
               <Lock size={22} />
               <div>
-                <h2>Verification de la session</h2>
-                <p>Controle de l'acces securise en cours.</p>
+                <h2>Vérification de la session</h2>
+                <p>Contrôle de l'accès sécurisé en cours.</p>
               </div>
             </div>
           </section>
@@ -1724,22 +1776,70 @@ function ProtectedRoute({ route, authState, authActions, children }) {
   }
 
   if (!authState.session) {
-    return <LoginPage route="/auth/login" authActions={authActions} authState={authState} notice="Connectez-vous pour acceder a cet espace." />;
+    return <LoginPage route="/auth/login" authActions={authActions} authState={authState} notice="Connectez-vous pour accéder à cet espace." />;
   }
 
   return children;
 }
 
+// Wraps the score-reveal / certificate parts of Analysis and Report -- the
+// questionnaire and proofs stay free to fill in, but the AI-reviewed score,
+// full analysis and certificate are what the one-time diagnostic fee pays
+// for. Active in test mode is set unconditionally by the certificateStatus
+// effect, so this needs no separate ENABLE_TEST_TOOLS check here.
+function PaywallGate({ certificateStatus, actions, children }) {
+  if (certificateStatus.active) return children;
+
+  const loading = certificateStatus.status === "loading" || certificateStatus.status === "idle";
+
+  return (
+    <section className="paywall-gate">
+      <Lock size={28} />
+      <h2>Débloquez votre score et votre certificat</h2>
+      <p>
+        Le score revu par IA, l'analyse complète et le certificat ESG (valable 12 mois) sont disponibles
+        après paiement du diagnostic.
+      </p>
+      {certificateStatus.error && <p className="auth-message error">{certificateStatus.error}</p>}
+      <button
+        className="btn primary"
+        type="button"
+        onClick={actions.startCheckout}
+        disabled={loading || certificateStatus.status === "redirecting"}
+      >
+        <Lock size={18} />
+        {certificateStatus.status === "redirecting" ? "Redirection vers le paiement..." : "Payer et débloquer"}
+      </button>
+    </section>
+  );
+}
+
+// The Stripe success_url points back at a hash route (this is a hash-router
+// SPA), so the checkout query string ends up appended after the "#" instead
+// of before it -- e.g. "#/app/report?checkout=success&session_id=...". Split
+// that out so `route` stays an exact path the existing `route === "/x"`
+// checks can match, while the checkout params are still readable.
+function parseHash(hash) {
+  const raw = hash.replace("#", "") || "/";
+  const [path, query] = raw.split("?");
+  return { path: path || "/", params: new URLSearchParams(query || "") };
+}
+
 function App() {
-  const [route, setRoute] = useState(() => window.location.hash.replace("#", "") || "/");
+  const [route, setRoute] = useState(() => parseHash(window.location.hash).path);
+  const [checkoutNotice, setCheckoutNotice] = useState(() => {
+    const { params } = parseHash(window.location.hash);
+    return params.get("checkout");
+  });
   const [sector, setSector] = useState("industry");
   const [activePillar, setActivePillar] = useState("E");
   const [answers, setAnswers] = useState({});
   const [reviews, setReviews] = useState({});
   const [documents, setDocuments] = useState([]);
-  const [aiStatus, setAiStatus] = useState({ status: "local", message: "Mode local pret. Lancez le serveur Ollama pour une vraie analyse LLM." });
+  const [aiStatus, setAiStatus] = useState({ status: "local", message: "Mode local prêt. Lancez le serveur Ollama pour une vraie analyse LLM." });
   const [globalAnalysis, setGlobalAnalysis] = useState(emptyGlobalAnalysis);
   const [authState, setAuthState] = useState({ loading: true, session: null, user: null });
+  const [certificateStatus, setCertificateStatus] = useState({ status: "idle", active: false, certificate: null });
   const [profile, setProfile] = useState(() => ({
     companyName: ENABLE_TEST_TOOLS ? "Atlas Green Foods" : "",
     email: ENABLE_TEST_TOOLS ? "contact@atlasgreen.ma" : "",
@@ -1756,7 +1856,12 @@ function App() {
   }));
 
   React.useEffect(() => {
-    const onHash = () => setRoute(window.location.hash.replace("#", "") || "/");
+    const onHash = () => {
+      const { path, params } = parseHash(window.location.hash);
+      setRoute(path);
+      const checkout = params.get("checkout");
+      if (checkout) setCheckoutNotice(checkout);
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
@@ -1793,6 +1898,57 @@ function App() {
   }, []);
 
   React.useEffect(() => {
+    if (ENABLE_TEST_TOOLS) {
+      setCertificateStatus({ status: "done", active: true, certificate: null });
+      return undefined;
+    }
+    if (authState.loading || !authState.session) return undefined;
+
+    let cancelled = false;
+    async function loadCertificateStatus() {
+      setCertificateStatus((current) => ({ ...current, status: "loading" }));
+      try {
+        const response = await fetch(CERTIFICATE_STATUS_API, {
+          headers: { Authorization: `Bearer ${authState.session.access_token}` }
+        });
+        const payload = await response.json();
+        if (cancelled) return;
+        if (!response.ok || !payload.ok) throw new Error(payload.error || "Statut du certificat indisponible.");
+        setCertificateStatus({ status: "done", active: payload.active, certificate: payload.certificate });
+      } catch (error) {
+        if (!cancelled) setCertificateStatus({ status: "error", active: false, certificate: null, error: error.message });
+      }
+    }
+
+    loadCertificateStatus();
+    // The Stripe webhook writes the certificate a moment after the browser
+    // is redirected back with ?checkout=success, so give it a couple of
+    // retries instead of showing "unpaid" right after a real payment.
+    const retry = checkoutNotice === "success" ? setTimeout(loadCertificateStatus, 3000) : null;
+    return () => {
+      cancelled = true;
+      if (retry) clearTimeout(retry);
+    };
+  }, [authState.loading, authState.session, checkoutNotice]);
+
+  async function startCheckout() {
+    if (ENABLE_TEST_TOOLS) return;
+    setCertificateStatus((current) => ({ ...current, status: "redirecting" }));
+    try {
+      const response = await fetch(CHECKOUT_API, {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ companyName: profile.companyName })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok || !payload.url) throw new Error(payload.error || "Paiement indisponible.");
+      window.location.href = payload.url;
+    } catch (error) {
+      setCertificateStatus((current) => ({ ...current, status: "done", error: error.message }));
+    }
+  }
+
+  React.useEffect(() => {
     if (profile.sector && profile.sector !== sector) setSector(profile.sector);
   }, [profile.sector]);
 
@@ -1810,14 +1966,14 @@ function App() {
   const reviewedScores = useMemo(() => Object.fromEntries(pillars.map((pillar) => [pillar.id, reviewedPillarScores[pillar.id].score])), [reviewedPillarScores]);
   const globalScore = Math.round((scores.E + scores.S + scores.G) / 3);
   const reviewedGlobalScore = Math.round((reviewedScores.E + reviewedScores.S + reviewedScores.G) / 3);
-  const answeredCount = allQuestions.filter((question) => answers[question.code]?.value).length;
-  const proofCount = allQuestions.filter((question) => answers[question.code]?.evidence || answers[question.code]?.value === "NA").length;
-  const reviewCount = allQuestions.filter((question) => reviews[question.code]?.status === "done").length;
+  const answeredCount = allQuestions.filter((question) => answers[question.id]?.value).length;
+  const proofCount = allQuestions.filter((question) => answers[question.id]?.evidence || answers[question.id]?.value === "NA").length;
+  const reviewCount = allQuestions.filter((question) => reviews[question.id]?.status === "done").length;
   const completion = Math.round((answeredCount / allQuestions.length) * 100);
   const proofCompletion = Math.round((proofCount / allQuestions.length) * 100);
   const reviewCompletion = Math.round((reviewCount / allQuestions.length) * 100);
   const priorityQuestions = allQuestions.filter((question) => {
-    const answer = answers[question.code] || emptyAnswer();
+    const answer = answers[question.id] || emptyAnswer();
     return question.priority && (!answer.value || answer.value === "unknown" || answer.value === "0" || answer.value === "0.5");
   });
 
@@ -1825,7 +1981,7 @@ function App() {
     async signUp(nextProfile) {
       if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configure.");
       if (!nextProfile.email || !nextProfile.password) throw new Error("Email et mot de passe obligatoires.");
-      if (nextProfile.password.length < 8) throw new Error("Le mot de passe doit contenir au moins 8 caracteres.");
+      if (nextProfile.password.length < 8) throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
 
       const { data, error } = await supabaseAuth.auth.signUp({
         email: nextProfile.email,
@@ -1843,7 +1999,7 @@ function App() {
 
       if (error) throw error;
       if (!data.session) {
-        const confirmation = new Error("Compte cree. Confirmez l'email si Supabase le demande, puis connectez-vous.");
+        const confirmation = new Error("Compte créé. Confirmez l'email si Supabase le demande, puis connectez-vous.");
         confirmation.info = true;
         window.location.hash = "/auth/login";
         throw confirmation;
@@ -1867,8 +2023,8 @@ function App() {
     };
   }
 
-  function updateAnswer(code, patch) {
-    setAnswers((current) => ({ ...current, [code]: { ...emptyAnswer(), ...(current[code] || {}), ...patch } }));
+  function updateAnswer(id, patch) {
+    setAnswers((current) => ({ ...current, [id]: { ...emptyAnswer(), ...(current[id] || {}), ...patch } }));
   }
 
   async function getAiReview(question, answer) {
@@ -1890,19 +2046,19 @@ function App() {
       });
       const payload = await response.json();
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Analyse IA indisponible.");
-      setAiStatus({ status: "ollama", message: "Analyse realisee avec le backend securise." });
+      setAiStatus({ status: "ollama", message: "Analyse réalisée avec le backend sécurisé." });
       return normalizeRemoteReview(question, answer, payload.review, documents);
     } catch (error) {
-      setAiStatus({ status: "fallback", message: `Analyse IA indisponible: fallback local utilise. ${error.message}` });
+      setAiStatus({ status: "fallback", message: `Analyse IA indisponible : fallback local utilisé. ${error.message}` });
       return proofReview(question, answer, documents);
     }
   }
 
   async function reviewQuestion(question) {
-    const answer = answers[question.code] || emptyAnswer();
+    const answer = answers[question.id] || emptyAnswer();
     setAiStatus({ status: "scanning", message: `Analyse IA de ${question.code} en cours...` });
     const review = await getAiReview(question, answer);
-    setReviews((current) => ({ ...current, [question.code]: review }));
+    setReviews((current) => ({ ...current, [question.id]: review }));
   }
 
   function fillTestProofs() {
@@ -1911,9 +2067,9 @@ function App() {
     const nextReviews = {};
     allQuestions.forEach((question, index) => {
       const value = question.priority ? "1" : index % 5 === 0 ? "0.5" : "1";
-      const answer = { value, evidence: makeTestEvidence(question), justification: question.priority ? "Critere prioritaire suivi." : "Preuve demo pour test.", guidance: "" };
-      nextAnswers[question.code] = answer;
-      nextReviews[question.code] = proofReview(question, answer, documents);
+      const answer = { value, evidence: makeTestEvidence(question), justification: question.priority ? "Critère prioritaire suivi." : "Preuve demo pour test.", guidance: "" };
+      nextAnswers[question.id] = answer;
+      nextReviews[question.id] = proofReview(question, answer, documents);
     });
     setAnswers(nextAnswers);
     setReviews(nextReviews);
@@ -1947,15 +2103,15 @@ function App() {
     const nextAnswers = { ...answers };
     const nextReviews = {};
     for (const question of allQuestions) {
-      const currentAnswer = { ...emptyAnswer(), ...(nextAnswers[question.code] || {}) };
+      const currentAnswer = { ...emptyAnswer(), ...(nextAnswers[question.id] || {}) };
       const review = await getAiReview(question, currentAnswer);
       const shouldUseAiScore = !currentAnswer.value || currentAnswer.value === "unknown";
-      nextReviews[question.code] = review;
-      nextAnswers[question.code] = {
+      nextReviews[question.id] = review;
+      nextAnswers[question.id] = {
         ...currentAnswer,
         value: shouldUseAiScore ? review.suggestedScore : currentAnswer.value,
         evidence: currentAnswer.evidence || review.evidence,
-        justification: currentAnswer.justification || `Score propose par scan IA local. ${review.recommendation}`,
+        justification: currentAnswer.justification || `Score proposé par scan IA local. ${review.recommendation}`,
         guidance: currentAnswer.guidance
       };
     }
@@ -1965,10 +2121,10 @@ function App() {
   }
 
   async function reviewAllVisible() {
-    setAiStatus({ status: "scanning", message: "Analyse des preuves renseignees en cours..." });
+    setAiStatus({ status: "scanning", message: "Analyse des preuves renseignées en cours..." });
     const nextReviews = { ...reviews };
     for (const question of allQuestions) {
-      if (answers[question.code]?.value) nextReviews[question.code] = await getAiReview(question, answers[question.code]);
+      if (answers[question.id]?.value) nextReviews[question.id] = await getAiReview(question, answers[question.id]);
     }
     setReviews(nextReviews);
   }
@@ -1977,8 +2133,8 @@ function App() {
     setAiStatus({ status: "scanning", message: "Analyse globale en cours..." });
     const nextReviews = { ...reviews };
     for (const question of allQuestions) {
-      if (answers[question.code]?.value && nextReviews[question.code]?.status !== "done") {
-        nextReviews[question.code] = await getAiReview(question, answers[question.code]);
+      if (answers[question.id]?.value && nextReviews[question.id]?.status !== "done") {
+        nextReviews[question.id] = await getAiReview(question, answers[question.id]);
       }
     }
     setReviews(nextReviews);
@@ -1988,14 +2144,14 @@ function App() {
   function downloadReport() {
     const rows = [
       "Turritopsis ESG Diagnostic",
-      `Entreprise: ${profile.companyName}`,
-      `Score declare: ${globalScore}/100`,
-      `Score revu: ${reviewedGlobalScore}/100`,
+      `Entreprise : ${profile.companyName}`,
+      `Score déclaré : ${globalScore}/100`,
+      `Score revu : ${reviewedGlobalScore}/100`,
       "",
       ...allQuestions.map((question) => {
-        const answer = answers[question.code] || emptyAnswer();
-        const review = reviews[question.code] || emptyReview();
-        return `${question.code} ${question.title}: ${answer.value || "non repondu"} | IA ${review.suggestedScore || "non revue"} | ${answer.evidence || "sans preuve"}`;
+        const answer = answers[question.id] || emptyAnswer();
+        const review = reviews[question.id] || emptyReview();
+        return `${question.code} ${question.title} : ${answer.value || "non répondu"} | IA ${review.suggestedScore || "non revue"} | ${answer.evidence || "sans preuve"}`;
       })
     ];
     const blob = new Blob([rows.join("\n")], { type: "text/plain;charset=utf-8" });
@@ -2093,9 +2249,10 @@ function App() {
     priorityQuestions,
     globalAnalysis,
     profile,
-    enableTestTools: ENABLE_TEST_TOOLS
+    enableTestTools: ENABLE_TEST_TOOLS,
+    certificateStatus
   };
-  const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic };
+  const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic, startCheckout };
 
   if (route === "/auth/enterprise") return <AuthPage route={route} profile={profile} setProfile={setProfile} authActions={authActions} authState={authState} />;
   if (route === "/auth/login") return <LoginPage route={route} authActions={authActions} authState={authState} />;

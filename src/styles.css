@@ -3073,6 +3073,67 @@ textarea:focus {
   margin-bottom: 0;
 }
 
+.paywall-gate {
+  min-height: 280px;
+  border: 1px solid rgba(245, 158, 46, 0.34);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(245, 158, 46, 0.12), transparent 18rem),
+    #fff;
+  padding: 40px 34px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.paywall-gate > svg {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  background: var(--orange-soft);
+  color: var(--orange-strong);
+  padding: 14px;
+  margin-bottom: 6px;
+}
+
+.paywall-gate h2 {
+  margin-bottom: 0;
+  font-size: 1.55rem;
+  font-weight: 720;
+}
+
+.paywall-gate p {
+  max-width: 480px;
+  margin: 0 0 8px;
+}
+
+.paywall-gate .btn {
+  margin-top: 6px;
+}
+
+.certificate-badge {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.certificate-badge.active {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.certificate-badge.inactive {
+  background: var(--orange-soft);
+  color: var(--orange-strong);
+}
+
 .analysis-heading,
 .report-heading {
   margin-bottom: 18px;

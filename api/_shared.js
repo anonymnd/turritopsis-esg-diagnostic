@@ -97,6 +97,67 @@ export function memorySet(companyId, data) {
   return data;
 }
 
+export function stripeConfig() {
+  return {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    priceCents: Number(process.env.DIAGNOSTIC_PRICE_CENTS || 0),
+    currency: (process.env.DIAGNOSTIC_CURRENCY || "mad").toLowerCase(),
+    successUrl: process.env.STRIPE_SUCCESS_URL,
+    cancelUrl: process.env.STRIPE_CANCEL_URL
+  };
+}
+
+function flattenStripeParams(obj, prefix, params) {
+  for (const [key, value] of Object.entries(obj)) {
+    const paramKey = prefix ? `${prefix}[${key}]` : key;
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => {
+        const arrayKey = `${paramKey}[${index}]`;
+        if (item && typeof item === "object") flattenStripeParams(item, arrayKey, params);
+        else params.append(arrayKey, item);
+      });
+    } else if (value && typeof value === "object") {
+      flattenStripeParams(value, paramKey, params);
+    } else if (value !== undefined && value !== null) {
+      params.append(paramKey, value);
+    }
+  }
+}
+
+// Stripe's REST API takes classic form-encoded params (not JSON), including
+// for nested objects like line_items[0][price_data][unit_amount]. Using
+// fetch directly here (rather than the stripe npm SDK) keeps the backend's
+// existing dependency-free style, same as the Supabase/AI calls above.
+export async function stripeRequest(path, body) {
+  const { secretKey } = stripeConfig();
+  if (!secretKey) {
+    const error = new Error("Stripe n'est pas configuré sur cet environnement.");
+    error.status = 500;
+    throw error;
+  }
+
+  const params = new URLSearchParams();
+  flattenStripeParams(body, "", params);
+
+  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: params.toString()
+  });
+
+  const payload = await response.json();
+  if (!response.ok) {
+    const error = new Error(payload.error?.message || "La requête Stripe a échoué.");
+    error.status = response.status;
+    throw error;
+  }
+  return payload;
+}
+
 export async function supabaseRequest(path, options = {}) {
   const { url, key } = supabaseConfig();
   if (!url || !key) return null;

@@ -10,16 +10,16 @@ function fallbackReview(question, selectedScore, proof, justification) {
     suggestedScore: signalCount >= 2 ? declared : Math.min(declared, 0.5),
     confidence: signalCount >= 2 ? 74 : 48,
     proofStrength: signalCount >= 2 ? "moyenne" : "faible",
-    riskLevel: signalCount >= 2 ? "modere" : "eleve",
-    summary: "Analyse automatique provisoire: ajoutez des preuves datees, verifiables et reliees a la pratique.",
+    riskLevel: signalCount >= 2 ? "modéré" : "élevé",
+    summary: "Analyse automatique provisoire : ajoutez des preuves datées, vérifiables et reliées à la pratique.",
     auditQuestions: [
       `Quel document confirme la pratique ${question?.code || ""} ?`,
       "Qui est responsable de cette pratique dans l'entreprise ?",
-      "Quelle periode ou date la preuve couvre-t-elle ?"
+      "Quelle période ou date la preuve couvre-t-elle ?"
     ],
     missingEvidence: [
       "Document source identifiable",
-      "Date ou periode de reporting",
+      "Date ou période de reporting",
       "Responsable ou validation interne"
     ]
   };
@@ -27,15 +27,15 @@ function fallbackReview(question, selectedScore, proof, justification) {
 
 function makeAuditPrompt(question, selectedScore, proof, justification) {
   return [
-    "Tu es un auditeur ESG pour PME. Analyse la reponse, la justification et la preuve.",
-    "Retourne uniquement un JSON valide avec: suggestedScore, confidence, proofStrength, riskLevel, summary, auditQuestions, missingEvidence.",
-    "N'utilise pas Markdown. N'ajoute pas de bloc ```json. La reponse doit commencer par { et finir par }.",
-    "Scores autorises: 0, 0.5, 1. Pour NA ou incertain, sois prudent.",
+    "Tu es un auditeur ESG pour PME. Analyse la réponse, la justification et la preuve.",
+    "Retourne uniquement un JSON valide avec : suggestedScore, confidence, proofStrength, riskLevel, summary, auditQuestions, missingEvidence.",
+    "N'utilise pas Markdown. N'ajoute pas de bloc ```json. La réponse doit commencer par { et finir par }.",
+    "Scores autorisés : 0, 0.5, 1. Pour NA ou incertain, sois prudent.",
     "",
-    `Question: ${JSON.stringify(question)}`,
-    `Score declare: ${selectedScore}`,
-    `Preuve: ${proof || ""}`,
-    `Justification: ${justification || ""}`
+    `Question : ${JSON.stringify(question)}`,
+    `Score déclaré : ${selectedScore}`,
+    `Preuve : ${proof || ""}`,
+    `Justification : ${justification || ""}`
   ].join("\n");
 }
 
@@ -142,7 +142,7 @@ export default async function handler(req, res) {
       ok: true,
       review: {
         ...fallbackReview(question, effectiveScore, effectiveProof, effectiveJustification),
-        summary: `Analyse IA indisponible, revue heuristique utilisee. Detail technique: ${(error.message || "format de reponse IA illisible").slice(0, 120)}`
+        summary: `Analyse IA indisponible, revue heuristique utilisée. Détail technique : ${(error.message || "format de réponse IA illisible").slice(0, 120)}`
       }
     });
   }
