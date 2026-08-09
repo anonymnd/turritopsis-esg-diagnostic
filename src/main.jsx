@@ -608,6 +608,10 @@ function TopNav({ route }) {
 // (see ReviewerLoginPage) rather than the "Reviewer" menu item that used to
 // sit next to "Espace PME" for every visitor to see and click.
 function ReviewerTopNav({ authState, authActions }) {
+  function logoutReviewer() {
+    authActions.signOut("/review/login");
+  }
+
   return (
     <header className="topnav reviewer-topnav">
       <a className="brand" href="#/review">
@@ -623,7 +627,7 @@ function ReviewerTopNav({ authState, authActions }) {
         <button
           className="btn ghost"
           type="button"
-          onClick={() => authActions.signOut()}
+          onClick={logoutReviewer}
         >
           <LogIn size={16} />
           Déconnexion
@@ -2145,9 +2149,9 @@ function App() {
       const { error } = await supabaseAuth.auth.signInWithPassword({ email, password });
       if (error) throw error;
     },
-    async signOut() {
+    async signOut(redirectTo = "/auth/login") {
       await supabaseAuth?.auth.signOut();
-      window.location.hash = "/auth/login";
+      window.location.hash = redirectTo;
     }
   };
 
