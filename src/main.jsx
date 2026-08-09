@@ -597,8 +597,38 @@ function TopNav({ route }) {
         <NavLink route="/" currentRoute={route}>Accueil</NavLink>
         <NavLink route="/auth/enterprise" currentRoute={route}>Entreprise</NavLink>
         <NavLink route="/app" currentRoute={route}>Espace PME</NavLink>
-        <NavLink route="/review" currentRoute={route}>Reviewer</NavLink>
       </nav>
+    </header>
+  );
+}
+
+// Reviewer/admin pages get their own header instead of the public TopNav on
+// purpose: this is internal tooling, not something to cross-link from the
+// customer-facing site. Its login lives at a separate, unadvertised route
+// (see ReviewerLoginPage) rather than the "Reviewer" menu item that used to
+// sit next to "Espace PME" for every visitor to see and click.
+function ReviewerTopNav({ authState, authActions }) {
+  return (
+    <header className="topnav reviewer-topnav">
+      <a className="brand" href="#/review">
+        <span>
+          <img src={turritopsisAssets.logo} alt="Turritopsis" />
+        </span>
+        <div>
+          <strong>TURRITOPSIS</strong>
+          <small>Espace Reviewer</small>
+        </div>
+      </a>
+      {authState?.session && (
+        <button
+          className="btn ghost"
+          type="button"
+          onClick={() => authActions.signOut()}
+        >
+          <LogIn size={16} />
+          Déconnexion
+        </button>
+      )}
     </header>
   );
 }
@@ -881,8 +911,8 @@ function LoginPage({ route, authActions, authState, notice }) {
           <div className="panel-title">
             <LogIn size={22} />
             <div>
-              <h2>Connexion</h2>
-              <p>Accès entreprise ou reviewer.</p>
+              <h2>Connexion entreprise</h2>
+              <p>Accès à votre espace PME.</p>
             </div>
           </div>
           <label>
@@ -897,6 +927,58 @@ function LoginPage({ route, authActions, authState, notice }) {
           {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configuré dans cet environnement.</p>}
           <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>Entrer</button>
           <a className="login-link" href="#/auth/enterprise">Créer un compte entreprise</a>
+        </form>
+      </main>
+    </div>
+  );
+}
+
+// Deliberately separate from LoginPage/AuthPage: reviewers are never meant
+// to land here by clicking around the public site (there is no link to
+// this route anywhere in the customer-facing UI), and a successful sign-in
+// goes to /review, not /app. RoleGate still decides afterward whether the
+// account is actually allowed into the reviewer workspace -- this page
+// only handles authentication, not authorization.
+function ReviewerLoginPage({ authActions, authState, notice }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formStatus, setFormStatus] = useState({ type: notice ? "info" : "", message: notice || "" });
+
+  async function submit(event) {
+    event.preventDefault();
+    setFormStatus({ type: "loading", message: "Connexion en cours..." });
+    try {
+      await authActions.signIn(email, password);
+      setFormStatus({ type: "success", message: "Connexion réussie." });
+      window.location.hash = "/review";
+    } catch (error) {
+      setFormStatus({ type: "error", message: error.message });
+    }
+  }
+
+  return (
+    <div className="page auth-page compact reviewer-login-page">
+      <ReviewerTopNav authState={authState} authActions={authActions} />
+      <main className="auth-layout login-layout">
+        <form className="auth-panel" onSubmit={submit}>
+          <div className="panel-title">
+            <Lock size={22} />
+            <div>
+              <h2>Connexion reviewer</h2>
+              <p>Réservé aux comptes analystes Turritopsis.</p>
+            </div>
+          </div>
+          <label>
+            Email
+            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="reviewer@turritopsis.org" required />
+          </label>
+          <label>
+            Mot de passe
+            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="********" required />
+          </label>
+          {formStatus.message && <p className={`auth-message ${formStatus.type}`}>{formStatus.message}</p>}
+          {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configuré dans cet environnement.</p>}
+          <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>Entrer</button>
         </form>
       </main>
     </div>
@@ -1592,7 +1674,7 @@ function ReviewerSidebar({ route }) {
   );
 }
 
-function ReviewerPage({ route, state }) {
+function ReviewerPage({ route, state, authState, authActions }) {
   const weakProofs = state.allQuestions.filter((question) => {
     const answer = state.answers[question.id] || emptyAnswer();
     const review = state.reviews[question.id] || emptyReview();
@@ -1600,7 +1682,7 @@ function ReviewerPage({ route, state }) {
   });
   return (
     <div className="page reviewer-page">
-      <TopNav route={route} />
+      <ReviewerTopNav authState={authState} authActions={authActions} />
       <main className="workspace">
         <ReviewerSidebar route={route} />
         <section className="workspace-main">
@@ -1673,10 +1755,10 @@ function ReviewerPage({ route, state }) {
   );
 }
 
-function AdminQuestionnairePage({ route, state }) {
+function AdminQuestionnairePage({ route, state, authState, authActions }) {
   return (
     <div className="page reviewer-page">
-      <TopNav route={route} />
+      <ReviewerTopNav authState={authState} authActions={authActions} />
       <main className="workspace">
         <ReviewerSidebar route={route} />
         <section className="workspace-main">
@@ -1753,7 +1835,7 @@ function createGlobalAnalysis(allQuestions, answers, reviews, reviewedGlobalScor
   };
 }
 
-function ProtectedRoute({ route, authState, authActions, children }) {
+function ProtectedRoute({ route, authState, authActions, children, variant = "pme" }) {
   if (ENABLE_TEST_TOOLS) {
     return children;
   }
@@ -1761,7 +1843,7 @@ function ProtectedRoute({ route, authState, authActions, children }) {
   if (authState.loading) {
     return (
       <div className="page auth-page compact">
-        <TopNav route={route} />
+        {variant === "reviewer" ? <ReviewerTopNav authState={authState} authActions={authActions} /> : <TopNav route={route} />}
         <main className="auth-layout login-layout">
           <section className="auth-panel">
             <div className="panel-title">
@@ -1778,7 +1860,9 @@ function ProtectedRoute({ route, authState, authActions, children }) {
   }
 
   if (!authState.session) {
-    return <LoginPage route="/auth/login" authActions={authActions} authState={authState} notice="Connectez-vous pour accéder à cet espace." />;
+    return variant === "reviewer"
+      ? <ReviewerLoginPage authActions={authActions} authState={authState} notice="Connectez-vous pour accéder à cet espace." />
+      : <LoginPage route="/auth/login" authActions={authActions} authState={authState} notice="Connectez-vous pour accéder à cet espace." />;
   }
 
   return children;
@@ -1798,13 +1882,13 @@ function getUserRole(authState) {
 // "is someone logged in" -- ProtectedRoute above answers the latter, this
 // answers the former. Every PME account defaults to role "pme" and gets
 // turned back here with no way to reach a reviewer's view of dossiers.
-function RoleGate({ authState, allow, children }) {
+function RoleGate({ authState, authActions, allow, children }) {
   if (ENABLE_TEST_TOOLS) return children;
   if (allow.includes(getUserRole(authState))) return children;
 
   return (
     <div className="page auth-page compact">
-      <TopNav route="" />
+      <ReviewerTopNav authState={authState} authActions={authActions} />
       <main className="auth-layout login-layout">
         <section className="auth-panel">
           <div className="panel-title">
@@ -2308,6 +2392,7 @@ function App() {
 
   if (route === "/auth/enterprise") return <AuthPage route={route} profile={profile} setProfile={setProfile} authActions={authActions} authState={authState} />;
   if (route === "/auth/login") return <LoginPage route={route} authActions={authActions} authState={authState} />;
+  if (route === "/review/login") return <ReviewerLoginPage authActions={authActions} authState={authState} />;
   if (route === "/onboarding") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><OnboardingPage route={route} profile={profile} setProfile={setProfile} /></ProtectedRoute>;
   if (route === "/app") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><DashboardPage route={route} state={state} actions={actions} /></ProtectedRoute>;
   if (route === "/app/company-profile") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><CompanyProfilePage route={route} profile={profile} setProfile={setProfile} /></ProtectedRoute>;
@@ -2315,8 +2400,8 @@ function App() {
   if (route === "/app/proofs") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ProofsPage route={route} state={state} actions={actions} /></ProtectedRoute>;
   if (route === "/app/analysis") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><AnalysisPage route={route} state={state} actions={actions} /></ProtectedRoute>;
   if (route === "/app/report") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ReportPage route={route} state={state} actions={actions} /></ProtectedRoute>;
-  if (route === "/review" || route === "/review/dossiers" || route.startsWith("/review/dossiers/")) return <ProtectedRoute route={route} authState={authState} authActions={authActions}><RoleGate authState={authState} allow={["reviewer", "admin"]}><ReviewerPage route={route} state={state} /></RoleGate></ProtectedRoute>;
-  if (route === "/admin/questionnaire") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><RoleGate authState={authState} allow={["admin"]}><AdminQuestionnairePage route={route} state={state} /></RoleGate></ProtectedRoute>;
+  if (route === "/review" || route === "/review/dossiers" || route.startsWith("/review/dossiers/")) return <ProtectedRoute route={route} authState={authState} authActions={authActions} variant="reviewer"><RoleGate authState={authState} authActions={authActions} allow={["reviewer", "admin"]}><ReviewerPage route={route} state={state} authState={authState} authActions={authActions} /></RoleGate></ProtectedRoute>;
+  if (route === "/admin/questionnaire") return <ProtectedRoute route={route} authState={authState} authActions={authActions} variant="reviewer"><RoleGate authState={authState} authActions={authActions} allow={["admin"]}><AdminQuestionnairePage route={route} state={state} authState={authState} authActions={authActions} /></RoleGate></ProtectedRoute>;
   return <PublicPage route="/" state={state} />;
 }
 
