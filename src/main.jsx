@@ -208,6 +208,7 @@ const CERTIFICATE_STATUS_API = `${API_BASE_URL}/api/certificate-status`;
 const CHECKOUT_API = `${API_BASE_URL}/api/create-checkout-session`;
 const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "production" : "test");
 const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
+const ENABLE_PAYMENTS = import.meta.env.VITE_ENABLE_PAYMENTS === "true";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const AUTH_REDIRECT_URL = import.meta.env.VITE_AUTH_REDIRECT_URL || window.location.origin;
@@ -1047,22 +1048,22 @@ function DashboardPage({ route, state, actions }) {
               <p className="eyebrow">Dashboard PME</p>
               <h1>{state.profile.companyName || "Entreprise demo"}</h1>
               <p>{level.label} - {level.tone}</p>
-              {state.certificateStatus.active ? (
+              {state.enablePayments && state.certificateStatus.active ? (
                 <span className="certificate-badge active">
                   <ShieldCheck size={15} />
                   {state.certificateStatus.certificate?.valid_until
                     ? `Certificat valide jusqu'au ${formatDateFr(state.certificateStatus.certificate.valid_until)}`
                     : "Certificat actif (mode test)"}
                 </span>
-              ) : (
+              ) : state.enablePayments ? (
                 <span className="certificate-badge inactive">
                   <Lock size={15} />
                   Aucun certificat actif
                 </span>
-              )}
+              ) : null}
             </div>
             <div className="cta-row compact">
-              {!state.certificateStatus.active && (
+              {state.enablePayments && !state.certificateStatus.active && (
                 <button
                   className="btn primary"
                   type="button"
@@ -1788,6 +1789,7 @@ function ProtectedRoute({ route, authState, authActions, children }) {
 // for. Active in test mode is set unconditionally by the certificateStatus
 // effect, so this needs no separate ENABLE_TEST_TOOLS check here.
 function PaywallGate({ certificateStatus, actions, children }) {
+  if (!ENABLE_PAYMENTS) return children;
   if (certificateStatus.active) return children;
 
   const loading = certificateStatus.status === "loading" || certificateStatus.status === "idle";
@@ -1898,7 +1900,7 @@ function App() {
   }, []);
 
   React.useEffect(() => {
-    if (ENABLE_TEST_TOOLS) {
+    if (ENABLE_TEST_TOOLS || !ENABLE_PAYMENTS) {
       setCertificateStatus({ status: "done", active: true, certificate: null });
       return undefined;
     }
@@ -1932,7 +1934,7 @@ function App() {
   }, [authState.loading, authState.session, checkoutNotice]);
 
   async function startCheckout() {
-    if (ENABLE_TEST_TOOLS) return;
+    if (ENABLE_TEST_TOOLS || !ENABLE_PAYMENTS) return;
     setCertificateStatus((current) => ({ ...current, status: "redirecting" }));
     try {
       const response = await fetch(CHECKOUT_API, {
@@ -2250,6 +2252,7 @@ function App() {
     globalAnalysis,
     profile,
     enableTestTools: ENABLE_TEST_TOOLS,
+    enablePayments: ENABLE_PAYMENTS,
     certificateStatus
   };
   const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic, startCheckout };

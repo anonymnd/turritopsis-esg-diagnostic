@@ -36,6 +36,20 @@ npm run api:hosted
 
 Le projet contient aussi des fonctions Vercel dans `api/`, pour deployer le frontend et le backend au meme endroit quand Render demande une carte bancaire.
 
+## Paiement Stripe
+
+La logique paiement/certificat est preparee, mais elle reste desactivee par defaut.
+
+```env
+VITE_ENABLE_PAYMENTS=false
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+DIAGNOSTIC_PRICE_CENTS=99000
+DIAGNOSTIC_CURRENCY=mad
+```
+
+Avec `VITE_ENABLE_PAYMENTS=false`, l'application ne montre pas le bouton de paiement, ne bloque pas le rapport, et n'appelle pas Stripe. Pour activer Stripe plus tard, passer `VITE_ENABLE_PAYMENTS=true`, ajouter une cle `sk_test_...` ou `sk_live_...`, puis configurer le webhook `checkout.session.completed`.
+
 ## Build
 
 ```bash
