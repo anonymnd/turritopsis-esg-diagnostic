@@ -206,6 +206,7 @@ const AI_REVIEW_API = `${API_BASE_URL}/api/review-question`;
 const SNAPSHOT_API = `${API_BASE_URL}/api/snapshot`;
 const CERTIFICATE_STATUS_API = `${API_BASE_URL}/api/certificate-status`;
 const CHECKOUT_API = `${API_BASE_URL}/api/create-checkout-session`;
+const FINALIZE_SIGNUP_API = `${API_BASE_URL}/api/finalize-signup`;
 const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "production" : "test");
 const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
 const ENABLE_PAYMENTS = import.meta.env.VITE_ENABLE_PAYMENTS === "true";
@@ -620,7 +621,7 @@ function PublicPage({ route, state }) {
           </p>
           <div className="hero-actions">
             <a className="btn primary" href="#/auth/enterprise">
-              Creer mon espace entreprise <ArrowRight size={18} />
+              Créer mon espace entreprise <ArrowRight size={18} />
             </a>
             <a className="btn ghost" href="#overview">
               Comprendre le parcours <BarChart3 size={18} />
@@ -958,7 +959,7 @@ function OnboardingPage({ route, profile, setProfile }) {
                 </label>
                 <label>
                   Identifiant / registre
-                  <input value={profile.registration} onChange={(event) => update("registration", event.target.value)} placeholder="ICE, RC ou equivalent" />
+                  <input value={profile.registration} onChange={(event) => update("registration", event.target.value)} placeholder="ICE, RC ou équivalent" />
                 </label>
                 <label>
                   Activité principale
@@ -995,7 +996,7 @@ function OnboardingPage({ route, profile, setProfile }) {
                 <span className="warning"><AlertTriangle size={18} /> Preuves ajoutables ensuite</span>
               </div>
               <div className="onboarding-tip">
-                <strong>Bon a savoir</strong>
+                <strong>Bon à savoir</strong>
                 <p>Le questionnaire expliquera chaque niveau quand l'entreprise ne sait pas encore où se situer.</p>
               </div>
             </aside>
@@ -1783,6 +1784,43 @@ function ProtectedRoute({ route, authState, authActions, children }) {
   return children;
 }
 
+// app_metadata is only ever writable with the service role key (see
+// api/finalize-signup.js), never by the signed-in user's own client SDK --
+// unlike user_metadata, which a PME account could edit on itself. That's
+// what makes this a safe place to read an authorization-relevant role from.
+// Missing role defaults to "pme": failure (a signup whose role-stamping
+// call never landed) degrades to the least-privileged role, not the most.
+function getUserRole(authState) {
+  return authState.session?.user?.app_metadata?.role || "pme";
+}
+
+// Gates the Reviewer/Admin workspace behind an actual role instead of just
+// "is someone logged in" -- ProtectedRoute above answers the latter, this
+// answers the former. Every PME account defaults to role "pme" and gets
+// turned back here with no way to reach a reviewer's view of dossiers.
+function RoleGate({ authState, allow, children }) {
+  if (ENABLE_TEST_TOOLS) return children;
+  if (allow.includes(getUserRole(authState))) return children;
+
+  return (
+    <div className="page auth-page compact">
+      <TopNav route="" />
+      <main className="auth-layout login-layout">
+        <section className="auth-panel">
+          <div className="panel-title">
+            <Lock size={22} />
+            <div>
+              <h2>Accès refusé</h2>
+              <p>Cet espace est réservé aux comptes reviewer.</p>
+            </div>
+          </div>
+          <a className="btn primary full" href="#/app">Retour à mon espace PME</a>
+        </section>
+      </main>
+    </div>
+  );
+}
+
 // Wraps the score-reveal / certificate parts of Analysis and Report -- the
 // questionnaire and proofs stay free to fill in, but the AI-reviewed score,
 // full analysis and certificate are what the one-time diagnostic fee pays
@@ -1981,7 +2019,7 @@ function App() {
 
   const authActions = {
     async signUp(nextProfile) {
-      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configure.");
+      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configuré.");
       if (!nextProfile.email || !nextProfile.password) throw new Error("Email et mot de passe obligatoires.");
       if (nextProfile.password.length < 8) throw new Error("Le mot de passe doit contenir au moins 8 caractères.");
 
@@ -2000,6 +2038,17 @@ function App() {
       });
 
       if (error) throw error;
+      if (data.user?.id) {
+        // Best-effort: stamps role "pme" in app_metadata (backend-only
+        // writable, unlike user_metadata above). If this call fails the
+        // user simply has no role yet, which the app already treats as
+        // "pme" by default -- it never fails open into a privileged role.
+        fetch(FINALIZE_SIGNUP_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: data.user.id })
+        }).catch(() => {});
+      }
       if (!data.session) {
         const confirmation = new Error("Compte créé. Confirmez l'email si Supabase le demande, puis connectez-vous.");
         confirmation.info = true;
@@ -2008,7 +2057,7 @@ function App() {
       }
     },
     async signIn(email, password) {
-      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configure.");
+      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configuré.");
       const { error } = await supabaseAuth.auth.signInWithPassword({ email, password });
       if (error) throw error;
     },
@@ -2206,9 +2255,9 @@ function App() {
       });
       const payload = await response.json();
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Sauvegarde impossible.");
-      setAiStatus({ status: "ollama", message: "Dossier sauvegarde dans la base." });
+      setAiStatus({ status: "ollama", message: "Dossier sauvegardé dans la base." });
     } catch (error) {
-      setAiStatus({ status: "fallback", message: `Sauvegarde non disponible: ${error.message}` });
+      setAiStatus({ status: "fallback", message: `Sauvegarde non disponible : ${error.message}` });
     }
   }
 
@@ -2222,9 +2271,9 @@ function App() {
       const payload = await response.json();
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Chargement impossible.");
       restoreSnapshot(payload.data);
-      setAiStatus({ status: "ollama", message: payload.data ? "Dossier charge depuis la base." : "Aucun dossier sauvegarde trouve." });
+      setAiStatus({ status: "ollama", message: payload.data ? "Dossier chargé depuis la base." : "Aucun dossier sauvegardé trouvé." });
     } catch (error) {
-      setAiStatus({ status: "fallback", message: `Chargement non disponible: ${error.message}` });
+      setAiStatus({ status: "fallback", message: `Chargement non disponible : ${error.message}` });
     }
   }
 
@@ -2266,8 +2315,8 @@ function App() {
   if (route === "/app/proofs") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ProofsPage route={route} state={state} actions={actions} /></ProtectedRoute>;
   if (route === "/app/analysis") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><AnalysisPage route={route} state={state} actions={actions} /></ProtectedRoute>;
   if (route === "/app/report") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ReportPage route={route} state={state} actions={actions} /></ProtectedRoute>;
-  if (route === "/review" || route === "/review/dossiers" || route.startsWith("/review/dossiers/")) return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ReviewerPage route={route} state={state} /></ProtectedRoute>;
-  if (route === "/admin/questionnaire") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><AdminQuestionnairePage route={route} state={state} /></ProtectedRoute>;
+  if (route === "/review" || route === "/review/dossiers" || route.startsWith("/review/dossiers/")) return <ProtectedRoute route={route} authState={authState} authActions={authActions}><RoleGate authState={authState} allow={["reviewer", "admin"]}><ReviewerPage route={route} state={state} /></RoleGate></ProtectedRoute>;
+  if (route === "/admin/questionnaire") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><RoleGate authState={authState} allow={["admin"]}><AdminQuestionnairePage route={route} state={state} /></RoleGate></ProtectedRoute>;
   return <PublicPage route="/" state={state} />;
 }
 

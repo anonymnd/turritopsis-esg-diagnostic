@@ -50,6 +50,12 @@ DIAGNOSTIC_CURRENCY=mad
 
 Avec `VITE_ENABLE_PAYMENTS=false`, l'application ne montre pas le bouton de paiement, ne bloque pas le rapport, et n'appelle pas Stripe. Pour activer Stripe plus tard, passer `VITE_ENABLE_PAYMENTS=true`, ajouter une cle `sk_test_...` ou `sk_live_...`, puis configurer le webhook `checkout.session.completed`.
 
+## Rôles
+
+Chaque compte a un rôle stocké dans `app_metadata.role` (jamais `user_metadata`, que le SDK client peut modifier lui-même). Une inscription via `/auth/enterprise` reçoit automatiquement `pme` (voir `api/finalize-signup.js`) ; c'est aussi la valeur par défaut si le rôle n'est pas encore défini.
+
+`/review*` exige `reviewer` ou `admin`. `/admin/questionnaire` exige `admin`. Il n'existe aucune inscription libre-service vers ces rôles : pour promouvoir un compte, dans Supabase → Authentication → Users → éditer l'utilisateur → `app_metadata` → ajouter `{"role": "reviewer"}` (ou `"admin"`).
+
 ## Build
 
 ```bash
