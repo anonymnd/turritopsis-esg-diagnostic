@@ -228,12 +228,20 @@ const supabaseAuth = SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
     })
   : null;
 
-function hasAuthCallbackHash() {
-  return window.location.hash.includes("access_token=") || window.location.hash.includes("type=signup");
+// A password-recovery link lands with the same "#access_token=..." shape
+// as a signup confirmation link, so the two can't be told apart by
+// presence alone -- only "type=recovery" vs "type=signup" distinguishes
+// them, and that distinction decides very different destinations (a
+// "choose a new password" form vs. onboarding).
+function authCallbackTarget() {
+  const hash = window.location.hash;
+  if (hash.includes("type=recovery")) return "/auth/reset-password";
+  if (hash.includes("access_token=") || hash.includes("type=signup")) return "/onboarding";
+  return null;
 }
 
-function cleanAuthCallbackUrl() {
-  window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}#/onboarding`);
+function cleanAuthCallbackUrl(target) {
+  window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}#${target}`);
 }
 
 const sampleDocuments = [
@@ -924,6 +932,7 @@ function LoginPage({ route, authActions, authState, notice }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [formStatus, setFormStatus] = useState({ type: notice ? "info" : "", message: notice || "" });
+  const [resetMode, setResetMode] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
@@ -937,30 +946,105 @@ function LoginPage({ route, authActions, authState, notice }) {
     }
   }
 
+  async function submitReset(event) {
+    event.preventDefault();
+    setFormStatus({ type: "loading", message: "Envoi en cours..." });
+    try {
+      await authActions.requestPasswordReset(email);
+      setFormStatus({ type: "success", message: "Email envoyé. Suivez le lien pour choisir un nouveau mot de passe." });
+    } catch (error) {
+      setFormStatus({ type: "error", message: error.message });
+    }
+  }
+
   return (
     <div className="page auth-page compact">
       <TopNav route={route} />
       <main className="auth-layout login-layout">
-        <form className="auth-panel" onSubmit={submit}>
+        <form className="auth-panel" onSubmit={resetMode ? submitReset : submit}>
           <div className="panel-title">
             <LogIn size={22} />
             <div>
-              <h2>Connexion entreprise</h2>
-              <p>Accès à votre espace PME.</p>
+              <h2>{resetMode ? "Mot de passe oublié" : "Connexion entreprise"}</h2>
+              <p>{resetMode ? "Recevez un lien pour choisir un nouveau mot de passe." : "Accès à votre espace PME."}</p>
             </div>
           </div>
           <label>
             Email
             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="contact@entreprise.com" required />
           </label>
-          <label>
-            Mot de passe
-            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="********" required />
-          </label>
+          {!resetMode && (
+            <label>
+              Mot de passe
+              <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="********" required />
+            </label>
+          )}
           {formStatus.message && <p className={`auth-message ${formStatus.type}`}>{formStatus.message}</p>}
           {!supabaseAuth && <p className="auth-message error">Supabase Auth n'est pas configuré dans cet environnement.</p>}
-          <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>Entrer</button>
-          <a className="login-link" href="#/auth/enterprise">Créer un compte entreprise</a>
+          <button className="btn primary full" type="submit" disabled={!supabaseAuth || authState.loading || formStatus.type === "loading"}>
+            {resetMode ? "Envoyer le lien" : "Entrer"}
+          </button>
+          <button
+            className="link-button"
+            type="button"
+            onClick={() => {
+              setResetMode((current) => !current);
+              setFormStatus({ type: "", message: "" });
+            }}
+          >
+            {resetMode ? "Retour à la connexion" : "Mot de passe oublié ?"}
+          </button>
+          {!resetMode && <a className="login-link" href="#/auth/enterprise">Créer un compte entreprise</a>}
+        </form>
+      </main>
+    </div>
+  );
+}
+
+function ResetPasswordPage({ authActions, authState }) {
+  const [password, setPassword] = useState("");
+  const [formStatus, setFormStatus] = useState({ type: "", message: "" });
+
+  async function submit(event) {
+    event.preventDefault();
+    if (password.length < 8) {
+      setFormStatus({ type: "error", message: "Le mot de passe doit contenir au moins 8 caractères." });
+      return;
+    }
+    setFormStatus({ type: "loading", message: "Mise à jour en cours..." });
+    try {
+      await authActions.updatePassword(password);
+      setFormStatus({ type: "success", message: "Mot de passe mis à jour. Redirection..." });
+      setTimeout(() => { window.location.hash = "/app"; }, 1200);
+    } catch (error) {
+      setFormStatus({ type: "error", message: error.message });
+    }
+  }
+
+  return (
+    <div className="page auth-page compact">
+      <TopNav route="/auth/reset-password" />
+      <main className="auth-layout login-layout">
+        <form className="auth-panel" onSubmit={submit}>
+          <div className="panel-title">
+            <Lock size={22} />
+            <div>
+              <h2>Choisir un nouveau mot de passe</h2>
+              <p>Valable pour votre compte entreprise ou reviewer.</p>
+            </div>
+          </div>
+          {!authState.session ? (
+            <p className="auth-message error">Lien invalide ou expiré. Redemandez un email depuis la page de connexion.</p>
+          ) : (
+            <>
+              <label>
+                Nouveau mot de passe
+                <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Minimum 8 caractères" minLength={8} required />
+              </label>
+              {formStatus.message && <p className={`auth-message ${formStatus.type}`}>{formStatus.message}</p>}
+              <button className="btn primary full" type="submit" disabled={formStatus.type === "loading"}>Mettre à jour</button>
+            </>
+          )}
         </form>
       </main>
     </div>
@@ -1632,10 +1716,20 @@ function AnalysisPage({ route, state, actions }) {
                 <ol>{state.globalAnalysis.roadmap.map((item) => <li key={item}>{item}</li>)}</ol>
               </article>
             </section>
+            <AiTrustNote />
           </PaywallGate>
         </section>
       </main>
     </div>
+  );
+}
+
+function AiTrustNote() {
+  return (
+    <p className="ai-trust-note">
+      <Bot size={15} />
+      Analyse assistée par IA - la décision finale reste validée par un reviewer humain, jamais automatisée seule.
+    </p>
   );
 }
 
@@ -1696,6 +1790,7 @@ function ReportPage({ route, state, actions }) {
               </div>
             </section>
             <DossierSubmitPanel state={state} actions={actions} />
+            <AiTrustNote />
           </PaywallGate>
         </section>
       </main>
@@ -2259,18 +2354,20 @@ function App() {
     supabaseAuth.auth.getSession().then(({ data }) => {
       if (mounted) {
         setAuthState({ loading: false, session: data.session, user: data.session?.user || null });
-        if (data.session && hasAuthCallbackHash()) {
-          cleanAuthCallbackUrl();
-          setRoute("/onboarding");
+        const target = data.session && authCallbackTarget();
+        if (target) {
+          cleanAuthCallbackUrl(target);
+          setRoute(target);
         }
       }
     });
 
     const { data } = supabaseAuth.auth.onAuthStateChange((_event, session) => {
       setAuthState({ loading: false, session, user: session?.user || null });
-      if (session && hasAuthCallbackHash()) {
-        cleanAuthCallbackUrl();
-        setRoute("/onboarding");
+      const target = session && authCallbackTarget();
+      if (target) {
+        cleanAuthCallbackUrl(target);
+        setRoute(target);
       }
     });
 
@@ -2516,6 +2613,18 @@ function App() {
     async signOut(redirectTo = "/auth/login") {
       await supabaseAuth?.auth.signOut();
       window.location.hash = redirectTo;
+    },
+    async requestPasswordReset(email) {
+      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configuré.");
+      const { error } = await supabaseAuth.auth.resetPasswordForEmail(email, {
+        redirectTo: `${AUTH_REDIRECT_URL}#/auth/reset-password`
+      });
+      if (error) throw error;
+    },
+    async updatePassword(password) {
+      if (!supabaseAuth) throw new Error("Supabase Auth n'est pas configuré.");
+      const { error } = await supabaseAuth.auth.updateUser({ password });
+      if (error) throw error;
     }
   };
 
@@ -2820,6 +2929,7 @@ function App() {
   if (route === "/auth/enterprise") return <AuthPage route={route} profile={profile} setProfile={setProfile} authActions={authActions} authState={authState} />;
   if (route === "/auth/login") return <LoginPage route={route} authActions={authActions} authState={authState} />;
   if (route === "/review/login") return <ReviewerLoginPage authActions={authActions} authState={authState} />;
+  if (route === "/auth/reset-password") return <ResetPasswordPage authActions={authActions} authState={authState} />;
   if (route === "/onboarding") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><OnboardingPage route={route} profile={profile} setProfile={setProfile} /></ProtectedRoute>;
   if (route === "/app") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><DashboardPage route={route} state={state} actions={actions} /></ProtectedRoute>;
   if (route === "/app/company-profile") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><CompanyProfilePage route={route} profile={profile} setProfile={setProfile} /></ProtectedRoute>;
