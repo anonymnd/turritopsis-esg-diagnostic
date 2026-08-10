@@ -128,6 +128,52 @@ export function paymentsEnabled() {
   return process.env.ENABLE_PAYMENTS === "true";
 }
 
+export function notificationsEnabled() {
+  return process.env.ENABLE_NOTIFICATIONS === "true";
+}
+
+// Resend's API (a bare fetch, matching this backend's dependency-free
+// style everywhere else). Every call site treats this as fire-and-forget
+// best-effort, same as logAudit -- a failed or disabled email should never
+// be the reason a real action (validating a dossier, adding a note)
+// fails for the user.
+export async function sendEmail(to, subject, html) {
+  if (!notificationsEnabled() || !to) return;
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM || "Turritopsis ESG <no-reply@turritopsis.org>";
+  if (!apiKey) return;
+
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ from, to, subject, html })
+    });
+  } catch {
+    // Swallowed on purpose -- see comment above.
+  }
+}
+
+export async function getUserEmail(userId) {
+  if (!userId) return null;
+  const { url, key } = supabaseConfig();
+  if (!url || !key) return null;
+
+  try {
+    const response = await fetch(`${url.replace(/\/$/, "")}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` }
+    });
+    if (!response.ok) return null;
+    const user = await response.json();
+    return user.email || null;
+  } catch {
+    return null;
+  }
+}
+
 function flattenStripeParams(obj, prefix, params) {
   for (const [key, value] of Object.entries(obj)) {
     const paramKey = prefix ? `${prefix}[${key}]` : key;

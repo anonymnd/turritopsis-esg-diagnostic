@@ -1,10 +1,12 @@
 import {
+  getUserEmail,
   handleOptions,
   logAudit,
   readJson,
   requireMembership,
   requireRole,
   requireUser,
+  sendEmail,
   sendJson,
   supabaseConfig,
   supabaseRequest
@@ -104,6 +106,13 @@ export default async function handler(req, res) {
 
       const dossier = rows?.[0];
       logAudit(user.id, targetCompanyId, "dossier.submit", { dossierId: dossier?.id });
+      if (process.env.REVIEWER_NOTIFICATION_EMAIL) {
+        sendEmail(
+          process.env.REVIEWER_NOTIFICATION_EMAIL,
+          "Nouveau dossier ESG soumis",
+          `<p>Un dossier a été soumis pour revue (score revu : ${body.reviewedScore ?? "-"}/100). Connectez-vous à l'espace reviewer pour le consulter.</p>`
+        );
+      }
       return sendJson(res, 200, { ok: true, dossier });
     } catch (error) {
       return sendJson(res, 200, { ok: false, error: error.message });
@@ -135,6 +144,18 @@ export default async function handler(req, res) {
       const dossier = rows?.[0];
       if (!dossier) return sendJson(res, 404, { ok: false, error: "Dossier introuvable." });
       logAudit(user.id, dossier.company_id, `dossier.${body.status || "update"}`, { dossierId, finalScore: body.finalScore });
+
+      if ((body.status === "validated" || body.status === "rejected") && dossier.submitted_by) {
+        getUserEmail(dossier.submitted_by).then((email) => {
+          if (!email) return;
+          const subject = body.status === "validated" ? "Votre rapport ESG est prêt" : "Votre dossier ESG nécessite des compléments";
+          const html = body.status === "validated"
+            ? `<p>Votre dossier a été validé avec un score final de ${body.finalScore ?? dossier.reviewed_score ?? "-"}/100. Votre rapport et certificat sont disponibles dans votre espace PME.</p>`
+            : "<p>Votre dossier a été renvoyé par le reviewer. Consultez les commentaires dans votre espace PME et complétez les preuves demandées.</p>";
+          sendEmail(email, subject, html);
+        });
+      }
+
       return sendJson(res, 200, { ok: true, dossier });
     } catch (error) {
       return sendJson(res, 200, { ok: false, error: error.message });

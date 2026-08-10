@@ -1,10 +1,12 @@
 import {
+  getUserEmail,
   handleOptions,
   logAudit,
   readJson,
   requireMembership,
   requireRole,
   requireUser,
+  sendEmail,
   sendJson,
   supabaseConfig,
   supabaseRequest
@@ -13,7 +15,7 @@ import {
 const REVIEW_ROLES = ["reviewer", "admin"];
 
 async function loadDossier(dossierId) {
-  const rows = await supabaseRequest(`dossiers?id=eq.${encodeURIComponent(dossierId)}&select=id,company_id`);
+  const rows = await supabaseRequest(`dossiers?id=eq.${encodeURIComponent(dossierId)}&select=id,company_id,submitted_by`);
   return rows?.[0] || null;
 }
 
@@ -75,6 +77,11 @@ export default async function handler(req, res) {
         })
       });
       logAudit(user.id, dossier.company_id, "dossier.note", { dossierId: body.dossierId, questionCode: body.questionCode });
+      if (dossier.submitted_by) {
+        getUserEmail(dossier.submitted_by).then((email) => {
+          if (email) sendEmail(email, "Nouveau commentaire du reviewer", `<p>${String(body.note).slice(0, 500)}</p>`);
+        });
+      }
       return sendJson(res, 200, { ok: true, note: rows?.[0] });
     } catch (error) {
       return sendJson(res, 200, { ok: false, error: error.message });

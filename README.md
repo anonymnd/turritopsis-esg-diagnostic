@@ -112,6 +112,19 @@ Chaque compte a un role stocke dans `app_metadata.role` (jamais `user_metadata`,
 
 Executer dans Supabase (SQL Editor) les blocs `companies`, `company_users`, `documents`, `dossiers`, `dossier_notes` et `audit_logs` de `supabase/schema.sql`. Une entreprise (`companies`) est creee automatiquement au premier acces post-connexion (`api/company.js`), avec le compte qui l'a creee en `owner`.
 
+## Notifications email
+
+Desactivees par defaut, meme logique que Stripe :
+
+```env
+ENABLE_NOTIFICATIONS=false
+RESEND_API_KEY=
+EMAIL_FROM=Turritopsis ESG <no-reply@turritopsis.org>
+REVIEWER_NOTIFICATION_EMAIL=
+```
+
+Avec `ENABLE_NOTIFICATIONS=false` ou sans `RESEND_API_KEY`, les appels a `sendEmail` (dossier soumis, valide, refuse, commentaire reviewer) ne font rien -- jamais d'echec de la vraie action a cause d'un email raté. `REVIEWER_NOTIFICATION_EMAIL` est une seule adresse d'equipe (pas de liste de comptes reviewer a interroger) prevenue a chaque soumission.
+
 Pour le stockage de fichiers, creer dans Supabase (Storage) un bucket **prive** nomme `proofs`. Sans ce bucket, l'upload de documents fonctionne quand meme : le contenu texte est conserve, seul le fichier joint ne l'est pas (avertissement silencieux, pas d'echec).
 
 ## Build
