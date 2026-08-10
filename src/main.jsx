@@ -1841,7 +1841,8 @@ function ReviewerSidebar({ route }) {
   const links = [
     ["/review", Gauge, "Vue globale"],
     ["/review/dossiers", BriefcaseBusiness, "Dossiers"],
-    ["/admin/questionnaire", Settings, "Questionnaire"]
+    ["/admin/questionnaire", Settings, "Questionnaire"],
+    ["/admin/overview", ShieldCheck, "Administration"]
   ];
   return (
     <aside className="side-nav reviewer">
@@ -2129,6 +2130,114 @@ function AdminQuestionnairePage({ route, state, authState, authActions }) {
               </article>
             ))}
           </section>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+const ADMIN_STATUS_LABELS = {
+  draft: "Brouillon",
+  submitted: "Soumis",
+  in_review: "En cours",
+  validated: "Validé",
+  rejected: "Refusé"
+};
+
+function AdminOverviewPage({ route, authState, authActions }) {
+  const [overview, setOverview] = useState({ status: "idle", companies: [], dossiers: [], auditLogs: [] });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setOverview((current) => ({ ...current, status: "loading" }));
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin-overview`, {
+          headers: authState?.session?.access_token ? { Authorization: `Bearer ${authState.session.access_token}` } : {}
+        });
+        const payload = await response.json();
+        if (cancelled) return;
+        if (!response.ok || !payload.ok) throw new Error(payload.error || "Vue admin indisponible.");
+        setOverview({ status: "done", companies: payload.companies, dossiers: payload.dossiers, auditLogs: payload.auditLogs });
+      } catch (error) {
+        if (!cancelled) setOverview({ status: "error", companies: [], dossiers: [], auditLogs: [], error: error.message });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authState?.session]);
+
+  const dossiersByCompany = {};
+  overview.dossiers.forEach((dossier) => {
+    if (!dossiersByCompany[dossier.company_id]) dossiersByCompany[dossier.company_id] = dossier;
+  });
+
+  return (
+    <div className="page reviewer-page">
+      <ReviewerTopNav authState={authState} authActions={authActions} />
+      <main className="workspace">
+        <ReviewerSidebar route={route} />
+        <section className="workspace-main">
+          <div className="workspace-heading dashboard-heading reviewer-heading">
+            <p className="eyebrow">Administration</p>
+            <h1>Vue d'ensemble.</h1>
+            <p>Entreprises inscrites, statut de leur dossier et dernières actions sensibles.</p>
+          </div>
+
+          {overview.status === "loading" && <p>Chargement...</p>}
+          {overview.status === "error" && <p className="auth-message error">{overview.error}</p>}
+
+          {overview.status === "done" && (
+            <>
+              <section className="review-grid">
+                <article className="review-kpi">
+                  <span>Entreprises</span>
+                  <strong>{overview.companies.length}</strong>
+                  <small>comptes créés</small>
+                </article>
+                <article className="review-kpi">
+                  <span>Dossiers actifs</span>
+                  <strong>{overview.dossiers.filter((item) => item.status === "submitted" || item.status === "in_review").length}</strong>
+                  <small>en attente de revue</small>
+                </article>
+                <article className="review-kpi">
+                  <span>Dossiers validés</span>
+                  <strong>{overview.dossiers.filter((item) => item.status === "validated").length}</strong>
+                  <small>score final verrouillé</small>
+                </article>
+              </section>
+
+              <h2 className="admin-section-title">Entreprises</h2>
+              <section className="admin-table">
+                {overview.companies.map((company) => {
+                  const dossier = dossiersByCompany[company.id];
+                  return (
+                    <article key={company.id}>
+                      <span><Building2 size={16} /></span>
+                      <strong>{company.name}</strong>
+                      <p>{company.sector || "Secteur non renseigné"} - créée le {formatDateFr(company.created_at)}</p>
+                      <b>{dossier ? (ADMIN_STATUS_LABELS[dossier.status] || dossier.status) : "Aucun dossier"}</b>
+                    </article>
+                  );
+                })}
+                {!overview.companies.length && <p>Aucune entreprise pour le moment.</p>}
+              </section>
+
+              <h2 className="admin-section-title">Journal d'audit récent</h2>
+              <section className="admin-table">
+                {overview.auditLogs.map((entry) => (
+                  <article key={entry.id}>
+                    <span><ClipboardList size={16} /></span>
+                    <strong>{entry.action}</strong>
+                    <p>{formatDateFr(entry.created_at)}</p>
+                    <b>{entry.company_id ? "Entreprise" : "Système"}</b>
+                  </article>
+                ))}
+                {!overview.auditLogs.length && <p>Aucune action enregistrée pour le moment.</p>}
+              </section>
+            </>
+          )}
         </section>
       </main>
     </div>
@@ -2939,6 +3048,7 @@ function App() {
   if (route === "/app/report") return <ProtectedRoute route={route} authState={authState} authActions={authActions}><ReportPage route={route} state={state} actions={actions} /></ProtectedRoute>;
   if (route === "/review" || route === "/review/dossiers" || route.startsWith("/review/dossiers/")) return <ProtectedRoute route={route} authState={authState} authActions={authActions} variant="reviewer"><RoleGate authState={authState} authActions={authActions} allow={["reviewer", "admin"]}><ReviewerPage route={route} state={state} authState={authState} authActions={authActions} /></RoleGate></ProtectedRoute>;
   if (route === "/admin/questionnaire") return <ProtectedRoute route={route} authState={authState} authActions={authActions} variant="reviewer"><RoleGate authState={authState} authActions={authActions} allow={["admin"]}><AdminQuestionnairePage route={route} state={state} authState={authState} authActions={authActions} /></RoleGate></ProtectedRoute>;
+  if (route === "/admin/overview") return <ProtectedRoute route={route} authState={authState} authActions={authActions} variant="reviewer"><RoleGate authState={authState} authActions={authActions} allow={["admin"]}><AdminOverviewPage route={route} authState={authState} authActions={authActions} /></RoleGate></ProtectedRoute>;
   return <PublicPage route="/" state={state} />;
 }
 

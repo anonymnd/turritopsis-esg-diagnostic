@@ -3631,6 +3631,17 @@ textarea:focus {
   font-weight: 760;
 }
 
+.admin-section-title {
+  margin: 28px 0 14px;
+  font-size: 1.1rem;
+  font-weight: 760;
+  color: var(--navy);
+}
+
+.admin-table + .admin-section-title {
+  margin-top: 32px;
+}
+
 .page.compact {
   min-height: 100vh;
 }
