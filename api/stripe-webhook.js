@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { handleOptions, sendJson, stripeConfig, supabaseRequest } from "./_shared.js";
+import { handleOptions, paymentsEnabled, sendJson, stripeConfig, supabaseRequest } from "./_shared.js";
 
 const MAX_SIGNATURE_AGE_SECONDS = 300;
 
@@ -59,6 +59,10 @@ async function recordCertificate(session) {
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+
+  if (!paymentsEnabled()) {
+    return sendJson(res, 503, { ok: false, error: "Le paiement est desactive sur cet environnement." });
+  }
 
   const { webhookSecret } = stripeConfig();
   if (!webhookSecret) return sendJson(res, 500, { ok: false, error: "Webhook Stripe non configuré." });

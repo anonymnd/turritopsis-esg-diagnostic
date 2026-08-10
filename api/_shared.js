@@ -108,6 +108,10 @@ export function stripeConfig() {
   };
 }
 
+export function paymentsEnabled() {
+  return process.env.ENABLE_PAYMENTS === "true";
+}
+
 function flattenStripeParams(obj, prefix, params) {
   for (const [key, value] of Object.entries(obj)) {
     const paramKey = prefix ? `${prefix}[${key}]` : key;
