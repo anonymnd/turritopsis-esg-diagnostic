@@ -680,16 +680,16 @@ function PublicPage({ route, state }) {
     <div className="page public-page">
       <TopNav route={route} />
       <section className="public-hero">
-        <img
-          src={turritopsisAssets.hero}
-          alt=""
-        />
         <div className="hero-copy">
-          <p className="eyebrow">Diagnostic ESG pour PME</p>
+          <p className="eyebrow">Diagnostic ESG révisable</p>
           <h1>Turritopsis ESG <span className="gradient-text">Diagnostic</span></h1>
           <p>
-            Un outil pour renseigner un profil entreprise, répondre aux critères ESG, joindre les preuves et préparer
-            un rapport relisible.
+            Un score déclaré, un score vérifié, et un chemin pour passer de l'un à l'autre : profil entreprise,
+            questionnaire ESG adapté au secteur, preuves à l'appui, puis revue humaine avant le rapport final.
+          </p>
+          <p className="hero-caption">
+            Turritopsis dohrnii peut inverser son propre cycle de vie plutôt que de disparaître. Ce diagnostic
+            aussi reste révisable : rien n'est figé tant qu'il n'est pas validé.
           </p>
           <div className="hero-actions">
             <a className="btn primary" href="#/auth/enterprise">
@@ -701,33 +701,40 @@ function PublicPage({ route, state }) {
           </div>
         </div>
         <div className="hero-graphic" aria-hidden="true">
-          <div className="orbit-ring" />
-          <div className="orbit-ring inner" />
-          <div className="pulse-core">
-            <Globe2 size={34} />
+          <div className="pulse-rings">
+            <span className="ring r1" />
+            <span className="ring r2" />
+            <div className="pulse-readout">
+              <strong>68</strong>
+              <span>/ 100</span>
+            </div>
           </div>
           <div className="floating-note note-a">
             <span>PME</span>
-            <strong>Profil entreprise <CheckCircle2 size={15} /></strong>
+            <strong><CheckCircle2 size={15} /> Profil entreprise</strong>
           </div>
           <div className="floating-note note-b">
-            <span>Parcours</span>
-            <strong>Niveaux expliqués</strong>
-            <small>Pour choisir sans jargon</small>
-            <i />
+            <span>Preuves</span>
+            <strong><ShieldCheck size={15} /> Vérifiées par un reviewer</strong>
+            <small>Pas de score sans justificatif</small>
           </div>
-          <div className="floating-note note-c">
-            <strong>Rapport final</strong>
-            <b>ESG</b>
-            <em><span style={{ width: "72%" }} /></em>
-            <small>Prêt à partager</small>
-          </div>
-          <div className="dot-grid" />
         </div>
         <a className="scroll-cue" href="#overview" aria-label="Voir la suite">
           <ChevronRight size={22} />
         </a>
       </section>
+      <div className="report-cycle" aria-hidden="true">
+        <p className="report-cycle-head">Le cycle du dossier</p>
+        <div className="report-cycle-nodes">
+          <div className="report-cycle-node"><i /><span>Déclaré</span></div>
+          <div className="report-cycle-line" />
+          <div className="report-cycle-node"><i /><span>Preuves vérifiées</span></div>
+          <div className="report-cycle-line" />
+          <div className="report-cycle-node"><i /><span>Revue humaine</span></div>
+          <div className="report-cycle-line" />
+          <div className="report-cycle-node"><i /><span>Validé</span></div>
+        </div>
+      </div>
 
       <main className="public-content">
         <section className="overview-section" id="overview">
