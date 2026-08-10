@@ -207,6 +207,7 @@ const SNAPSHOT_API = `${API_BASE_URL}/api/snapshot`;
 const CERTIFICATE_STATUS_API = `${API_BASE_URL}/api/certificate-status`;
 const CHECKOUT_API = `${API_BASE_URL}/api/create-checkout-session`;
 const FINALIZE_SIGNUP_API = `${API_BASE_URL}/api/finalize-signup`;
+const COMPANY_API = `${API_BASE_URL}/api/company`;
 const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "production" : "test");
 const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
 const ENABLE_PAYMENTS = import.meta.env.VITE_ENABLE_PAYMENTS === "true";
@@ -1133,8 +1134,14 @@ function DashboardPage({ route, state, actions }) {
           <div className="workspace-heading rowed dashboard-heading">
             <div>
               <p className="eyebrow">Dashboard PME</p>
-              <h1>{state.profile.companyName || "Entreprise demo"}</h1>
+              <h1>{state.companyState.company?.name || state.profile.companyName || "Entreprise demo"}</h1>
               <p>{level.label} - {level.tone}</p>
+              {state.companyState.role && (
+                <span className="certificate-badge active">
+                  <Building2 size={15} />
+                  {{ owner: "Propriétaire", collaborator: "Collaborateur", viewer: "Lecture seule" }[state.companyState.role] || state.companyState.role}
+                </span>
+              )}
               {state.enablePayments && state.certificateStatus.active ? (
                 <span className="certificate-badge active">
                   <ShieldCheck size={15} />
@@ -1968,6 +1975,7 @@ function App() {
   const [globalAnalysis, setGlobalAnalysis] = useState(emptyGlobalAnalysis);
   const [authState, setAuthState] = useState({ loading: true, session: null, user: null });
   const [certificateStatus, setCertificateStatus] = useState({ status: "idle", active: false, certificate: null });
+  const [companyState, setCompanyState] = useState({ status: "idle", company: null, role: null });
   const [profile, setProfile] = useState(() => ({
     companyName: ENABLE_TEST_TOOLS ? "Atlas Green Foods" : "",
     email: ENABLE_TEST_TOOLS ? "contact@atlasgreen.ma" : "",
@@ -2058,6 +2066,46 @@ function App() {
       if (retry) clearTimeout(retry);
     };
   }, [authState.loading, authState.session, checkoutNotice]);
+
+  // A "dossier" used to just be the signed-in Supabase user (snapshot.js
+  // keyed everything off the caller's own uid); companyState.company.id is
+  // the real multi-tenant unit going forward, resolved once per session so
+  // save/load and future collaborator invites all point at the same
+  // company instead of at whichever account happened to sign in.
+  React.useEffect(() => {
+    if (ENABLE_TEST_TOOLS) {
+      setCompanyState({ status: "done", company: { id: "demo-company", name: "Entreprise demo" }, role: "owner" });
+      return undefined;
+    }
+    if (authState.loading || !authState.session) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      setCompanyState((current) => ({ ...current, status: "loading" }));
+      try {
+        const response = await fetch(COMPANY_API, {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            name: profile.companyName,
+            sector: profile.sector,
+            country: profile.country,
+            size: profile.size
+          })
+        });
+        const payload = await response.json();
+        if (cancelled) return;
+        if (!response.ok || !payload.ok) throw new Error(payload.error || "Entreprise indisponible.");
+        setCompanyState({ status: "done", company: payload.company, role: payload.role });
+      } catch (error) {
+        if (!cancelled) setCompanyState({ status: "error", company: null, role: null, error: error.message });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authState.loading, authState.session]);
 
   async function startCheckout() {
     if (ENABLE_TEST_TOOLS || !ENABLE_PAYMENTS) return;
@@ -2333,7 +2381,11 @@ function App() {
   }
 
   async function saveSnapshot() {
-    const companyId = profile.companyName || "demo";
+    const companyId = companyState.company?.id;
+    if (!companyId) {
+      setAiStatus({ status: "fallback", message: "Profil entreprise requis avant la sauvegarde." });
+      return;
+    }
     setAiStatus({ status: "scanning", message: "Sauvegarde du dossier en cours..." });
     try {
       const response = await fetch(SNAPSHOT_API, {
@@ -2350,7 +2402,11 @@ function App() {
   }
 
   async function loadSnapshot() {
-    const companyId = profile.companyName || "demo";
+    const companyId = companyState.company?.id;
+    if (!companyId) {
+      setAiStatus({ status: "fallback", message: "Profil entreprise requis avant le chargement." });
+      return;
+    }
     setAiStatus({ status: "scanning", message: "Chargement du dossier en cours..." });
     try {
       const response = await fetch(`${SNAPSHOT_API}?company_id=${encodeURIComponent(companyId)}`, {
@@ -2390,7 +2446,8 @@ function App() {
     profile,
     enableTestTools: ENABLE_TEST_TOOLS,
     enablePayments: ENABLE_PAYMENTS,
-    certificateStatus
+    certificateStatus,
+    companyState
   };
   const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic, startCheckout };
 
