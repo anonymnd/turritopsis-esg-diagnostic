@@ -88,6 +88,22 @@ export async function requireUser(req) {
   return response.json();
 }
 
+// Mirrors the frontend's getUserRole(): app_metadata.role is the only
+// place an authorization-relevant role lives (never user_metadata, which
+// the client SDK can edit on itself). Missing role defaults to "pme",
+// same least-privilege reasoning as the frontend. Test mode is treated as
+// privileged here since AUTH_REQUIRED=false already bypasses real auth
+// entirely for local dev -- there is no meaningful "wrong role" to protect
+// against once that gate is off.
+export function getUserRole(user) {
+  if (user.role === "test") return "admin";
+  return user.app_metadata?.role || "pme";
+}
+
+export function requireRole(user, allowRoles) {
+  return allowRoles.includes(getUserRole(user));
+}
+
 export function memoryGet(companyId) {
   return memoryStore.get(companyId) || null;
 }

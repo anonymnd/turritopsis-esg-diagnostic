@@ -210,6 +210,8 @@ const CHECKOUT_API = `${API_BASE_URL}/api/create-checkout-session`;
 const FINALIZE_SIGNUP_API = `${API_BASE_URL}/api/finalize-signup`;
 const COMPANY_API = `${API_BASE_URL}/api/company`;
 const DOCUMENTS_API = `${API_BASE_URL}/api/documents`;
+const DOSSIERS_API = `${API_BASE_URL}/api/dossiers`;
+const DOSSIER_NOTES_API = `${API_BASE_URL}/api/dossier-notes`;
 const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "production" : "test");
 const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
 const ENABLE_PAYMENTS = import.meta.env.VITE_ENABLE_PAYMENTS === "true";
@@ -1693,10 +1695,50 @@ function ReportPage({ route, state, actions }) {
                 })}
               </div>
             </section>
+            <DossierSubmitPanel state={state} actions={actions} />
           </PaywallGate>
         </section>
       </main>
     </div>
+  );
+}
+
+const DOSSIER_STATUS_LABELS = {
+  draft: "Brouillon",
+  submitted: "Soumis, en attente de revue",
+  in_review: "En cours de revue",
+  validated: "Validé",
+  rejected: "Refusé - preuves supplémentaires requises"
+};
+
+function DossierSubmitPanel({ state, actions }) {
+  const dossier = state.dossierState.dossier;
+  const status = dossier?.status;
+  const submitting = state.dossierState.status === "submitting";
+  const canResubmit = !status || status === "draft" || status === "rejected";
+
+  return (
+    <section className="dossier-submit-panel">
+      <div>
+        <h2>Revue humaine</h2>
+        <p>
+          {status
+            ? DOSSIER_STATUS_LABELS[status] || status
+            : "Ce dossier n'a pas encore été soumis pour revue."}
+          {dossier?.submitted_at && ` - envoyé le ${formatDateFr(dossier.submitted_at)}.`}
+        </p>
+        {status === "validated" && dossier?.final_score != null && (
+          <p className="dossier-final-score">Score final validé par le reviewer : {dossier.final_score}/100.</p>
+        )}
+        {state.dossierState.error && <p className="auth-message error">{state.dossierState.error}</p>}
+      </div>
+      {canResubmit && (
+        <button className="btn primary" type="button" onClick={actions.submitDossier} disabled={submitting}>
+          <Sparkles size={18} />
+          {submitting ? "Envoi..." : status === "rejected" ? "Soumettre à nouveau" : "Soumettre pour revue"}
+        </button>
+      )}
+    </section>
   );
 }
 
@@ -1722,12 +1764,121 @@ function ReviewerSidebar({ route }) {
   );
 }
 
-function ReviewerPage({ route, state, authState, authActions }) {
-  const weakProofs = state.allQuestions.filter((question) => {
-    const answer = state.answers[question.id] || emptyAnswer();
-    const review = state.reviews[question.id] || emptyReview();
-    return answer.value && answer.value !== "NA" && (review.status !== "done" || review.suggestedScore !== answer.value);
-  });
+function computeSnapshotPillarScores(snapshot) {
+  if (!snapshot?.sector || !snapshot?.answers) return null;
+  const questions = buildQuestions(snapshot.sector);
+  return Object.fromEntries(
+    pillars.map((pillar) => [pillar.id, scorePillar(questions[pillar.id], snapshot.answers, snapshot.reviews || {}, true).score])
+  );
+}
+
+const DOSSIER_QUEUE_STATUS_LABELS = {
+  submitted: "Soumis",
+  in_review: "En cours de revue",
+  validated: "Validé",
+  rejected: "Refusé"
+};
+
+function ReviewerPage({ route, authState, authActions }) {
+  function reviewerAuthHeaders(extra = {}) {
+    return { ...extra, ...(authState?.session?.access_token ? { Authorization: `Bearer ${authState.session.access_token}` } : {}) };
+  }
+
+  const [queue, setQueue] = useState({ status: "idle", dossiers: [] });
+  const [selectedId, setSelectedId] = useState(null);
+  const [detail, setDetail] = useState({ status: "idle", dossier: null, notes: [] });
+  const [noteDraft, setNoteDraft] = useState("");
+  const [finalScoreDraft, setFinalScoreDraft] = useState("");
+
+  async function loadQueue() {
+    setQueue((current) => ({ ...current, status: "loading" }));
+    try {
+      const response = await fetch(DOSSIERS_API, { headers: reviewerAuthHeaders() });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Liste indisponible.");
+      setQueue({ status: "done", dossiers: payload.dossiers || [] });
+    } catch (error) {
+      setQueue({ status: "error", dossiers: [], error: error.message });
+    }
+  }
+
+  React.useEffect(() => {
+    loadQueue();
+  }, []);
+
+  React.useEffect(() => {
+    if (!selectedId) {
+      setDetail({ status: "idle", dossier: null, notes: [] });
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      setDetail((current) => ({ ...current, status: "loading" }));
+      try {
+        const [dossierResponse, notesResponse] = await Promise.all([
+          fetch(`${DOSSIERS_API}?id=${encodeURIComponent(selectedId)}`, { headers: reviewerAuthHeaders() }),
+          fetch(`${DOSSIER_NOTES_API}?dossier_id=${encodeURIComponent(selectedId)}`, { headers: reviewerAuthHeaders() })
+        ]);
+        const dossierPayload = await dossierResponse.json();
+        const notesPayload = await notesResponse.json();
+        if (cancelled) return;
+        if (!dossierResponse.ok || !dossierPayload.ok) throw new Error(dossierPayload.error || "Dossier indisponible.");
+        setDetail({ status: "done", dossier: dossierPayload.dossier, notes: notesPayload.notes || [] });
+        setFinalScoreDraft(dossierPayload.dossier?.reviewed_score ?? "");
+      } catch (error) {
+        if (!cancelled) setDetail({ status: "error", dossier: null, notes: [], error: error.message });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
+  async function updateDossierStatus(status) {
+    if (!selectedId) return;
+    try {
+      const response = await fetch(`${DOSSIERS_API}?id=${encodeURIComponent(selectedId)}`, {
+        method: "PUT",
+        headers: reviewerAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          status,
+          finalScore: status === "validated" ? Number(finalScoreDraft) || detail.dossier?.reviewed_score || 0 : undefined
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Mise à jour impossible.");
+      setDetail((current) => ({ ...current, dossier: payload.dossier }));
+      if (status === "validated" || status === "rejected") {
+        setSelectedId(null);
+        loadQueue();
+      } else {
+        setQueue((current) => ({ ...current, dossiers: current.dossiers.map((item) => (item.id === payload.dossier.id ? payload.dossier : item)) }));
+      }
+    } catch (error) {
+      setDetail((current) => ({ ...current, error: error.message }));
+    }
+  }
+
+  async function submitNote() {
+    if (!selectedId || !noteDraft.trim()) return;
+    try {
+      const response = await fetch(DOSSIER_NOTES_API, {
+        method: "POST",
+        headers: reviewerAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ dossierId: selectedId, note: noteDraft.trim() })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Commentaire impossible.");
+      setDetail((current) => ({ ...current, notes: [...current.notes, payload.note] }));
+      setNoteDraft("");
+    } catch (error) {
+      setDetail((current) => ({ ...current, error: error.message }));
+    }
+  }
+
+  const dossier = detail.dossier;
+  const snapshotScores = dossier ? computeSnapshotPillarScores(dossier.snapshot) : null;
+
   return (
     <div className="page reviewer-page">
       <ReviewerTopNav authState={authState} authActions={authActions} />
@@ -1737,63 +1888,121 @@ function ReviewerPage({ route, state, authState, authActions }) {
           <div className="workspace-heading dashboard-heading reviewer-heading">
             <p className="eyebrow">Workspace analyste</p>
             <h1>Validation des dossiers ESG.</h1>
-            <p>Vue opérationnelle pour vérifier les preuves, arbitrer les scores et préparer l'avis final.</p>
+            <p>File d'attente réelle des dossiers soumis par les PME, à valider ou renvoyer avec commentaire.</p>
           </div>
           <section className="review-grid">
             <article className="review-kpi">
-              <span>Dossiers</span>
-              <strong>12</strong>
-              <small>4 en revue</small>
+              <span>En file</span>
+              <strong>{queue.dossiers.length}</strong>
+              <small>soumis ou en cours</small>
             </article>
             <article className="review-kpi">
-              <span>Risque élevé</span>
-              <strong>{weakProofs.length}</strong>
-              <small>preuves à examiner</small>
-            </article>
-            <article className="review-kpi">
-              <span>Score demo</span>
-              <strong>{state.reviewedGlobalScore}</strong>
-              <small>{getLevel(state.reviewedGlobalScore).label}</small>
+              <span>Dossier sélectionné</span>
+              <strong>{dossier ? `${dossier.reviewed_score ?? "-"}` : "-"}</strong>
+              <small>{dossier ? "score revu déclaré" : "aucun dossier ouvert"}</small>
             </article>
           </section>
           <section className="review-workspace">
             <div className="dossier-list">
               <div className="search-box">
                 <Search size={18} />
-                <input placeholder="Chercher un dossier" />
+                <input placeholder="Chercher un dossier" aria-label="Chercher un dossier" />
               </div>
-              {["Atlas Green Foods", "MedTech Services", "Nord Pack Industrie"].map((name, index) => (
-                <a className={index === 0 ? "active" : ""} href="#/review/dossiers/atlas" key={name}>
-                  <strong>{name}</strong>
-                  <span>{index === 0 ? `${state.reviewedGlobalScore}/100 - en revue` : "En attente"}</span>
+              {queue.status === "loading" && <p className="dossier-list-status">Chargement...</p>}
+              {queue.status === "error" && <p className="dossier-list-status error">{queue.error}</p>}
+              {queue.status === "done" && !queue.dossiers.length && (
+                <p className="dossier-list-status">Aucun dossier en attente de revue.</p>
+              )}
+              {queue.dossiers.map((item) => (
+                <a
+                  className={item.id === selectedId ? "active" : ""}
+                  href={`#/review/dossiers/${item.id}`}
+                  key={item.id}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setSelectedId(item.id);
+                  }}
+                >
+                  <strong>{item.companies?.name || "Entreprise"}</strong>
+                  <span>{item.reviewed_score ?? "-"}/100 - {DOSSIER_QUEUE_STATUS_LABELS[item.status] || item.status}</span>
                 </a>
               ))}
             </div>
             <div className="evidence-review">
-              <h2>{state.profile.companyName || "Atlas Green Foods"}</h2>
-              <p>Pièces prioritaires pour validation humaine.</p>
-              {weakProofs.slice(0, 8).map((question) => {
-                const answer = state.answers[question.id] || emptyAnswer();
-                const review = state.reviews[question.id] || emptyReview();
-                return (
-                  <article key={question.id}>
-                    <span>{question.code}</span>
-                    <div>
-                      <strong>{question.title}</strong>
-                      <p>{review.summary || answer.evidence || "Aucune revue disponible."}</p>
+              {!selectedId && (
+                <div className="empty-state">
+                  <BriefcaseBusiness size={28} />
+                  <p>Choisissez un dossier dans la liste pour voir le détail et les preuves.</p>
+                </div>
+              )}
+              {selectedId && detail.status === "loading" && <p>Chargement du dossier...</p>}
+              {selectedId && detail.status === "error" && <p className="auth-message error">{detail.error}</p>}
+              {dossier && (
+                <>
+                  <h2>{dossier.companies?.name || "Entreprise"}</h2>
+                  <p>
+                    Secteur {dossier.companies?.sector || "-"} - score déclaré {dossier.declared_score ?? "-"}/100,
+                    score revu {dossier.reviewed_score ?? "-"}/100.
+                  </p>
+                  {snapshotScores && (
+                    <div className="pillar-chart">
+                      {pillars.map((pillar) => (
+                        <article key={pillar.id}>
+                          <span className={`pillar-icon tone-${pillar.color}`}><pillar.icon size={18} /></span>
+                          <div>
+                            <strong>{pillar.label}</strong>
+                            <div className="bar"><span style={{ width: `${snapshotScores[pillar.id]}%` }} /></div>
+                          </div>
+                          <b>{snapshotScores[pillar.id]}</b>
+                        </article>
+                      ))}
                     </div>
-                    <button type="button">Valider</button>
-                  </article>
-                );
-              })}
-              {!weakProofs.length && (
-                <section className="review-empty-state">
-                  <CheckCircle2 size={24} />
-                  <div>
-                    <h3>Aucune preuve sensible à traiter.</h3>
-                    <p>Les preuves à arbitrer apparaîtront ici quand le dossier contiendra des écarts entre score déclaré et revue assistée.</p>
+                  )}
+
+                  <div className="dossier-notes">
+                    <h3>Commentaires</h3>
+                    {detail.notes.map((note) => (
+                      <p key={note.id} className="dossier-note">{note.note}</p>
+                    ))}
+                    {!detail.notes.length && <p className="dossier-note-empty">Aucun commentaire pour le moment.</p>}
+                    <div className="dossier-note-form">
+                      <textarea
+                        value={noteDraft}
+                        onChange={(event) => setNoteDraft(event.target.value)}
+                        placeholder="Demander une preuve supplémentaire, expliquer une décision..."
+                      />
+                      <button className="btn secondary" type="button" onClick={submitNote} disabled={!noteDraft.trim()}>
+                        Ajouter le commentaire
+                      </button>
+                    </div>
                   </div>
-                </section>
+
+                  {detail.error && <p className="auth-message error">{detail.error}</p>}
+
+                  <div className="dossier-actions">
+                    {dossier.status === "submitted" && (
+                      <button className="btn secondary" type="button" onClick={() => updateDossierStatus("in_review")}>
+                        Marquer en cours de revue
+                      </button>
+                    )}
+                    <label className="dossier-final-score-field">
+                      Score final
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={finalScoreDraft}
+                        onChange={(event) => setFinalScoreDraft(event.target.value)}
+                      />
+                    </label>
+                    <button className="btn primary" type="button" onClick={() => updateDossierStatus("validated")}>
+                      <CheckCircle2 size={18} /> Valider
+                    </button>
+                    <button className="btn ghost" type="button" onClick={() => updateDossierStatus("rejected")}>
+                      Refuser, renvoyer au PME
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </section>
@@ -2013,6 +2222,7 @@ function App() {
   const [authState, setAuthState] = useState({ loading: true, session: null, user: null });
   const [certificateStatus, setCertificateStatus] = useState({ status: "idle", active: false, certificate: null });
   const [companyState, setCompanyState] = useState({ status: "idle", company: null, role: null });
+  const [dossierState, setDossierState] = useState({ status: "idle", dossier: null });
   const [profile, setProfile] = useState(() => ({
     companyName: ENABLE_TEST_TOOLS ? "Atlas Green Foods" : "",
     email: ENABLE_TEST_TOOLS ? "contact@atlasgreen.ma" : "",
@@ -2169,6 +2379,49 @@ function App() {
       cancelled = true;
     };
   }, [companyState.company?.id]);
+
+  React.useEffect(() => {
+    const companyId = companyState.company?.id;
+    if (!companyId) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      setDossierState((current) => ({ ...current, status: "loading" }));
+      try {
+        const response = await fetch(`${DOSSIERS_API}?company_id=${encodeURIComponent(companyId)}`, {
+          headers: authHeaders()
+        });
+        const payload = await response.json();
+        if (cancelled) return;
+        if (!response.ok || !payload.ok) throw new Error(payload.error || "Statut du dossier indisponible.");
+        setDossierState({ status: "done", dossier: payload.dossier });
+      } catch (error) {
+        if (!cancelled) setDossierState({ status: "error", dossier: null, error: error.message });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [companyState.company?.id]);
+
+  async function submitDossier() {
+    const companyId = companyState.company?.id;
+    if (!companyId) return;
+    setDossierState((current) => ({ ...current, status: "submitting" }));
+    try {
+      const response = await fetch(DOSSIERS_API, {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ companyId, declaredScore: globalScore, reviewedScore: reviewedGlobalScore })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Soumission impossible.");
+      setDossierState({ status: "done", dossier: payload.dossier });
+    } catch (error) {
+      setDossierState((current) => ({ ...current, status: "error", error: error.message }));
+    }
+  }
 
   async function startCheckout() {
     if (ENABLE_TEST_TOOLS || !ENABLE_PAYMENTS) return;
@@ -2559,9 +2812,10 @@ function App() {
     enableTestTools: ENABLE_TEST_TOOLS,
     enablePayments: ENABLE_PAYMENTS,
     certificateStatus,
-    companyState
+    companyState,
+    dossierState
   };
-  const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, removeDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic, startCheckout };
+  const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, removeDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic, startCheckout, submitDossier };
 
   if (route === "/auth/enterprise") return <AuthPage route={route} profile={profile} setProfile={setProfile} authActions={authActions} authState={authState} />;
   if (route === "/auth/login") return <LoginPage route={route} authActions={authActions} authState={authState} />;
