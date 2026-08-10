@@ -1,4 +1,9 @@
-import { aiConfig, handleOptions, readJson, requireUser, sendJson } from "./_shared.js";
+import { aiConfig, checkRateLimit, handleOptions, readJson, requireUser, sendJson } from "./_shared.js";
+
+// Generous enough for a real review session (batch-scanning a full 27
+// criteria dossier) while still bounding a runaway loop or scripted abuse
+// hitting the real AI provider on someone else's API key.
+const RATE_LIMIT_PER_MINUTE = 30;
 
 function fallbackReview(question, selectedScore, proof, justification) {
   const text = `${proof || ""} ${justification || ""}`.toLowerCase();
@@ -113,10 +118,16 @@ export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
 
+  let user;
   try {
-    await requireUser(req);
+    user = await requireUser(req);
   } catch (error) {
     return sendJson(res, error.status || 500, { ok: false, error: error.message });
+  }
+
+  const { allowed } = checkRateLimit(`review-question:${user.id}`, RATE_LIMIT_PER_MINUTE, 60_000);
+  if (!allowed) {
+    return sendJson(res, 429, { ok: false, error: "Trop d'analyses en peu de temps, réessayez dans une minute." });
   }
 
   const body = await readJson(req);

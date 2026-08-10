@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { handleOptions, paymentsEnabled, sendJson, stripeConfig, supabaseRequest } from "./_shared.js";
+import { handleOptions, logAudit, paymentsEnabled, sendJson, stripeConfig, supabaseRequest } from "./_shared.js";
 
 const MAX_SIGNATURE_AGE_SECONDS = 300;
 
@@ -53,6 +53,12 @@ async function recordCertificate(session) {
       paid_at: paidAt.toISOString(),
       valid_until: validUntil.toISOString()
     })
+  });
+
+  logAudit(userId, null, "certificate.activated", {
+    stripeSessionId: session.id,
+    amountCents: session.amount_total,
+    validUntil: validUntil.toISOString()
   });
 }
 

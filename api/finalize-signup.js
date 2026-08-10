@@ -1,4 +1,4 @@
-import { handleOptions, readJson, sendJson, supabaseConfig } from "./_shared.js";
+import { handleOptions, logAudit, readJson, sendJson, supabaseConfig } from "./_shared.js";
 
 // Stamps a freshly self-signed-up user with role "pme" in app_metadata.
 // app_metadata (unlike user_metadata) can only be written with the service
@@ -43,6 +43,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({ app_metadata: { ...currentMetadata, role: "pme" } })
     });
     if (!response.ok) throw new Error(await response.text());
+    logAudit(userId, null, "user.role.assigned", { role: "pme" });
     return sendJson(res, 200, { ok: true });
   } catch (error) {
     // Best-effort: if this fails the user just has no role yet, and the

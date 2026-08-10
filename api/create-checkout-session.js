@@ -1,4 +1,4 @@
-import { handleOptions, paymentsEnabled, readJson, requireUser, sendJson, stripeConfig, stripeRequest } from "./_shared.js";
+import { checkRateLimit, handleOptions, paymentsEnabled, readJson, requireUser, sendJson, stripeConfig, stripeRequest } from "./_shared.js";
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
@@ -13,6 +13,11 @@ export default async function handler(req, res) {
     user = await requireUser(req);
   } catch (error) {
     return sendJson(res, error.status || 500, { ok: false, error: error.message });
+  }
+
+  const { allowed } = checkRateLimit(`checkout:${user.id}`, 5, 60_000);
+  if (!allowed) {
+    return sendJson(res, 429, { ok: false, error: "Trop de tentatives de paiement, réessayez dans une minute." });
   }
 
   const { priceCents, currency, successUrl, cancelUrl } = stripeConfig();
