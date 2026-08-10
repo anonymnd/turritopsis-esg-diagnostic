@@ -1,11 +1,4 @@
-import { handleOptions, memoryGet, memorySet, readJson, requireUser, sendJson, supabaseConfig, supabaseRequest } from "./_shared.js";
-
-async function resolveMembership(userId, companyId) {
-  const rows = await supabaseRequest(
-    `company_users?company_id=eq.${encodeURIComponent(companyId)}&user_id=eq.${encodeURIComponent(userId)}&select=role&limit=1`
-  );
-  return rows?.[0] || null;
-}
+import { handleOptions, memoryGet, memorySet, readJson, requireMembership, requireUser, sendJson, supabaseConfig, supabaseRequest } from "./_shared.js";
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
@@ -33,7 +26,7 @@ export default async function handler(req, res) {
   // replaces the old "companyId always equals the caller's own uid" hack,
   // and is what makes more than one person sharing a company possible.
   if (user.role !== "test" && supabaseReady) {
-    const membership = await resolveMembership(user.id, requestedCompanyId).catch(() => null);
+    const membership = await requireMembership(user.id, requestedCompanyId);
     if (!membership) return sendJson(res, 403, { ok: false, error: "Accès refusé à ce dossier." });
     role = membership.role;
   }

@@ -193,3 +193,119 @@ export async function supabaseRequest(path, options = {}) {
 
   return payload;
 }
+
+// Shared by every endpoint that scopes data to a company (documents,
+// dossiers, snapshot): confirms the caller is an actual company_users
+// member, optionally restricted to specific roles, before any read/write
+// proceeds. Returns null (not an error) when Supabase isn't configured, so
+// callers fall through to their own dev/memory fallback instead of always
+// denying -- and null when there genuinely is no membership row, which
+// callers should treat as a hard 403.
+export async function requireMembership(userId, companyId, allowRoles = null) {
+  if (!companyId) return null;
+  const { url, key } = supabaseConfig();
+  if (!url || !key) return undefined; // Supabase not configured: caller decides fallback behavior.
+
+  const rows = await supabaseRequest(
+    `company_users?company_id=eq.${encodeURIComponent(companyId)}&user_id=eq.${encodeURIComponent(userId)}&select=role&limit=1`
+  ).catch(() => null);
+  const membership = rows?.[0] || null;
+  if (!membership) return null;
+  if (allowRoles && !allowRoles.includes(membership.role)) return null;
+  return membership;
+}
+
+// Storage uses a distinct REST surface (/storage/v1) from the Postgres
+// REST API (/rest/v1) that supabaseRequest talks to, and file bytes go in
+// the body directly rather than as a JSON field -- kept separate rather
+// than overloading supabaseRequest for this.
+export async function supabaseStorageUpload(bucket, path, buffer, contentType) {
+  const { url, key } = supabaseConfig();
+  if (!url || !key) throw new Error("Supabase n'est pas configuré.");
+
+  const response = await fetch(
+    `${url.replace(/\/$/, "")}/storage/v1/object/${bucket}/${path}`,
+    {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": contentType || "application/octet-stream",
+        "x-upsert": "true"
+      },
+      body: buffer
+    }
+  );
+
+  if (!response.ok) throw new Error(await response.text());
+  return path;
+}
+
+export async function supabaseStorageSignedUrl(bucket, path, expiresInSeconds = 3600) {
+  const { url, key } = supabaseConfig();
+  if (!url || !key) return null;
+
+  const response = await fetch(
+    `${url.replace(/\/$/, "")}/storage/v1/object/sign/${bucket}/${path}`,
+    {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ expiresIn: expiresInSeconds })
+    }
+  );
+
+  if (!response.ok) return null;
+  const payload = await response.json();
+  return payload.signedURL ? `${url.replace(/\/$/, "")}/storage/v1${payload.signedURL}` : null;
+}
+
+export async function supabaseStorageDelete(bucket, path) {
+  const { url, key } = supabaseConfig();
+  if (!url || !key) return;
+
+  await fetch(`${url.replace(/\/$/, "")}/storage/v1/object/${bucket}/${path}`, {
+    method: "DELETE",
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`
+    }
+  }).catch(() => {});
+}
+
+// Best-effort and intentionally non-blocking: a failed audit write should
+// never be the reason a real action (validating a dossier, saving a
+// snapshot) fails for the user. Call this and don't await it in the
+// request's critical path, or await it but ignore its rejection.
+export async function logAudit(actorId, companyId, action, details = {}) {
+  try {
+    await supabaseRequest("audit_logs", {
+      method: "POST",
+      body: JSON.stringify({ actor_id: actorId || null, company_id: companyId || null, action, details })
+    });
+  } catch {
+    // Swallowed on purpose -- see comment above.
+  }
+}
+
+// In-memory sliding-window limiter. Vercel serverless functions are
+// stateless between cold starts, so this only bounds abuse within a warm
+// instance -- a real deployment under sustained load needs a shared store
+// (Redis/Upstash) instead. Still meaningfully better than no limit at all
+// for a single-instance/low-traffic MVP, and costs nothing extra to run.
+const rateLimitStore = new Map();
+
+export function checkRateLimit(key, limit, windowMs) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitStore.set(key, { windowStart: now, count: 1 });
+    return { allowed: true, remaining: limit - 1 };
+  }
+  entry.count += 1;
+  if (entry.count > limit) return { allowed: false, remaining: 0 };
+  return { allowed: true, remaining: limit - entry.count };
+}

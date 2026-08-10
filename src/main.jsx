@@ -38,7 +38,8 @@ import {
   Store,
   Target,
   Upload,
-  Users
+  Users,
+  X
 } from "lucide-react";
 import "./styles.css";
 
@@ -208,6 +209,7 @@ const CERTIFICATE_STATUS_API = `${API_BASE_URL}/api/certificate-status`;
 const CHECKOUT_API = `${API_BASE_URL}/api/create-checkout-session`;
 const FINALIZE_SIGNUP_API = `${API_BASE_URL}/api/finalize-signup`;
 const COMPANY_API = `${API_BASE_URL}/api/company`;
+const DOCUMENTS_API = `${API_BASE_URL}/api/documents`;
 const APP_ENV = import.meta.env.VITE_APP_ENV || (import.meta.env.PROD ? "production" : "test");
 const ENABLE_TEST_TOOLS = APP_ENV !== "production" && import.meta.env.VITE_ENABLE_TEST_TOOLS === "true";
 const ENABLE_PAYMENTS = import.meta.env.VITE_ENABLE_PAYMENTS === "true";
@@ -399,6 +401,7 @@ async function documentFromFile(file, currentDraft) {
     ...currentDraft,
     title: currentDraft.title || file.name.replace(/\.[^.]+$/, ""),
     type: currentDraft.type === "Document" ? (file.type.includes("pdf") ? "PDF" : file.type.startsWith("image/") ? "Photo" : "Document") : currentDraft.type,
+    file,
     fileName: file.name,
     fileType: file.type || "type inconnu",
     fileSize: file.size,
@@ -418,6 +421,30 @@ async function documentFromFile(file, currentDraft) {
     ...baseDocument,
     content: currentDraft.content || text.slice(0, 12000),
     extractionStatus: text ? "text-extracted" : "empty-file"
+  };
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+    reader.onerror = () => reject(new Error("Lecture du fichier impossible."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function mapServerDocument(document) {
+  return {
+    id: document.id,
+    title: document.title,
+    type: document.type,
+    content: document.content || "",
+    questionCodes: document.question_codes || [],
+    fileName: document.file_path ? document.file_path.split("/").pop() : null,
+    fileType: document.file_type,
+    fileSize: document.file_size,
+    url: document.url || null,
+    syncStatus: "saved"
   };
 }
 
@@ -1494,9 +1521,19 @@ function ProofsPage({ route, state, actions }) {
             </div>
             <div className="document-chips">
               {state.documents.map((document) => (
-                <span key={document.id}>
+                <span key={document.id} className={document.syncStatus === "error" ? "sync-error" : ""}>
                   {document.type} - {document.title}
                   {document.questionCodes?.length ? ` (${document.questionCodes.join(", ")})` : ""}
+                  {document.syncStatus === "saving" && " - enregistrement..."}
+                  {document.syncStatus === "error" && " - non enregistré"}
+                  {document.url && (
+                    <a href={document.url} target="_blank" rel="noreferrer" title="Ouvrir le fichier">
+                      <FileSearch size={13} />
+                    </a>
+                  )}
+                  <button type="button" onClick={() => actions.removeDocument(document.id)} aria-label={`Retirer ${document.title}`}>
+                    <X size={13} />
+                  </button>
                 </span>
               ))}
               {!state.documents.length && <span>Ajoutez une preuve manuellement.</span>}
@@ -2107,6 +2144,32 @@ function App() {
     };
   }, [authState.loading, authState.session]);
 
+  React.useEffect(() => {
+    const companyId = companyState.company?.id;
+    if (!companyId) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch(`${DOCUMENTS_API}?company_id=${encodeURIComponent(companyId)}`, {
+          headers: authHeaders()
+        });
+        const payload = await response.json();
+        if (cancelled || !response.ok || !payload.ok) return;
+        // Only replace the list if the server actually has rows: keeps
+        // whatever was just loaded from a snapshot (or added this session)
+        // intact instead of wiping it out on an empty first fetch.
+        if (payload.documents?.length) setDocuments(payload.documents.map(mapServerDocument));
+      } catch {
+        // Keep whatever documents are already in state.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [companyState.company?.id]);
+
   async function startCheckout() {
     if (ENABLE_TEST_TOOLS || !ENABLE_PAYMENTS) return;
     setCertificateStatus((current) => ({ ...current, status: "redirecting" }));
@@ -2263,9 +2326,10 @@ function App() {
     setGlobalAnalysis(emptyGlobalAnalysis());
   }
 
-  function addDocument(document) {
+  async function addDocument(document) {
+    const localId = `doc-${Date.now()}`;
     const cleanDocument = {
-      id: `doc-${Date.now()}`,
+      id: localId,
       title: document.title?.trim() || "Document sans titre",
       type: document.type?.trim() || "Document",
       content: document.content?.trim(),
@@ -2273,10 +2337,58 @@ function App() {
       fileName: document.fileName,
       fileType: document.fileType,
       fileSize: document.fileSize,
-      extractionStatus: document.extractionStatus || "manual"
+      extractionStatus: document.extractionStatus || "manual",
+      syncStatus: "saving"
     };
     if (!cleanDocument.content && !cleanDocument.fileName) return;
+    // Optimistic: the document shows up immediately, then gets swapped for
+    // the persisted server row (or flagged if that save fails) once the
+    // upload resolves, rather than blocking the UI on a round trip.
     setDocuments((current) => [cleanDocument, ...current]);
+
+    const companyId = companyState.company?.id;
+    if (!companyId) {
+      setDocuments((current) => current.map((item) => (item.id === localId ? { ...item, syncStatus: "local" } : item)));
+      return;
+    }
+
+    try {
+      const fileBase64 = document.file ? await fileToBase64(document.file) : null;
+      const response = await fetch(DOCUMENTS_API, {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          companyId,
+          title: cleanDocument.title,
+          type: cleanDocument.type,
+          content: cleanDocument.content,
+          questionCodes: cleanDocument.questionCodes,
+          fileName: cleanDocument.fileName,
+          fileType: cleanDocument.fileType,
+          fileBase64
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok || !payload.document) throw new Error(payload.error || "Enregistrement impossible.");
+      setDocuments((current) => current.map((item) => (item.id === localId ? mapServerDocument(payload.document) : item)));
+    } catch (error) {
+      setDocuments((current) => current.map((item) => (item.id === localId ? { ...item, syncStatus: "error", syncError: error.message } : item)));
+    }
+  }
+
+  async function removeDocument(documentId) {
+    setDocuments((current) => current.filter((item) => item.id !== documentId));
+    const companyId = companyState.company?.id;
+    if (!companyId || documentId.startsWith("doc-")) return; // local-only (never synced, or a demo row): nothing server-side to delete.
+    try {
+      await fetch(`${DOCUMENTS_API}?id=${encodeURIComponent(documentId)}&company_id=${encodeURIComponent(companyId)}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+    } catch {
+      // Already removed from the visible list; a failed server delete here
+      // isn't worth interrupting the user over.
+    }
   }
 
   function fillTestDocuments() {
@@ -2449,7 +2561,7 @@ function App() {
     certificateStatus,
     companyState
   };
-  const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic, startCheckout };
+  const actions = { updateAnswer, reviewQuestion, fillTestProofs, addDocument, removeDocument, fillTestDocuments, scanDocuments, reviewAllVisible, runGlobalAnalysis, downloadReport, saveSnapshot, loadSnapshot, resetDiagnostic, startCheckout };
 
   if (route === "/auth/enterprise") return <AuthPage route={route} profile={profile} setProfile={setProfile} authActions={authActions} authState={authState} />;
   if (route === "/auth/login") return <LoginPage route={route} authActions={authActions} authState={authState} />;

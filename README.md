@@ -108,6 +108,12 @@ Chaque compte a un role stocke dans `app_metadata.role` (jamais `user_metadata`,
 
 `/review*` exige `reviewer` ou `admin`. `/admin/questionnaire` exige `admin`. Il n'existe aucune inscription libre-service vers ces roles. Pour promouvoir un compte, aller dans Supabase > Authentication > Users > editer l'utilisateur > `app_metadata` > ajouter `{"role": "reviewer"}` ou `{"role": "admin"}`.
 
+## Multi-tenant et documents
+
+Executer dans Supabase (SQL Editor) les blocs `companies`, `company_users`, `documents`, `dossiers`, `dossier_notes` et `audit_logs` de `supabase/schema.sql`. Une entreprise (`companies`) est creee automatiquement au premier acces post-connexion (`api/company.js`), avec le compte qui l'a creee en `owner`.
+
+Pour le stockage de fichiers, creer dans Supabase (Storage) un bucket **prive** nomme `proofs`. Sans ce bucket, l'upload de documents fonctionne quand meme : le contenu texte est conserve, seul le fichier joint ne l'est pas (avertissement silencieux, pas d'echec).
+
 ## Build
 
 ```bash

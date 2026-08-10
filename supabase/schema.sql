@@ -98,3 +98,123 @@ create policy "service role can manage company_users"
   for all
   using (auth.role() = 'service_role')
   with check (auth.role() = 'service_role');
+
+-- Proof documents, now company-owned and persisted for real (previously
+-- these lived only in React state / inside the esg_snapshots JSON blob and
+-- vanished with the tab). file_path points into Supabase Storage bucket
+-- "proofs" (private; access is via signed URL through api/documents.js,
+-- never a public bucket) -- null when a document is text-only with no
+-- attached file.
+create table if not exists public.documents (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies(id) on delete cascade,
+  uploaded_by uuid references auth.users(id) on delete set null,
+  title text not null,
+  type text,
+  content text,
+  question_codes text[] not null default '{}',
+  file_path text,
+  file_type text,
+  file_size integer,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists documents_company_id_idx
+  on public.documents (company_id);
+
+alter table public.documents enable row level security;
+
+drop policy if exists "service role can manage documents" on public.documents;
+create policy "service role can manage documents"
+  on public.documents
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+-- One dossier per company reporting cycle. This is the real unit the
+-- reviewer workspace queues against, replacing the three hardcoded demo
+-- company names that used to be the entire "reviewer queue". submitted_at
+-- captures a frozen snapshot of the score at submission time so a PME
+-- editing answers after submitting doesn't retroactively change what the
+-- reviewer is looking at mid-review.
+create table if not exists public.dossiers (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies(id) on delete cascade,
+  status text not null default 'draft' check (status in ('draft', 'submitted', 'in_review', 'validated', 'rejected')),
+  declared_score integer,
+  reviewed_score integer,
+  final_score integer,
+  snapshot jsonb,
+  submitted_by uuid references auth.users(id) on delete set null,
+  submitted_at timestamptz,
+  reviewer_id uuid references auth.users(id) on delete set null,
+  reviewed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists dossiers_company_id_idx
+  on public.dossiers (company_id);
+
+create index if not exists dossiers_status_idx
+  on public.dossiers (status);
+
+alter table public.dossiers enable row level security;
+
+drop policy if exists "service role can manage dossiers" on public.dossiers;
+create policy "service role can manage dossiers"
+  on public.dossiers
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+-- Reviewer comments on a dossier, one row per note (not a single mutable
+-- field) so the review has a real trail: what was said, by whom, when --
+-- instead of the last comment silently overwriting the previous one.
+create table if not exists public.dossier_notes (
+  id uuid primary key default gen_random_uuid(),
+  dossier_id uuid not null references public.dossiers(id) on delete cascade,
+  author_id uuid references auth.users(id) on delete set null,
+  question_code text,
+  note text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists dossier_notes_dossier_id_idx
+  on public.dossier_notes (dossier_id);
+
+alter table public.dossier_notes enable row level security;
+
+drop policy if exists "service role can manage dossier_notes" on public.dossier_notes;
+create policy "service role can manage dossier_notes"
+  on public.dossier_notes
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+-- Append-only trail for sensitive actions (role changes, dossier
+-- validation, certificate activation). Never updated or deleted from the
+-- app -- if a row here is wrong, that is itself worth knowing.
+create table if not exists public.audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  actor_id uuid references auth.users(id) on delete set null,
+  company_id uuid references public.companies(id) on delete set null,
+  action text not null,
+  details jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists audit_logs_company_id_idx
+  on public.audit_logs (company_id);
+
+create index if not exists audit_logs_created_at_idx
+  on public.audit_logs (created_at desc);
+
+alter table public.audit_logs enable row level security;
+
+drop policy if exists "service role can manage audit_logs" on public.audit_logs;
+create policy "service role can manage audit_logs"
+  on public.audit_logs
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
