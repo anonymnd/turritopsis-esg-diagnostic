@@ -52,8 +52,8 @@ const sectors = [
 
 const pillars = [
   { id: "E", label: "Environnement", icon: Leaf, color: "green" },
-  { id: "S", label: "Social", icon: Users, color: "blue" },
-  { id: "G", label: "Gouvernance", icon: ShieldCheck, color: "orange" }
+  { id: "S", label: "Social", icon: Users, color: "orange" },
+  { id: "G", label: "Gouvernance", icon: ShieldCheck, color: "blue" }
 ];
 
 const sharedQuestions = {
@@ -634,7 +634,7 @@ function TopNav({ route }) {
       <nav className={open ? "open" : ""} aria-label="Navigation principale">
         <NavLink route="/" currentRoute={route}>Accueil</NavLink>
         <NavLink route="/auth/enterprise" currentRoute={route}>Entreprise</NavLink>
-        <NavLink route="/app" currentRoute={route}>Espace PME</NavLink>
+        <a className="nav-cta" href="#/app">Espace PME</a>
       </nav>
     </header>
   );
@@ -681,15 +681,11 @@ function PublicPage({ route, state }) {
       <TopNav route={route} />
       <section className="public-hero">
         <div className="hero-copy">
-          <p className="eyebrow">Diagnostic ESG révisable</p>
-          <h1>Turritopsis ESG <span className="gradient-text">Diagnostic</span></h1>
+          <p className="eyebrow">Diagnostic ESG pour PME</p>
+          <h1>Votre PME, notée pièce par pièce.</h1>
           <p>
-            Un score déclaré, un score vérifié, et un chemin pour passer de l'un à l'autre : profil entreprise,
-            questionnaire ESG adapté au secteur, preuves à l'appui, puis revue humaine avant le rapport final.
-          </p>
-          <p className="hero-caption">
-            Turritopsis dohrnii peut inverser son propre cycle de vie plutôt que de disparaître. Ce diagnostic
-            aussi reste révisable : rien n'est figé tant qu'il n'est pas validé.
+            27 critères E/S/G adaptés à votre secteur, chacun avec sa preuve. Assemblés, ils forment un score
+            qui explique ce qu'il manque — pas seulement ce qu'il vaut.
           </p>
           <div className="hero-actions">
             <a className="btn primary" href="#/auth/enterprise">
@@ -701,13 +697,8 @@ function PublicPage({ route, state }) {
           </div>
         </div>
         <div className="hero-graphic" aria-hidden="true">
-          <div className="pulse-rings">
-            <span className="ring r1" />
-            <span className="ring r2" />
-            <div className="pulse-readout">
-              <strong>68</strong>
-              <span>/ 100</span>
-            </div>
+          <div className="score-wheel">
+            <strong>68</strong>
           </div>
           <div className="floating-note note-a">
             <span>PME</span>
@@ -723,16 +714,12 @@ function PublicPage({ route, state }) {
           <ChevronRight size={22} />
         </a>
       </section>
-      <div className="report-cycle" aria-hidden="true">
-        <p className="report-cycle-head">Le cycle du dossier</p>
-        <div className="report-cycle-nodes">
-          <div className="report-cycle-node"><i /><span>Déclaré</span></div>
-          <div className="report-cycle-line" />
-          <div className="report-cycle-node"><i /><span>Preuves vérifiées</span></div>
-          <div className="report-cycle-line" />
-          <div className="report-cycle-node"><i /><span>Revue humaine</span></div>
-          <div className="report-cycle-line" />
-          <div className="report-cycle-node"><i /><span>Validé</span></div>
+      <div className="pillar-tiles-strip" aria-hidden="true">
+        <p className="pillar-tiles-head">27 critères, assemblés comme une mosaïque</p>
+        <div className="pillar-tiles">
+          <div className="pillar-tile env"><b>Environnement</b><span>62</span></div>
+          <div className="pillar-tile social"><b>Social</b><span>71</span></div>
+          <div className="pillar-tile gov"><b>Gouvernance</b><span>69</span></div>
         </div>
       </div>
 
