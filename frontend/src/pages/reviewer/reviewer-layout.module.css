@@ -1,0 +1,44 @@
+.shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  height: 64px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 24px;
+}
+
+.brand {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.brandTag {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.navLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.navLinkActive {
+  color: var(--blue-dark);
+}
+
+.logout {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+}

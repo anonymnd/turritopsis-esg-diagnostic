@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: turritopsis
+      POSTGRES_PASSWORD: turritopsis_dev
+      POSTGRES_DB: turritopsis
+    ports:
+      - "5432:5432"
+    volumes:
+      - turritopsis_pg_data:/var/lib/postgresql/data
+
+volumes:
+  turritopsis_pg_data:

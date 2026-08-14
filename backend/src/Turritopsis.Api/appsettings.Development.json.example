@@ -1,0 +1,17 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "Default": "Host=localhost;Port=5432;Database=turritopsis;Username=turritopsis;Password=replace_with_local_password"
+  },
+  "Jwt": {
+    "Key": "replace_with_a_generated_secret_at_least_32_bytes",
+    "Issuer": "turritopsis-api",
+    "Audience": "turritopsis-app",
+    "ExpiryMinutes": 60
+  }
+}

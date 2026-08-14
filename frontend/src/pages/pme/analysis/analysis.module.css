@@ -1,0 +1,92 @@
+.wrap {
+  padding: 32px 40px;
+  max-width: 900px;
+}
+
+.wrap h2 {
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: var(--ink-muted);
+  margin-bottom: 24px;
+}
+
+.scoreCard {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  padding: 24px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 28px;
+}
+
+.scoreCircle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--blue-tint);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.scoreValue {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--blue-dark);
+}
+
+.scoreLabel {
+  font-size: 9px;
+  color: var(--blue-dark);
+}
+
+.pillarRow {
+  display: flex;
+  gap: 16px;
+}
+
+.pillarChip {
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+}
+
+.pillarChip b {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 16px;
+}
+
+.pillarChip span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.submitBtn {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.confirmation {
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--status-ok);
+  font-weight: 600;
+}

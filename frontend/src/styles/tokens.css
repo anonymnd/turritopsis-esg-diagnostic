@@ -1,0 +1,57 @@
+/* Design tokens ported from the confirmed Claude Design prototype
+   (docs/rewrite — do not hand-pick new colors here without going back
+   through that approval flow). */
+:root {
+  --bg: #f6f9f7;
+  --surface: #ffffff;
+  --surface-2: #eff5f1;
+  --ink: #152420;
+  --ink-muted: rgba(21, 36, 32, 0.62);
+  --border: #e3eae4;
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 10px 24px rgba(16, 36, 28, 0.09);
+  --shadow-lg: 0 24px 56px rgba(16, 36, 28, 0.16);
+
+  --blue: #1668b0;
+  --blue-dark: #0b3e6b;
+  --blue-tint: #e6f0fa;
+  --cyan: #17b4d9;
+  --cyan-dark: #0b7c99;
+  --green: #1f8a4f;
+  --green-dark: #0f5c34;
+  --green-tint: #e5f4ea;
+  --purple: #6d4cc9;
+  --purple-dark: #42297f;
+  --purple-tint: #f0ebfc;
+
+  --pillar-e: var(--green);
+  --pillar-e-tint: var(--green-tint);
+  --pillar-e-dark: var(--green-dark);
+  --pillar-s: var(--blue);
+  --pillar-s-tint: var(--blue-tint);
+  --pillar-s-dark: var(--blue-dark);
+  --pillar-g: var(--purple);
+  --pillar-g-tint: var(--purple-tint);
+  --pillar-g-dark: var(--purple-dark);
+
+  --brand-gradient: linear-gradient(120deg, #1668b0 0%, #17b4d9 55%, #2fa05a 100%);
+  --accent: var(--blue);
+  --accent-dark: var(--blue-dark);
+
+  --status-ok: #1f8a4f;
+  --status-ok-tint: rgba(31, 138, 79, 0.12);
+  --status-warn: #b9791e;
+  --status-warn-tint: rgba(185, 121, 30, 0.14);
+  --status-bad: #c4453a;
+  --status-bad-tint: rgba(196, 69, 58, 0.12);
+  --status-progress: #1668b0;
+  --status-progress-tint: rgba(22, 104, 176, 0.12);
+
+  --font-heading: "Sora", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+}

@@ -1,0 +1,74 @@
+.wrap {
+  padding: 32px 40px;
+  max-width: 1080px;
+}
+
+.wrap h2 {
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: var(--ink-muted);
+  margin-bottom: 28px;
+}
+
+.roleBadge {
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--blue-tint);
+  color: var(--blue-dark);
+  margin-bottom: 28px;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.stepCard {
+  cursor: pointer;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: none;
+  text-align: left;
+}
+
+.stepKicker {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.stepTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.stepBody {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.state {
+  padding: 32px 0;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 900px) {
+  .stepsGrid {
+    grid-template-columns: 1fr;
+  }
+}
