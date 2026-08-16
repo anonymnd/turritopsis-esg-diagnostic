@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Turritopsis.Application.Abstractions;
 using Turritopsis.Application.Auth.Models;
 using Turritopsis.Domain.Entities;
@@ -14,12 +15,21 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly TurritopsisDbContext _db;
     private readonly JwtTokenGenerator _tokenGenerator;
+    private readonly IEmailService _emailService;
+    private readonly FrontendOptions _frontendOptions;
 
-    public AuthService(UserManager<ApplicationUser> userManager, TurritopsisDbContext db, JwtTokenGenerator tokenGenerator)
+    public AuthService(
+        UserManager<ApplicationUser> userManager,
+        TurritopsisDbContext db,
+        JwtTokenGenerator tokenGenerator,
+        IEmailService emailService,
+        IOptions<FrontendOptions> frontendOptions)
     {
         _userManager = userManager;
         _db = db;
         _tokenGenerator = tokenGenerator;
+        _emailService = emailService;
+        _frontendOptions = frontendOptions.Value;
     }
 
     public async Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
@@ -80,5 +90,40 @@ public class AuthService : IAuthService
 
         var (token, expiresAt) = _tokenGenerator.Generate(user, roles);
         return AuthResult.Ok(token, expiresAt, user.Id, companyId, roles.ToArray());
+    }
+
+    public async Task RequestPasswordResetAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        // Never reveal whether the email exists — the controller always
+        // returns the same generic response regardless of what happens here.
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user is null)
+        {
+            return;
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var link = $"{_frontendOptions.BaseUrl}/auth/reset-password?email={Uri.EscapeDataString(request.Email)}&token={Uri.EscapeDataString(token)}";
+        var html = $"""
+            <p>Bonjour,</p>
+            <p>Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe :</p>
+            <p><a href="{link}">{link}</a></p>
+            <p>Si vous n'etes pas a l'origine de cette demande, ignorez cet email.</p>
+            """;
+        await _emailService.SendAsync(request.Email, "Reinitialisation de votre mot de passe Turritopsis", html, cancellationToken);
+    }
+
+    public async Task<PasswordResetResult> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user is null)
+        {
+            return PasswordResetResult.Fail("Lien invalide ou expire.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        return result.Succeeded
+            ? PasswordResetResult.Ok()
+            : PasswordResetResult.Fail(result.Errors.Select(e => e.Description).ToArray());
     }
 }

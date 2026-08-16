@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import LandingPage from "../pages/landing/LandingPage";
 import AuthPage from "../pages/auth/AuthPage";
+import ResetPasswordPage from "../pages/auth/reset-password/ResetPasswordPage";
 import ReviewerLoginPage from "../pages/reviewer-login/ReviewerLoginPage";
 import PmeLayout from "../pages/pme/PmeLayout";
 import DashboardPage from "../pages/pme/dashboard/DashboardPage";
@@ -23,6 +24,7 @@ import RequireRole from "./RequireRole";
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
   { path: "/auth", element: <AuthPage /> },
+  { path: "/auth/reset-password", element: <ResetPasswordPage /> },
   { path: "/review/login", element: <ReviewerLoginPage /> },
   {
     path: "/app",

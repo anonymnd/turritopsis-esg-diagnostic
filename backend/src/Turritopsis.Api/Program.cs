@@ -13,6 +13,7 @@ using Turritopsis.Infrastructure.Admin;
 using Turritopsis.Infrastructure.Companies;
 using Turritopsis.Infrastructure.Documents;
 using Turritopsis.Infrastructure.Dossiers;
+using Turritopsis.Infrastructure.Email;
 using Turritopsis.Infrastructure.Identity;
 using Turritopsis.Infrastructure.Persistence;
 using Turritopsis.Infrastructure.Snapshots;
@@ -40,6 +41,9 @@ builder.Services
     .AddEntityFrameworkStores<TurritopsisDbContext>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection(FrontendOptions.SectionName));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 builder.Services.AddSingleton<JwtTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();

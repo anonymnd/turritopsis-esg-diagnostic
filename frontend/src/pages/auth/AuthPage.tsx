@@ -1,16 +1,18 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
+import { requestPasswordReset } from "../../features/auth/api";
 import SiteNav from "../../shared/components/SiteNav";
 import styles from "./auth.module.css";
 
-type Tab = "signup" | "login";
+type Tab = "signup" | "login" | "forgot";
 
 export default function AuthPage() {
   const navigate = useNavigate();
   const { register, login } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab: Tab = searchParams.get("tab") === "login" ? "login" : "signup";
+  const tabParam = searchParams.get("tab");
+  const tab: Tab = tabParam === "login" ? "login" : tabParam === "forgot" ? "forgot" : "signup";
 
   const [companyName, setCompanyName] = useState("");
   const [sector, setSector] = useState("");
@@ -18,10 +20,12 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetRequested, setResetRequested] = useState(false);
 
   function setTab(next: Tab) {
     setSearchParams({ tab: next });
     setError(null);
+    setResetRequested(false);
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -32,6 +36,11 @@ export default function AuthPage() {
       if (tab === "signup") {
         await register({ email, password, companyName, sector });
         navigate("/app");
+      } else if (tab === "forgot") {
+        // Backend always returns the same generic response whether the
+        // email exists or not — nothing to branch on here either.
+        await requestPasswordReset(email);
+        setResetRequested(true);
       } else {
         const session = await login({ email, password });
         // Reviewer/admin accounts don't belong in the PME app shell —
@@ -55,85 +64,111 @@ export default function AuthPage() {
       <div className={styles.page}>
         <div className={styles.wrap}>
           <div className={styles.card}>
-          <div className={styles.tabs}>
-            <button
-              type="button"
-              className={`${styles.tab} ${tab === "signup" ? styles.tabActive : ""}`}
-              onClick={() => setTab("signup")}
-            >
-              Creer une entreprise
-            </button>
-            <button
-              type="button"
-              className={`${styles.tab} ${tab === "login" ? styles.tabActive : ""}`}
-              onClick={() => setTab("login")}
-            >
-              Connexion
-            </button>
-          </div>
+          {tab !== "forgot" && (
+            <div className={styles.tabs}>
+              <button
+                type="button"
+                className={`${styles.tab} ${tab === "signup" ? styles.tabActive : ""}`}
+                onClick={() => setTab("signup")}
+              >
+                Creer une entreprise
+              </button>
+              <button
+                type="button"
+                className={`${styles.tab} ${tab === "login" ? styles.tabActive : ""}`}
+                onClick={() => setTab("login")}
+              >
+                Connexion
+              </button>
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit}>
-            {tab === "signup" ? (
-              <>
-                <h3 className={styles.title}>Creer votre entreprise</h3>
-                <p className={styles.subtitle}>Vous serez proprietaire du compte et pourrez inviter des collaborateurs.</p>
+          {tab === "forgot" && resetRequested ? (
+            <div>
+              <h3 className={styles.title}>Verifiez vos emails</h3>
+              <p className={styles.subtitle}>
+                Si un compte existe avec cet email, un lien de reinitialisation vient d'etre envoye.
+              </p>
+              <button type="button" className={styles.submit} onClick={() => setTab("login")}>
+                Retour a la connexion
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              {tab === "signup" ? (
+                <>
+                  <h3 className={styles.title}>Creer votre entreprise</h3>
+                  <p className={styles.subtitle}>Vous serez proprietaire du compte et pourrez inviter des collaborateurs.</p>
+                  <div className={styles.field}>
+                    <label htmlFor="companyName">Nom de l'entreprise</label>
+                    <input
+                      id="companyName"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Atlas Textile SARL"
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="sector">Secteur d'activite</label>
+                    <input id="sector" value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Confection textile" required />
+                  </div>
+                </>
+              ) : tab === "forgot" ? (
+                <>
+                  <h3 className={styles.title}>Mot de passe oublie</h3>
+                  <p className={styles.subtitle}>Entrez votre email, nous vous enverrons un lien pour choisir un nouveau mot de passe.</p>
+                </>
+              ) : (
+                <>
+                  <h3 className={styles.title}>Connexion</h3>
+                  <p className={styles.subtitle}>Proprietaire, collaborateur ou lecteur — connectez-vous a votre entreprise.</p>
+                </>
+              )}
+
+              <div className={styles.field}>
+                <label htmlFor="email">E-mail professionnel</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="vous@entreprise.ma"
+                  required
+                />
+              </div>
+              {tab !== "forgot" && (
                 <div className={styles.field}>
-                  <label htmlFor="companyName">Nom de l'entreprise</label>
+                  <label htmlFor="password">Mot de passe</label>
                   <input
-                    id="companyName"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="Atlas Textile SARL"
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
                     required
                   />
                 </div>
-                <div className={styles.field}>
-                  <label htmlFor="sector">Secteur d'activite</label>
-                  <input id="sector" value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Confection textile" required />
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className={styles.title}>Connexion</h3>
-                <p className={styles.subtitle}>Proprietaire, collaborateur ou lecteur — connectez-vous a votre entreprise.</p>
-              </>
-            )}
+              )}
 
-            <div className={styles.field}>
-              <label htmlFor="email">E-mail professionnel</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="vous@entreprise.ma"
-                required
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="password">Mot de passe</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
+              {tab === "login" && (
+                <button type="button" className={styles.forgotLink} onClick={() => setTab("forgot")}>
+                  Mot de passe oublie ?
+                </button>
+              )}
+              {tab === "forgot" && (
+                <button type="button" className={styles.forgotLink} onClick={() => setTab("login")}>
+                  ← Retour a la connexion
+                </button>
+              )}
 
-            {tab === "login" && (
-              <a href="#" className={styles.forgotLink}>
-                Mot de passe oublie ?
-              </a>
-            )}
+              <button type="submit" className={styles.submit} disabled={submitting}>
+                {submitting ? "Un instant…" : tab === "signup" ? "Creer le compte" : tab === "forgot" ? "Envoyer le lien" : "Se connecter"}
+              </button>
 
-            <button type="submit" className={styles.submit} disabled={submitting}>
-              {submitting ? "Un instant…" : tab === "signup" ? "Creer le compte" : "Se connecter"}
-            </button>
-
-            {error && <p className={styles.error}>{error}</p>}
-          </form>
+              {error && <p className={styles.error}>{error}</p>}
+            </form>
+          )}
           </div>
         </div>
       </div>

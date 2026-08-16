@@ -41,3 +41,11 @@ export async function login(payload: LoginPayload): Promise<Session> {
   const { data } = await httpClient.post<AuthResponse>("/auth/login", payload);
   return toSession(data);
 }
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  await httpClient.post("/auth/forgot-password", { email });
+}
+
+export async function resetPassword(payload: { email: string; token: string; newPassword: string }): Promise<void> {
+  await httpClient.post("/auth/reset-password", payload);
+}

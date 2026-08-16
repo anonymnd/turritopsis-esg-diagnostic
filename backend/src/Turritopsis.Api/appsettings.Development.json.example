@@ -23,5 +23,13 @@
   "AdminSeed": {
     "Email": "",
     "Password": ""
+  },
+  "Email": {
+    "Enabled": false,
+    "ApiKey": "",
+    "FromAddress": "Turritopsis ESG <no-reply@turritopsis.org>"
+  },
+  "Frontend": {
+    "BaseUrl": "http://localhost:5173"
   }
 }

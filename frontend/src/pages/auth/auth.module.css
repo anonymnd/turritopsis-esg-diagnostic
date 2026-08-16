@@ -96,6 +96,12 @@
   font-size: 12px;
   display: inline-block;
   margin-bottom: 22px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--blue);
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .submit {
