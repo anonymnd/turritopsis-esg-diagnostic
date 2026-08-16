@@ -46,8 +46,7 @@ builder.Services.AddScoped<ISnapshotService, SnapshotService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDossierService, DossierService>();
 builder.Services.AddScoped<IAdminOverviewService, AdminOverviewService>();
-builder.Services.AddSingleton<IFileStorage>(
-    _ => new LocalFileStorage(Path.Combine(builder.Environment.ContentRootPath, "uploads")));
+builder.Services.AddScoped<IFileStorage, DatabaseFileStorage>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 

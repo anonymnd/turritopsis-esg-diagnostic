@@ -1,6 +1,5 @@
 bin/
 obj/
-uploads/
 *.user
 .vs/
 appsettings.Development.json

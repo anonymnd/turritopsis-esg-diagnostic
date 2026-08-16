@@ -20,6 +20,7 @@ public class TurritopsisDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<DossierNote> DossierNotes => Set<DossierNote>();
     public DbSet<Certificate> Certificates => Set<Certificate>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<FileBlob> FileBlobs => Set<FileBlob>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
