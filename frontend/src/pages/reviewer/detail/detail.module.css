@@ -97,6 +97,16 @@
   margin-bottom: 12px;
 }
 
+.recommendationsInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  font-family: inherit;
+  font-size: 13.5px;
+  resize: vertical;
+}
+
 .actions {
   display: flex;
   gap: 12px;

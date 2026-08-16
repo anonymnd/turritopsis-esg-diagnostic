@@ -8,6 +8,7 @@ public record DossierDto(
     int? DeclaredScore,
     int? ReviewedScore,
     int? FinalScore,
+    string? Recommendations,
     string SnapshotJson,
     DateTimeOffset SubmittedAt,
     DateTimeOffset? ReviewedAt,

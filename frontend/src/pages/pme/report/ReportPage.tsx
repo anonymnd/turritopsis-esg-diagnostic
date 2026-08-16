@@ -42,6 +42,12 @@ export default function ReportPage() {
         <div className={styles.statusCard}>
           <p style={{ margin: 0 }}>{STATUS_LABELS[dossier.status]}</p>
         </div>
+        {dossier.recommendations && (
+          <div className={styles.statusCard} style={{ marginTop: 16 }}>
+            <h4 style={{ marginTop: 0 }}>Retour du reviseur</h4>
+            <div className={styles.recommendationsText}>{dossier.recommendations}</div>
+          </div>
+        )}
       </div>
     );
   }
@@ -70,6 +76,7 @@ export default function ReportPage() {
       </div>
 
       <div className={styles.printHeader}>
+        <img src="/logo-icon.png" alt="" className={styles.printLogo} />
         <h1>{dossier.companyName ?? "Rapport ESG"}</h1>
         <p>
           Diagnostic ESG valide le{" "}
@@ -83,6 +90,22 @@ export default function ReportPage() {
           <BarRow label="Environ." value={scores.E} color="var(--pillar-e)" />
           <BarRow label="Social" value={scores.S} color="var(--pillar-s)" />
           <BarRow label="Gouvern." value={scores.G} color="var(--pillar-g)" />
+        </div>
+      </div>
+
+      {dossier.recommendations && (
+        <div className={styles.statusCard} style={{ marginTop: 16 }}>
+          <h4 style={{ marginTop: 0 }}>Pourquoi ce score, et sur quoi travailler</h4>
+          <div className={styles.recommendationsText}>{dossier.recommendations}</div>
+        </div>
+      )}
+
+      <div className={styles.signatureBlock}>
+        <div className={styles.signatureLine}>
+          <span>Reviseur</span>
+        </div>
+        <div className={styles.signatureLine}>
+          <span>Date</span>
         </div>
       </div>
     </div>

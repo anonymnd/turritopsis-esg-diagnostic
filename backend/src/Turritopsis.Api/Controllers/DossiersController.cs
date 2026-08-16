@@ -6,7 +6,7 @@ using Turritopsis.Application.Common;
 namespace Turritopsis.Api.Controllers;
 
 public record SubmitDossierRequest(int? DeclaredScore, int? ReviewedScore);
-public record UpdateDossierRequest(string Status, int? FinalScore);
+public record UpdateDossierRequest(string Status, int? FinalScore, string? Recommendations);
 public record AddDossierNoteRequest(string? QuestionCode, string Text);
 
 [ApiController]
@@ -76,7 +76,7 @@ public class DossiersController : ControllerBase
         if (_currentUser.UserId is not { } userId) return Unauthorized();
         if (!IsReviewer) return Forbid();
 
-        var result = await _dossierService.UpdateStatusAsync(userId, dossierId, request.Status, request.FinalScore, cancellationToken);
+        var result = await _dossierService.UpdateStatusAsync(userId, dossierId, request.Status, request.FinalScore, request.Recommendations, cancellationToken);
         return result.Access switch
         {
             MembershipAccess.NotFound => NotFound(),

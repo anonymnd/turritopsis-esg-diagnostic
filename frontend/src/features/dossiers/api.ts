@@ -10,6 +10,7 @@ export interface Dossier {
   declaredScore: number | null;
   reviewedScore: number | null;
   finalScore: number | null;
+  recommendations: string | null;
   snapshotJson: string;
   submittedAt: string;
   reviewedAt: string | null;
@@ -44,8 +45,8 @@ export async function getDossier(id: string): Promise<Dossier> {
   return data;
 }
 
-export async function updateDossier(id: string, status: DossierStatus, finalScore?: number): Promise<Dossier> {
-  const { data } = await httpClient.put<Dossier>(`/dossiers/${id}`, { status, finalScore });
+export async function updateDossier(id: string, status: DossierStatus, finalScore?: number, recommendations?: string): Promise<Dossier> {
+  const { data } = await httpClient.put<Dossier>(`/dossiers/${id}`, { status, finalScore, recommendations });
   return data;
 }
 

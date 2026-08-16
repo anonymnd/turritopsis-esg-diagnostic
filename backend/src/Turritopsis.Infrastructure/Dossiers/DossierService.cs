@@ -120,7 +120,7 @@ public class DossierService : IDossierService
         return new DossierResult(MembershipAccess.Granted, ToDto(dossier));
     }
 
-    public async Task<DossierResult> UpdateStatusAsync(Guid userId, Guid dossierId, string status, int? finalScore, CancellationToken cancellationToken)
+    public async Task<DossierResult> UpdateStatusAsync(Guid userId, Guid dossierId, string status, int? finalScore, string? recommendations, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<DossierStatus>(status, out var parsedStatus))
         {
@@ -132,7 +132,8 @@ public class DossierService : IDossierService
 
         dossier.Status = parsedStatus;
         if (finalScore is not null) dossier.FinalScore = finalScore;
-        if (parsedStatus is DossierStatus.InReview or DossierStatus.Validated)
+        if (recommendations is not null) dossier.Recommendations = recommendations;
+        if (parsedStatus is DossierStatus.InReview or DossierStatus.Validated or DossierStatus.Rejected)
         {
             dossier.ReviewerId = userId;
             dossier.ReviewedAt = DateTimeOffset.UtcNow;
@@ -256,6 +257,7 @@ public class DossierService : IDossierService
         d.DeclaredScore,
         d.ReviewedScore,
         d.FinalScore,
+        d.Recommendations,
         d.SnapshotJson,
         d.SubmittedAt,
         d.ReviewedAt,

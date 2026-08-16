@@ -13,6 +13,10 @@ public class Dossier
     public int? DeclaredScore { get; set; }
     public int? ReviewedScore { get; set; }
     public int? FinalScore { get; set; }
+    // Reviewer-authored, confirmed at the same time as the validate/reject
+    // decision — starts as an editable draft of the AI dossier review, but
+    // the reviewer owns the final wording. Shown to the PME on the report.
+    public string? Recommendations { get; set; }
     public string SnapshotJson { get; set; } = "{}";
     public Guid? SubmittedBy { get; set; }
     public Guid? ReviewerId { get; set; }

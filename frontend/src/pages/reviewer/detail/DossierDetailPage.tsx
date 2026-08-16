@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addNote, getDossier, getNotes, updateDossier, type Dossier } from "../../../features/dossiers/api";
 import { downloadDocument, listDocumentsForDossier } from "../../../features/documents/api";
-import { reviewDossier } from "../../../features/ai/api";
+import { reviewDossier, type DossierReviewResult } from "../../../features/ai/api";
 import { computeScores } from "../../../features/questionnaire/scoring";
 import { QUESTIONS } from "../../../features/questionnaire/questions";
 import type { Answers } from "../../../features/questionnaire/api";
@@ -23,6 +23,21 @@ const STATUS_STYLE: Record<Dossier["status"], { bg: string; fg: string; label: s
   Rejected: { bg: "var(--status-bad-tint)", fg: "var(--status-bad)", label: "Rejete" }
 };
 
+// Formats the AI's dossier review into an editable starting draft — the
+// reviewer owns whatever ends up here after this point, this is just a
+// time-saver so they aren't writing from a blank page.
+function formatAiAsRecommendations(result: DossierReviewResult): string {
+  const lines = [result.summary.trim()];
+  if (result.flaggedQuestions.length > 0) {
+    lines.push("", "A travailler en priorite :");
+    for (const flag of result.flaggedQuestions) {
+      const question = QUESTIONS.find((q) => q.code === flag.questionCode);
+      lines.push(`- ${flag.questionCode} (${question?.title ?? flag.questionCode}) : ${flag.reason}`);
+    }
+  }
+  return lines.join("\n");
+}
+
 export default function DossierDetailPage() {
   const { dossierId } = useParams<{ dossierId: string }>();
   const queryClient = useQueryClient();
@@ -30,6 +45,8 @@ export default function DossierDetailPage() {
   const [finalScoreInput, setFinalScoreInput] = useState("");
   const [decision, setDecision] = useState<string | null>(null);
   const [unavailableDocIds, setUnavailableDocIds] = useState<Set<string>>(new Set());
+  const [recommendationsText, setRecommendationsText] = useState("");
+  const [recommendationsHydrated, setRecommendationsHydrated] = useState(false);
 
   async function handleDownload(id: string, fileName: string) {
     const ok = await downloadDocument(id, fileName);
@@ -56,6 +73,13 @@ export default function DossierDetailPage() {
     enabled: !!dossierId
   });
 
+  useEffect(() => {
+    if (dossier && !recommendationsHydrated) {
+      setRecommendationsText(dossier.recommendations ?? "");
+      setRecommendationsHydrated(true);
+    }
+  }, [dossier, recommendationsHydrated]);
+
   const noteMutation = useMutation({
     mutationFn: () => addNote(dossierId!, noteText),
     onSuccess: () => {
@@ -69,7 +93,8 @@ export default function DossierDetailPage() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ status, finalScore }: { status: Dossier["status"]; finalScore?: number }) => updateDossier(dossierId!, status, finalScore),
+    mutationFn: ({ status, finalScore }: { status: Dossier["status"]; finalScore?: number }) =>
+      updateDossier(dossierId!, status, finalScore, recommendationsText || undefined),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["dossier", dossierId] });
       queryClient.invalidateQueries({ queryKey: ["dossiers", "queue"] });
@@ -178,8 +203,33 @@ export default function DossierDetailPage() {
                 })}
               </ul>
             )}
+            <button
+              type="button"
+              className={styles.btnGhost}
+              style={{ padding: "6px 14px", fontSize: 12, marginTop: 4 }}
+              onClick={() => setRecommendationsText(formatAiAsRecommendations(aiMutation.data!))}
+            >
+              Utiliser cette analyse comme recommandation
+            </button>
           </div>
         )}
+      </div>
+
+      <h4>Recommandations pour la PME</h4>
+      <div className={styles.notesCard}>
+        <div className={styles.aiPrompt}>
+          <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--ink-muted)" }}>
+            Visible par la PME une fois le dossier valide ou rejete — pourquoi ce score, et sur quoi
+            travailler. Pre-remplissez depuis l'analyse IA ci-dessus, puis reformulez librement.
+          </p>
+          <textarea
+            className={styles.recommendationsInput}
+            value={recommendationsText}
+            onChange={(e) => setRecommendationsText(e.target.value)}
+            placeholder="Ex : Le dossier est globalement solide. A travailler en priorite : bilan carbone (E4), criteres sociaux fournisseurs (S9)…"
+            rows={6}
+          />
+        </div>
       </div>
 
       <h4>Preuves fournies</h4>

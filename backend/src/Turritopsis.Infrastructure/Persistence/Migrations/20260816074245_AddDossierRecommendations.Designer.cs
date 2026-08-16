@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Turritopsis.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Turritopsis.Infrastructure.Persistence;
 namespace Turritopsis.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TurritopsisDbContext))]
-    partial class TurritopsisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260816074245_AddDossierRecommendations")]
+    partial class AddDossierRecommendations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
