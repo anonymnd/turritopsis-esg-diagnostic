@@ -65,6 +65,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <QueuePage /> },
+      { path: "all", element: <QueuePage all /> },
       { path: "dossiers/:dossierId", element: <DossierDetailPage /> },
       {
         path: "admin",

@@ -22,13 +22,17 @@ public class DossierService : IDossierService
         _db = db;
     }
 
-    public async Task<DossierListResult> GetQueueAsync(bool isReviewer, CancellationToken cancellationToken)
+    public async Task<DossierListResult> GetQueueAsync(bool isReviewer, bool includeAll, CancellationToken cancellationToken)
     {
         if (!isReviewer) return new DossierListResult(MembershipAccess.Forbidden, Array.Empty<DossierDto>());
 
-        var dossiers = await _db.Dossiers
-            .Include(d => d.Company)
-            .Where(d => QueueStatuses.Contains(d.Status))
+        var query = _db.Dossiers.Include(d => d.Company).AsQueryable();
+        if (!includeAll)
+        {
+            query = query.Where(d => QueueStatuses.Contains(d.Status));
+        }
+
+        var dossiers = await query
             .OrderByDescending(d => d.SubmittedAt)
             .ToListAsync(cancellationToken);
 

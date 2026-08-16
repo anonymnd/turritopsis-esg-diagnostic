@@ -35,8 +35,8 @@ export async function submitDossier(declaredScore: number, reviewedScore: number
   return data;
 }
 
-export async function getQueue(): Promise<Dossier[]> {
-  const { data } = await httpClient.get<Dossier[]>("/dossiers");
+export async function getQueue(all = false): Promise<Dossier[]> {
+  const { data } = await httpClient.get<Dossier[]>("/dossiers", { params: all ? { all: true } : undefined });
   return data;
 }
 

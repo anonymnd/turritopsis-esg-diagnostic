@@ -12,7 +12,7 @@ public record DossierAiContextResult(MembershipAccess Access, IReadOnlyList<Doss
 public interface IDossierService
 {
     // Reviewer/admin queue — role-based, not membership-based.
-    Task<DossierListResult> GetQueueAsync(bool isReviewer, CancellationToken cancellationToken);
+    Task<DossierListResult> GetQueueAsync(bool isReviewer, bool includeAll, CancellationToken cancellationToken);
 
     // A PME's own latest dossier, membership-checked.
     Task<DossierResult> GetForCompanyOwnerAsync(Guid userId, CancellationToken cancellationToken);

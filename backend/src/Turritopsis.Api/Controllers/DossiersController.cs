@@ -30,11 +30,11 @@ public class DossiersController : ControllerBase
     private bool IsReviewer => _currentUser.Roles.Any(ReviewRoles.Contains);
 
     [HttpGet]
-    public async Task<IActionResult> GetQueue(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetQueue([FromQuery] bool all, CancellationToken cancellationToken)
     {
         if (_currentUser.UserId is null) return Unauthorized();
 
-        var result = await _dossierService.GetQueueAsync(IsReviewer, cancellationToken);
+        var result = await _dossierService.GetQueueAsync(IsReviewer, all, cancellationToken);
         return result.Access == MembershipAccess.Forbidden ? Forbid() : Ok(result.Dossiers);
     }
 

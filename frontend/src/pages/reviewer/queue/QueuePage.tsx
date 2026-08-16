@@ -19,9 +19,9 @@ const STATUS_OPTIONS: { value: Dossier["status"] | "all"; label: string }[] = [
   { value: "Rejected", label: "Rejete" }
 ];
 
-export default function QueuePage() {
+export default function QueuePage({ all = false }: { all?: boolean }) {
   const navigate = useNavigate();
-  const { data: dossiers, isPending } = useQuery({ queryKey: ["dossiers", "queue"], queryFn: getQueue });
+  const { data: dossiers, isPending } = useQuery({ queryKey: ["dossiers", "queue", all], queryFn: () => getQueue(all) });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Dossier["status"] | "all">("all");
 
@@ -37,7 +37,7 @@ export default function QueuePage() {
 
   return (
     <div className={styles.wrap}>
-      <h2>File de dossiers</h2>
+      <h2>{all ? "Tous les dossiers" : "File de dossiers"}</h2>
       <p className={styles.subtitle}>{dossiers?.length ?? 0} dossiers</p>
 
       <div className={styles.toolbar}>
@@ -95,7 +95,11 @@ export default function QueuePage() {
             ) : (
               <tr>
                 <td colSpan={4} style={{ color: "var(--ink-muted)" }}>
-                  {dossiers && dossiers.length > 0 ? "Aucun resultat pour ce filtre." : "Aucun dossier en attente."}
+                  {dossiers && dossiers.length > 0
+                    ? "Aucun resultat pour ce filtre."
+                    : all
+                      ? "Aucun dossier pour le moment."
+                      : "Aucun dossier en attente."}
                 </td>
               </tr>
             )}

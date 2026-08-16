@@ -15,6 +15,9 @@ export default function ReviewerLayout() {
         <NavLink to="/reviewer" end className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}>
           File d'attente
         </NavLink>
+        <NavLink to="/reviewer/all" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}>
+          Tous les dossiers
+        </NavLink>
         <NavLink to="/reviewer/admin" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}>
           Vue administrateur
         </NavLink>
