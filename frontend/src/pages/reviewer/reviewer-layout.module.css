@@ -1,15 +1,18 @@
 .shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
   height: 64px;
+  flex: none;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   padding: 0 24px;
-  gap: 24px;
+  gap: 16px;
 }
 
 .brand {
@@ -28,16 +31,6 @@
   color: var(--ink-muted);
 }
 
-.navLink {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.navLinkActive {
-  color: var(--blue-dark);
-}
-
 .logout {
   margin-left: auto;
   font-size: 13px;
@@ -45,4 +38,41 @@
   background: none;
   border: none;
   cursor: pointer;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.sidebar {
+  width: 224px;
+  flex: none;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navLink {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.navLinkActive {
+  background: var(--blue-tint);
+  color: var(--blue-dark);
+  font-weight: 700;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
 }
