@@ -19,6 +19,7 @@ interface AuthResponse {
   expiresAt: string;
   userId: string;
   companyId: string | null;
+  roles: string[];
 }
 
 function toSession(response: AuthResponse): Session {
@@ -26,7 +27,8 @@ function toSession(response: AuthResponse): Session {
     accessToken: response.accessToken,
     expiresAt: response.expiresAt,
     userId: response.userId,
-    companyId: response.companyId
+    companyId: response.companyId,
+    roles: response.roles ?? []
   };
 }
 

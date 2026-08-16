@@ -79,6 +79,6 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(cancellationToken);
 
         var (token, expiresAt) = _tokenGenerator.Generate(user, roles);
-        return AuthResult.Ok(token, expiresAt, user.Id, companyId);
+        return AuthResult.Ok(token, expiresAt, user.Id, companyId, roles.ToArray());
     }
 }

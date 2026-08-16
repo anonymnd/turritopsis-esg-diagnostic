@@ -31,10 +31,17 @@ export default function AuthPage() {
     try {
       if (tab === "signup") {
         await register({ email, password, companyName, sector });
+        navigate("/app");
       } else {
-        await login({ email, password });
+        const session = await login({ email, password });
+        // Reviewer/admin accounts don't belong in the PME app shell —
+        // send them to the dedicated internal login instead.
+        if (session.roles.includes("admin") || session.roles.includes("reviewer")) {
+          navigate("/review/login");
+        } else {
+          navigate("/app");
+        }
       }
-      navigate("/app");
     } catch {
       setError(tab === "signup" ? "Impossible de creer le compte. Verifiez les informations saisies." : "Email ou mot de passe incorrect.");
     } finally {

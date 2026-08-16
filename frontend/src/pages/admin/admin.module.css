@@ -41,3 +41,74 @@ td {
   padding: 14px 20px;
   border-top: 1px solid var(--border);
 }
+
+.form {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+}
+
+.field input:focus-visible {
+  border-color: var(--blue);
+}
+
+.submit {
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error {
+  width: 100%;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--status-danger, #c0392b);
+  font-weight: 600;
+}
+
+.confirmation {
+  width: 100%;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--status-ok);
+  font-weight: 600;
+}

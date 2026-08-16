@@ -54,6 +54,7 @@ public class AuthController : ControllerBase
         accessToken = result.AccessToken,
         expiresAt = result.ExpiresAt,
         userId = result.UserId,
-        companyId = result.CompanyId
+        companyId = result.CompanyId,
+        roles = result.Roles
     };
 }

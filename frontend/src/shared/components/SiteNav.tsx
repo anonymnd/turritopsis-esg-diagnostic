@@ -15,9 +15,6 @@ export default function SiteNav() {
         <Link to="/#pillars">Piliers ESG</Link>
       </nav>
       <div className={styles.navRight}>
-        <Link to="/review/login" className={styles.navMuted}>
-          Acces reviseur
-        </Link>
         <Link to="/auth?tab=login" className={styles.navLogin}>
           Connexion
         </Link>

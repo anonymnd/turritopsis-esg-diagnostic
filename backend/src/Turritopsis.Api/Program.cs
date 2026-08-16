@@ -47,6 +47,7 @@ builder.Services.AddScoped<ISnapshotService, SnapshotService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDossierService, DossierService>();
 builder.Services.AddScoped<IAdminOverviewService, AdminOverviewService>();
+builder.Services.AddScoped<IAdminUsersService, AdminUsersService>();
 builder.Services.AddScoped<IFileStorage, DatabaseFileStorage>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -126,6 +127,29 @@ using (var scope = app.Services.CreateScope())
         if (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+        }
+    }
+
+    // Bootstrap the very first admin from config (env vars in prod). This is
+    // the only path that creates an admin — everything after that goes
+    // through POST /api/v1/admin/reviewers, which itself requires an admin
+    // JWT. Idempotent and a no-op when unset, so it's safe to leave wired
+    // on every deploy.
+    var adminEmail = builder.Configuration["AdminSeed:Email"];
+    var adminPassword = builder.Configuration["AdminSeed:Password"];
+    if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
+    {
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser is null)
+        {
+            adminUser = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
+            await userManager.CreateAsync(adminUser, adminPassword);
+        }
+
+        if (!await userManager.IsInRoleAsync(adminUser, "admin"))
+        {
+            await userManager.AddToRoleAsync(adminUser, "admin");
         }
     }
 }

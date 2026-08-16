@@ -25,3 +25,22 @@ export async function getAdminOverview(): Promise<AdminOverview> {
   const { data } = await httpClient.get<AdminOverview>("/admin/overview");
   return data;
 }
+
+export interface Reviewer {
+  id: string;
+  email: string;
+}
+
+export interface CreateReviewerPayload {
+  email: string;
+  password: string;
+}
+
+export async function getReviewers(): Promise<Reviewer[]> {
+  const { data } = await httpClient.get<Reviewer[]>("/admin/reviewers");
+  return data;
+}
+
+export async function createReviewer(payload: CreateReviewerPayload): Promise<void> {
+  await httpClient.post("/admin/reviewers", payload);
+}

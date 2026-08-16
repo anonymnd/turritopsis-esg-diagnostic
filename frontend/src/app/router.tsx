@@ -15,6 +15,7 @@ import DossierDetailPage from "../pages/reviewer/detail/DossierDetailPage";
 import AdminPage from "../pages/admin/AdminPage";
 import RequireAuth from "./RequireAuth";
 import RequireCompanyProfile from "./RequireCompanyProfile";
+import RequireRole from "./RequireRole";
 
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
@@ -53,14 +54,21 @@ export const router = createBrowserRouter([
   {
     path: "/reviewer",
     element: (
-      <RequireAuth>
+      <RequireRole roles={["reviewer", "admin"]}>
         <ReviewerLayout />
-      </RequireAuth>
+      </RequireRole>
     ),
     children: [
       { index: true, element: <QueuePage /> },
       { path: "dossiers/:dossierId", element: <DossierDetailPage /> },
-      { path: "admin", element: <AdminPage /> }
+      {
+        path: "admin",
+        element: (
+          <RequireRole roles={["admin"]}>
+            <AdminPage />
+          </RequireRole>
+        )
+      }
     ]
   }
 ]);

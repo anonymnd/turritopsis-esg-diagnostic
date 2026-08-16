@@ -5,6 +5,7 @@ export interface Session {
   expiresAt: string;
   userId: string;
   companyId: string | null;
+  roles: string[];
 }
 
 export function getSession(): Session | null {

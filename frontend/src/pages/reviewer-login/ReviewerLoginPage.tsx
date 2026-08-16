@@ -6,7 +6,7 @@ import styles from "./reviewer-login.module.css";
 
 export default function ReviewerLoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,8 +17,18 @@ export default function ReviewerLoginPage() {
     setSubmitting(true);
     setError(null);
     try {
-      await login({ email, password });
-      navigate("/reviewer");
+      const session = await login({ email, password });
+      // Same login for both roles — an admin lands on the admin overview,
+      // a reviewer on the queue. Anything else (a PME account, say) never
+      // gets past this page, even with valid credentials.
+      if (session.roles.includes("admin")) {
+        navigate("/reviewer/admin");
+      } else if (session.roles.includes("reviewer")) {
+        navigate("/reviewer");
+      } else {
+        logout();
+        setError("Ce compte n'a pas acces a cet espace.");
+      }
     } catch {
       setError("Identifiants incorrects.");
     } finally {
@@ -33,7 +43,7 @@ export default function ReviewerLoginPage() {
           <BrandLogo size={24} />
         </span>
         <div className={styles.kicker}>Acces interne</div>
-        <h3 className={styles.title}>Connexion reviseur</h3>
+        <h3 className={styles.title}>Connexion equipe</h3>
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label htmlFor="email">Identifiant</label>
@@ -44,7 +54,7 @@ export default function ReviewerLoginPage() {
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <button type="submit" className={styles.submit} disabled={submitting}>
-            {submitting ? "Un instant…" : "Acceder a la file"}
+            {submitting ? "Un instant…" : "Se connecter"}
           </button>
           {error && <p className={styles.error}>{error}</p>}
         </form>

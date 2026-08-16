@@ -5,8 +5,9 @@ import { clearSession, getSession, setSession, type Session } from "./session";
 interface AuthContextValue {
   session: Session | null;
   isAuthenticated: boolean;
-  register: (payload: authApi.RegisterPayload) => Promise<void>;
-  login: (payload: authApi.LoginPayload) => Promise<void>;
+  roles: string[];
+  register: (payload: authApi.RegisterPayload) => Promise<Session>;
+  login: (payload: authApi.LoginPayload) => Promise<Session>;
   logout: () => void;
 }
 
@@ -19,15 +20,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       isAuthenticated: session !== null,
+      roles: session?.roles ?? [],
       register: async (payload) => {
         const next = await authApi.register(payload);
         setSession(next);
         setSessionState(next);
+        return next;
       },
       login: async (payload) => {
         const next = await authApi.login(payload);
         setSession(next);
         setSessionState(next);
+        return next;
       },
       logout: () => {
         clearSession();
