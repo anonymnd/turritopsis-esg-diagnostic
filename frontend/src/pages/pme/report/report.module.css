@@ -13,6 +13,58 @@
   margin-bottom: 24px;
 }
 
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.downloadBtn {
+  flex: none;
+  padding: 11px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13.5px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.printHeader {
+  display: none;
+}
+
+@media print {
+  .printHeader {
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  .printHeader h1 {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .printHeader p {
+    color: var(--ink-muted);
+    font-size: 13px;
+  }
+
+  .wrap {
+    padding: 0;
+    max-width: none;
+  }
+
+  .scoreCard,
+  .statusCard {
+    box-shadow: none;
+    border: 1px solid var(--border);
+  }
+}
+
 .statusCard {
   padding: 24px;
   background: var(--surface);

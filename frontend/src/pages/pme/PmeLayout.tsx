@@ -17,7 +17,7 @@ export default function PmeLayout() {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.topbar}>
+      <header className={`${styles.topbar} no-print`}>
         <Link to="/" className={styles.brandLink}>
           <BrandLogo size={26} />
         </Link>
@@ -27,7 +27,7 @@ export default function PmeLayout() {
         </button>
       </header>
       <div className={styles.body}>
-        <nav className={styles.sidebar}>
+        <nav className={`${styles.sidebar} no-print`}>
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}

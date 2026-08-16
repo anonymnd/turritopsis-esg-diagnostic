@@ -57,8 +57,25 @@ export default function ReportPage() {
 
   return (
     <div className={styles.wrap}>
-      <h2>Rapport ESG</h2>
-      <p className={styles.subtitle}>Dossier valide {dossier.reviewedAt ? `le ${new Date(dossier.reviewedAt).toLocaleDateString("fr-FR")}` : ""}</p>
+      <div className={`${styles.header} no-print`}>
+        <div>
+          <h2>Rapport ESG</h2>
+          <p className={styles.subtitle}>
+            Dossier valide {dossier.reviewedAt ? `le ${new Date(dossier.reviewedAt).toLocaleDateString("fr-FR")}` : ""}
+          </p>
+        </div>
+        <button type="button" className={styles.downloadBtn} onClick={() => window.print()}>
+          Telecharger le rapport (PDF)
+        </button>
+      </div>
+
+      <div className={styles.printHeader}>
+        <h1>{dossier.companyName ?? "Rapport ESG"}</h1>
+        <p>
+          Diagnostic ESG valide le{" "}
+          {dossier.reviewedAt ? new Date(dossier.reviewedAt).toLocaleDateString("fr-FR") : "-"} · Turritopsis ESG Diagnostic
+        </p>
+      </div>
 
       <div className={styles.scoreCard}>
         <div className={styles.scoreValue}>{finalScore}/100</div>
