@@ -38,7 +38,8 @@ builder.Services
         options.User.RequireUniqueEmail = true;
     })
     .AddRoles<IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<TurritopsisDbContext>();
+    .AddEntityFrameworkStores<TurritopsisDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection(FrontendOptions.SectionName));

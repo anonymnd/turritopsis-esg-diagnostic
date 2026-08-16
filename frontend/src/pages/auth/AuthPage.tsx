@@ -52,7 +52,13 @@ export default function AuthPage() {
         }
       }
     } catch {
-      setError(tab === "signup" ? "Impossible de creer le compte. Verifiez les informations saisies." : "Email ou mot de passe incorrect.");
+      if (tab === "signup") {
+        setError("Impossible de creer le compte. Verifiez les informations saisies.");
+      } else if (tab === "forgot") {
+        setError("Une erreur est survenue. Reessayez dans un instant.");
+      } else {
+        setError("Email ou mot de passe incorrect.");
+      }
     } finally {
       setSubmitting(false);
     }
