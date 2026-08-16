@@ -127,3 +127,34 @@
   color: var(--status-ok);
   font-weight: 600;
 }
+
+.aiPrompt {
+  padding: 16px 18px;
+}
+
+.aiAssessmentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.aiAssessmentBadge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--purple-tint);
+  color: var(--purple);
+}
+
+.aiFlagList {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+}
+
+.aiFlagList li {
+  margin-bottom: 4px;
+}

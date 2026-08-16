@@ -4,6 +4,7 @@ import styles from "./pme-layout.module.css";
 
 const NAV_ITEMS = [
   { to: "/app", label: "Tableau de bord", end: true },
+  { to: "/app/company-info", label: "Infos entreprise" },
   { to: "/app/questionnaire", label: "Questionnaire" },
   { to: "/app/proofs", label: "Preuves" },
   { to: "/app/analysis", label: "Analyse IA" },

@@ -6,6 +6,21 @@ export interface Company {
   sector: string;
   city: string | null;
   role: "Owner" | "Collaborator" | "Viewer";
+  ice: string | null;
+  employeeRange: string | null;
+  website: string | null;
+  phone: string | null;
+  activityDescription: string | null;
+  isProfileComplete: boolean;
+}
+
+export interface UpdateCompanyProfilePayload {
+  city?: string;
+  ice?: string;
+  employeeRange?: string;
+  website?: string;
+  phone?: string;
+  activityDescription?: string;
 }
 
 export async function getMyCompany(): Promise<Company | null> {
@@ -16,6 +31,11 @@ export async function getMyCompany(): Promise<Company | null> {
     if (isAxiosNotFound(error)) return null;
     throw error;
   }
+}
+
+export async function updateCompanyProfile(payload: UpdateCompanyProfilePayload): Promise<Company> {
+  const { data } = await httpClient.put<Company>("/companies", payload);
+  return data;
 }
 
 function isAxiosNotFound(error: unknown): boolean {

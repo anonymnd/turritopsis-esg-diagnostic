@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSnapshot, saveSnapshot, type Answers, type ScoreValue } from "../../../features/questionnaire/api";
 import { PILLAR_LABELS, QUESTIONS, type Pillar } from "../../../features/questionnaire/questions";
@@ -16,6 +17,7 @@ const SCORE_CHOICES: { value: ScoreValue; label: string }[] = [
 ];
 
 export default function QuestionnairePage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: savedAnswers, isPending } = useQuery({ queryKey: ["snapshot"], queryFn: getSnapshot });
   const [index, setIndex] = useState(0);
@@ -79,6 +81,13 @@ export default function QuestionnairePage() {
         </div>
         <h2 className={styles.qTitle}>{current.title}</h2>
         <p className={styles.qDetail}>{current.detail}</p>
+        <button
+          type="button"
+          className={styles.aiHelpBtn}
+          onClick={() => navigate(`/app/proofs?question=${current.code}`)}
+        >
+          Pas sur de votre reponse ? Obtenir de l'aide avec l'IA →
+        </button>
 
         <div className={styles.fieldLabel}>Votre score</div>
         <div className={styles.scoreOptions}>

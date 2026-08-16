@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Turritopsis.Api.Services;
 using Turritopsis.Application.Abstractions;
 using Turritopsis.Application.Auth.Validators;
+using Turritopsis.Infrastructure.Ai;
 using Turritopsis.Infrastructure.Auth;
 using Turritopsis.Infrastructure.Admin;
 using Turritopsis.Infrastructure.Companies;
@@ -49,6 +50,10 @@ builder.Services.AddScoped<IAdminOverviewService, AdminOverviewService>();
 builder.Services.AddScoped<IFileStorage, DatabaseFileStorage>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+builder.Services.Configure<AiOptions>(builder.Configuration.GetSection(AiOptions.SectionName));
+builder.Services.AddHttpClient<IAiReviewService, AiReviewService>();
+builder.Services.AddSingleton<Turritopsis.Api.Services.SlidingWindowRateLimiter>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 

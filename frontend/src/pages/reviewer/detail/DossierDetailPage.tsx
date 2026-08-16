@@ -3,10 +3,18 @@ import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addNote, getDossier, getNotes, updateDossier, type Dossier } from "../../../features/dossiers/api";
 import { downloadDocument, listDocumentsForDossier } from "../../../features/documents/api";
+import { reviewDossier } from "../../../features/ai/api";
 import { computeScores } from "../../../features/questionnaire/scoring";
 import { QUESTIONS } from "../../../features/questionnaire/questions";
 import type { Answers } from "../../../features/questionnaire/api";
 import styles from "./detail.module.css";
+
+const ASSESSMENT_LABEL: Record<string, string> = {
+  coherent: "Coherent",
+  "score probablement surestime": "Score probablement surestime",
+  "preuves insuffisantes": "Preuves insuffisantes",
+  "revue manuelle requise": "Revue manuelle requise"
+};
 
 const STATUS_STYLE: Record<Dossier["status"], { bg: string; fg: string; label: string }> = {
   Submitted: { bg: "var(--status-progress-tint)", fg: "var(--status-progress)", label: "Soumis" },
@@ -54,6 +62,10 @@ export default function DossierDetailPage() {
       setNoteText("");
       queryClient.invalidateQueries({ queryKey: ["dossier-notes", dossierId] });
     }
+  });
+
+  const aiMutation = useMutation({
+    mutationFn: () => reviewDossier(dossierId!)
   });
 
   const statusMutation = useMutation({
@@ -117,6 +129,57 @@ export default function DossierDetailPage() {
           <b>{scores.G}</b>
           <span>G</span>
         </div>
+      </div>
+
+      <h4>Analyse IA du dossier</h4>
+      <div className={styles.notesCard}>
+        {!aiMutation.data && !aiMutation.isPending && (
+          <div className={styles.aiPrompt}>
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--ink-muted)" }}>
+              Compare les scores declares par la PME aux preuves fournies pour reperer les criteres a verifier en priorite.
+            </p>
+            <button type="button" className={styles.btnGhost} onClick={() => aiMutation.mutate()}>
+              Lancer l'analyse IA
+            </button>
+          </div>
+        )}
+        {aiMutation.isPending && <div className={styles.noteEmpty}>Analyse en cours…</div>}
+        {aiMutation.isError && (
+          <div className={styles.noteEmpty}>Analyse indisponible pour le moment. Reessayez dans un instant.</div>
+        )}
+        {aiMutation.data && (
+          <div className={styles.aiPrompt}>
+            <div className={styles.aiAssessmentRow}>
+              <span className={styles.aiAssessmentBadge}>{ASSESSMENT_LABEL[aiMutation.data.assessment] ?? aiMutation.data.assessment}</span>
+              {aiMutation.data.recommendedScore !== null && (
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  style={{ padding: "6px 14px", fontSize: 12 }}
+                  onClick={() => setFinalScoreInput(String(aiMutation.data!.recommendedScore))}
+                >
+                  Utiliser le score suggere ({aiMutation.data.recommendedScore})
+                </button>
+              )}
+            </div>
+            <p style={{ fontSize: 13, margin: "8px 0" }}>{aiMutation.data.summary}</p>
+            {aiMutation.data.flaggedQuestions.length > 0 && (
+              <ul className={styles.aiFlagList}>
+                {aiMutation.data.flaggedQuestions.map((flag) => {
+                  const question = QUESTIONS.find((q) => q.code === flag.questionCode);
+                  return (
+                    <li key={flag.questionCode}>
+                      <b>
+                        {flag.questionCode} — {question?.title ?? flag.questionCode}
+                      </b>
+                      : {flag.reason}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       <h4>Preuves fournies</h4>
@@ -183,7 +246,7 @@ export default function DossierDetailPage() {
           Envoyer le commentaire
         </button>
         <button type="button" className={styles.btnPrimary} onClick={validate} disabled={statusMutation.isPending}>
-          Valider le dossier
+          {statusMutation.isPending ? "Un instant…" : "Valider le dossier"}
         </button>
         <button
           type="button"
@@ -191,7 +254,7 @@ export default function DossierDetailPage() {
           onClick={() => statusMutation.mutate({ status: "Rejected" })}
           disabled={statusMutation.isPending}
         >
-          Rejeter
+          {statusMutation.isPending ? "Un instant…" : "Rejeter"}
         </button>
         {decision && <span className={styles.decision}>{decision}</span>}
       </div>

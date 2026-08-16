@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
+import SiteNav from "../../shared/components/SiteNav";
 import styles from "./auth.module.css";
 
 type Tab = "signup" | "login";
@@ -42,12 +43,11 @@ export default function AuthPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.wrap}>
-        <div className={styles.logoRow} onClick={() => navigate("/")}>
-          <strong>TURRITOPSIS</strong>
-        </div>
-        <div className={styles.card}>
+    <div>
+      <SiteNav />
+      <div className={styles.page}>
+        <div className={styles.wrap}>
+          <div className={styles.card}>
           <div className={styles.tabs}>
             <button
               type="button"
@@ -127,6 +127,7 @@ export default function AuthPage() {
 
             {error && <p className={styles.error}>{error}</p>}
           </form>
+          </div>
         </div>
       </div>
     </div>

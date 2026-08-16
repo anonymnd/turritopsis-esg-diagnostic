@@ -4,6 +4,7 @@ import AuthPage from "../pages/auth/AuthPage";
 import ReviewerLoginPage from "../pages/reviewer-login/ReviewerLoginPage";
 import PmeLayout from "../pages/pme/PmeLayout";
 import DashboardPage from "../pages/pme/dashboard/DashboardPage";
+import CompanyInfoPage from "../pages/pme/company-info/CompanyInfoPage";
 import QuestionnairePage from "../pages/pme/questionnaire/QuestionnairePage";
 import ProofsPage from "../pages/pme/proofs/ProofsPage";
 import AnalysisPage from "../pages/pme/analysis/AnalysisPage";
@@ -13,6 +14,7 @@ import QueuePage from "../pages/reviewer/queue/QueuePage";
 import DossierDetailPage from "../pages/reviewer/detail/DossierDetailPage";
 import AdminPage from "../pages/admin/AdminPage";
 import RequireAuth from "./RequireAuth";
+import RequireCompanyProfile from "./RequireCompanyProfile";
 
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
@@ -27,8 +29,23 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: "questionnaire", element: <QuestionnairePage /> },
-      { path: "proofs", element: <ProofsPage /> },
+      { path: "company-info", element: <CompanyInfoPage /> },
+      {
+        path: "questionnaire",
+        element: (
+          <RequireCompanyProfile>
+            <QuestionnairePage />
+          </RequireCompanyProfile>
+        )
+      },
+      {
+        path: "proofs",
+        element: (
+          <RequireCompanyProfile>
+            <ProofsPage />
+          </RequireCompanyProfile>
+        )
+      },
       { path: "analysis", element: <AnalysisPage /> },
       { path: "report", element: <ReportPage /> }
     ]

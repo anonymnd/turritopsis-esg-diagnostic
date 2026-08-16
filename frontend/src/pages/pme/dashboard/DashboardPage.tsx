@@ -9,10 +9,11 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const STEPS = [
-  { to: "/app/questionnaire", kicker: "Etape 1", title: "Questionnaire", body: "27 criteres E/S/G a completer." },
-  { to: "/app/proofs", kicker: "Etape 2", title: "Preuves", body: "Documents justificatifs par critere." },
-  { to: "/app/analysis", kicker: "Etape 3", title: "Analyse IA", body: "Triage automatique avant revue." },
-  { to: "/app/report", kicker: "Etape 4", title: "Rapport", body: "Disponible apres validation." }
+  { to: "/app/company-info", kicker: "Etape 1", title: "Infos entreprise", body: "ICE, effectif, activite — necessaire avant de commencer." },
+  { to: "/app/questionnaire", kicker: "Etape 2", title: "Questionnaire", body: "27 criteres E/S/G a completer." },
+  { to: "/app/proofs", kicker: "Etape 3", title: "Preuves", body: "Documents justificatifs par critere." },
+  { to: "/app/analysis", kicker: "Etape 4", title: "Analyse IA", body: "Triage automatique avant revue." },
+  { to: "/app/report", kicker: "Etape 5", title: "Rapport", body: "Disponible apres validation." }
 ];
 
 export default function DashboardPage() {

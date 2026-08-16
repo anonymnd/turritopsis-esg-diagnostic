@@ -1,5 +1,8 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Turritopsis.Application.Abstractions;
+using Turritopsis.Application.Ai;
+using Turritopsis.Application.Ai.Models;
 using Turritopsis.Application.Common;
 using Turritopsis.Application.Dossiers.Models;
 using Turritopsis.Domain.Entities;
@@ -176,6 +179,47 @@ public class DossierService : IDossierService
         });
         await _db.SaveChangesAsync(cancellationToken);
         return MembershipAccess.Granted;
+    }
+
+    public async Task<DossierAiContextResult> GetAiContextAsync(Guid userId, bool isReviewer, Guid dossierId, CancellationToken cancellationToken)
+    {
+        if (!isReviewer) return new DossierAiContextResult(MembershipAccess.Forbidden, Array.Empty<DossierAnswerContext>());
+
+        var dossier = await _db.Dossiers.FirstOrDefaultAsync(d => d.Id == dossierId, cancellationToken);
+        if (dossier is null) return new DossierAiContextResult(MembershipAccess.NotFound, Array.Empty<DossierAnswerContext>());
+
+        Dictionary<string, JsonElement> answers;
+        try
+        {
+            answers = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(dossier.SnapshotJson) ?? new();
+        }
+        catch
+        {
+            answers = new();
+        }
+
+        var documents = await _db.Documents
+            .Where(d => d.CompanyId == dossier.CompanyId)
+            .ToListAsync(cancellationToken);
+        var documentsByCode = documents.ToLookup(d => d.QuestionCode);
+
+        var contexts = new List<DossierAnswerContext>();
+        foreach (var (code, value) in answers)
+        {
+            var score = value.TryGetProperty("score", out var s) ? s.GetString() : null;
+            if (string.IsNullOrEmpty(score)) continue;
+
+            var note = value.TryGetProperty("note", out var n) ? n.GetString() : null;
+            var document = documentsByCode[code].FirstOrDefault();
+            var proofParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(note)) proofParts.Add(note!);
+            if (!string.IsNullOrWhiteSpace(document?.TextContent)) proofParts.Add(document!.TextContent!);
+            if (!string.IsNullOrWhiteSpace(document?.FileName)) proofParts.Add($"Fichier joint : {document!.FileName}");
+
+            contexts.Add(new DossierAnswerContext(code, QuestionCatalog.TitleFor(code), score, string.Join(" ", proofParts)));
+        }
+
+        return new DossierAiContextResult(MembershipAccess.Granted, contexts);
     }
 
     private async Task<MembershipAccess> CheckDossierAccessAsync(Guid userId, bool isReviewer, Guid dossierId, CancellationToken cancellationToken)

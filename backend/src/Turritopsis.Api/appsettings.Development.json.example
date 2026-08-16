@@ -13,5 +13,11 @@
     "Issuer": "turritopsis-api",
     "Audience": "turritopsis-app",
     "ExpiryMinutes": 60
+  },
+  "Ai": {
+    "Provider": "groq",
+    "BaseUrl": "https://api.groq.com/openai/v1",
+    "Model": "llama-3.3-70b-versatile",
+    "ApiKey": ""
   }
 }

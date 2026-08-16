@@ -1,5 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { CheckCircle2, FileText, Leaf, ScanSearch, ShieldCheck, Users } from "lucide-react";
+import SiteNav from "../../shared/components/SiteNav";
 import styles from "./landing.module.css";
 
 const SECTORS = ["Textile", "Agroalimentaire", "Tourisme", "BTP", "Industrie"];
@@ -67,24 +68,7 @@ export default function LandingPage() {
 
   return (
     <div>
-      <header className={styles.nav}>
-        <strong>TURRITOPSIS</strong>
-        <nav className={styles.navLinks}>
-          <a href="#steps">Fonctionnalites</a>
-          <a href="#pillars">Piliers ESG</a>
-        </nav>
-        <div className={styles.navRight}>
-          <Link to="/review/login" className={styles.navMuted}>
-            Acces reviseur
-          </Link>
-          <Link to="/auth?tab=login" className={styles.navLogin}>
-            Connexion
-          </Link>
-          <button className={`${styles.pillButton} lift`} onClick={() => navigate("/auth?tab=signup")}>
-            Creer un compte
-          </button>
-        </div>
-      </header>
+      <SiteNav />
 
       <section className={styles.hero}>
         <div>

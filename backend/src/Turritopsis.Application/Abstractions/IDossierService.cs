@@ -1,3 +1,4 @@
+using Turritopsis.Application.Ai.Models;
 using Turritopsis.Application.Common;
 using Turritopsis.Application.Dossiers.Models;
 
@@ -6,6 +7,7 @@ namespace Turritopsis.Application.Abstractions;
 public record DossierListResult(MembershipAccess Access, IReadOnlyList<DossierDto> Dossiers);
 public record DossierResult(MembershipAccess Access, DossierDto? Dossier);
 public record DossierNoteListResult(MembershipAccess Access, IReadOnlyList<DossierNoteDto> Notes);
+public record DossierAiContextResult(MembershipAccess Access, IReadOnlyList<DossierAnswerContext> Answers);
 
 public interface IDossierService
 {
@@ -26,4 +28,8 @@ public interface IDossierService
 
     Task<DossierNoteListResult> GetNotesAsync(Guid userId, bool isReviewer, Guid dossierId, CancellationToken cancellationToken);
     Task<MembershipAccess> AddNoteAsync(Guid userId, bool isReviewer, Guid dossierId, string? questionCode, string text, CancellationToken cancellationToken);
+
+    // Reviewer/admin only. Gathers the frozen snapshot answers joined with
+    // each question's proof (note + file name) for the AI dossier review.
+    Task<DossierAiContextResult> GetAiContextAsync(Guid userId, bool isReviewer, Guid dossierId, CancellationToken cancellationToken);
 }
