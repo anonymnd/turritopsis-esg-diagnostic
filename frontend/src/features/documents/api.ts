@@ -45,9 +45,13 @@ export async function listDocumentsForDossier(dossierId: string): Promise<ProofD
   return data;
 }
 
-export async function downloadDocument(id: string, fileName: string): Promise<void> {
+// Returns false (instead of throwing) when the file itself isn't
+// recoverable — e.g. a document uploaded before file storage moved to
+// the database, whose bytes never made it in. The caller decides how to
+// surface that instead of the button silently doing nothing.
+export async function downloadDocument(id: string, fileName: string): Promise<boolean> {
   const { data } = await httpClient.get<ProofDocument & { fileBase64: string | null }>(`/documents/${id}`);
-  if (!data.fileBase64) return;
+  if (!data.fileBase64) return false;
 
   const bytes = Uint8Array.from(atob(data.fileBase64), (c) => c.charCodeAt(0));
   const blob = new Blob([bytes]);
@@ -57,6 +61,7 @@ export async function downloadDocument(id: string, fileName: string): Promise<vo
   link.download = fileName;
   link.click();
   URL.revokeObjectURL(url);
+  return true;
 }
 
 function fileToBase64(file: File): Promise<string> {

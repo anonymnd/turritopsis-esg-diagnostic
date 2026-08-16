@@ -21,6 +21,14 @@ export default function DossierDetailPage() {
   const [noteText, setNoteText] = useState("");
   const [finalScoreInput, setFinalScoreInput] = useState("");
   const [decision, setDecision] = useState<string | null>(null);
+  const [unavailableDocIds, setUnavailableDocIds] = useState<Set<string>>(new Set());
+
+  async function handleDownload(id: string, fileName: string) {
+    const ok = await downloadDocument(id, fileName);
+    if (!ok) {
+      setUnavailableDocIds((prev) => new Set(prev).add(id));
+    }
+  }
 
   const { data: dossier, isPending } = useQuery({
     queryKey: ["dossier", dossierId],
@@ -122,15 +130,20 @@ export default function DossierDetailPage() {
                   {doc.questionCode} — {question?.title ?? doc.questionCode}
                 </span>
                 {doc.textContent && <p style={{ margin: "4px 0 0" }}>{doc.textContent}</p>}
-                {doc.fileName && (
+                {doc.fileName && !unavailableDocIds.has(doc.id) && (
                   <button
                     type="button"
                     className={styles.btnGhost}
                     style={{ padding: "6px 14px", marginTop: 6, fontSize: 12 }}
-                    onClick={() => downloadDocument(doc.id, doc.fileName!)}
+                    onClick={() => handleDownload(doc.id, doc.fileName!)}
                   >
                     Telecharger — {doc.fileName}
                   </button>
+                )}
+                {doc.fileName && unavailableDocIds.has(doc.id) && (
+                  <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--status-bad)" }}>
+                    Fichier indisponible ({doc.fileName}) — demandez a la PME de le re-televerser.
+                  </p>
                 )}
               </div>
             );
