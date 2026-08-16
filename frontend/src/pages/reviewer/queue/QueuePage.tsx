@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { getQueue, type Dossier } from "../../../features/dossiers/api";
@@ -10,14 +11,55 @@ const STATUS_STYLE: Record<Dossier["status"], { bg: string; fg: string; label: s
   Rejected: { bg: "var(--status-bad-tint)", fg: "var(--status-bad)", label: "Rejete" }
 };
 
+const STATUS_OPTIONS: { value: Dossier["status"] | "all"; label: string }[] = [
+  { value: "all", label: "Tous les statuts" },
+  { value: "Submitted", label: "Soumis" },
+  { value: "InReview", label: "En cours" },
+  { value: "Validated", label: "Valide" },
+  { value: "Rejected", label: "Rejete" }
+];
+
 export default function QueuePage() {
   const navigate = useNavigate();
   const { data: dossiers, isPending } = useQuery({ queryKey: ["dossiers", "queue"], queryFn: getQueue });
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Dossier["status"] | "all">("all");
+
+  const filtered = useMemo(() => {
+    if (!dossiers) return [];
+    const term = search.trim().toLowerCase();
+    return dossiers.filter((d) => {
+      const matchesSearch = !term || (d.companyName ?? "").toLowerCase().includes(term);
+      const matchesStatus = statusFilter === "all" || d.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [dossiers, search, statusFilter]);
 
   return (
     <div className={styles.wrap}>
       <h2>File de dossiers</h2>
       <p className={styles.subtitle}>{dossiers?.length ?? 0} dossiers</p>
+
+      <div className={styles.toolbar}>
+        <input
+          className={styles.search}
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Rechercher une entreprise…"
+        />
+        <select
+          className={styles.statusSelect}
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as Dossier["status"] | "all")}
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className={styles.table}>
         <table>
@@ -34,8 +76,8 @@ export default function QueuePage() {
               <tr>
                 <td colSpan={4}>Chargement…</td>
               </tr>
-            ) : dossiers && dossiers.length > 0 ? (
-              dossiers.map((d) => {
+            ) : filtered.length > 0 ? (
+              filtered.map((d) => {
                 const status = STATUS_STYLE[d.status];
                 return (
                   <tr key={d.id} onClick={() => navigate(`/reviewer/dossiers/${d.id}`)}>
@@ -53,7 +95,7 @@ export default function QueuePage() {
             ) : (
               <tr>
                 <td colSpan={4} style={{ color: "var(--ink-muted)" }}>
-                  Aucun dossier en attente.
+                  {dossiers && dossiers.length > 0 ? "Aucun resultat pour ce filtre." : "Aucun dossier en attente."}
                 </td>
               </tr>
             )}
