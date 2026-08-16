@@ -17,11 +17,13 @@ public class DossiersController : ControllerBase
     private static readonly string[] ReviewRoles = { "reviewer", "admin" };
 
     private readonly IDossierService _dossierService;
+    private readonly IDocumentService _documentService;
     private readonly ICurrentUserService _currentUser;
 
-    public DossiersController(IDossierService dossierService, ICurrentUserService currentUser)
+    public DossiersController(IDossierService dossierService, IDocumentService documentService, ICurrentUserService currentUser)
     {
         _dossierService = dossierService;
+        _documentService = documentService;
         _currentUser = currentUser;
     }
 
@@ -80,6 +82,20 @@ public class DossiersController : ControllerBase
             MembershipAccess.NotFound => NotFound(),
             MembershipAccess.Forbidden => Forbid(),
             _ => Ok(result.Dossier)
+        };
+    }
+
+    [HttpGet("{dossierId:guid}/documents")]
+    public async Task<IActionResult> GetDocuments(Guid dossierId, CancellationToken cancellationToken)
+    {
+        if (_currentUser.UserId is not { } userId) return Unauthorized();
+
+        var result = await _documentService.ListForDossierAsync(userId, IsReviewer, dossierId, cancellationToken);
+        return result.Access switch
+        {
+            MembershipAccess.NotFound => NotFound(),
+            MembershipAccess.Forbidden => Forbid(),
+            _ => Ok(result.Documents)
         };
     }
 

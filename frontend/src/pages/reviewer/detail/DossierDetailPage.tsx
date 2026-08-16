@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addNote, getDossier, getNotes, updateDossier, type Dossier } from "../../../features/dossiers/api";
+import { downloadDocument, listDocumentsForDossier } from "../../../features/documents/api";
 import { computeScores } from "../../../features/questionnaire/scoring";
+import { QUESTIONS } from "../../../features/questionnaire/questions";
 import type { Answers } from "../../../features/questionnaire/api";
 import styles from "./detail.module.css";
 
@@ -29,6 +31,12 @@ export default function DossierDetailPage() {
   const { data: notes } = useQuery({
     queryKey: ["dossier-notes", dossierId],
     queryFn: () => getNotes(dossierId!),
+    enabled: !!dossierId
+  });
+
+  const { data: documents } = useQuery({
+    queryKey: ["dossier-documents", dossierId],
+    queryFn: () => listDocumentsForDossier(dossierId!),
     enabled: !!dossierId
   });
 
@@ -101,6 +109,35 @@ export default function DossierDetailPage() {
           <b>{scores.G}</b>
           <span>G</span>
         </div>
+      </div>
+
+      <h4>Preuves fournies</h4>
+      <div className={styles.notesCard}>
+        {documents && documents.length > 0 ? (
+          documents.map((doc) => {
+            const question = QUESTIONS.find((q) => q.code === doc.questionCode);
+            return (
+              <div key={doc.id} className={styles.note}>
+                <span style={{ color: "var(--ink-muted)", fontSize: 12 }}>
+                  {doc.questionCode} — {question?.title ?? doc.questionCode}
+                </span>
+                {doc.textContent && <p style={{ margin: "4px 0 0" }}>{doc.textContent}</p>}
+                {doc.fileName && (
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    style={{ padding: "6px 14px", marginTop: 6, fontSize: 12 }}
+                    onClick={() => downloadDocument(doc.id, doc.fileName!)}
+                  >
+                    Telecharger — {doc.fileName}
+                  </button>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className={styles.noteEmpty}>Aucune preuve fournie.</div>
+        )}
       </div>
 
       <h4>Commentaires</h4>

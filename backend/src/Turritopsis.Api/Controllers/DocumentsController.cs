@@ -20,6 +20,9 @@ public class DocumentsController : ControllerBase
         _currentUser = currentUser;
     }
 
+    private static readonly string[] ReviewRoles = { "reviewer", "admin" };
+    private bool IsReviewer => _currentUser.Roles.Any(ReviewRoles.Contains);
+
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken cancellationToken)
     {
@@ -27,6 +30,20 @@ public class DocumentsController : ControllerBase
 
         var result = await _documentService.ListForUserAsync(userId, cancellationToken);
         return result.Access == MembershipAccess.Forbidden ? Forbid() : Ok(result.Documents);
+    }
+
+    [HttpGet("{documentId:guid}")]
+    public async Task<IActionResult> GetDetail(Guid documentId, CancellationToken cancellationToken)
+    {
+        if (_currentUser.UserId is not { } userId) return Unauthorized();
+
+        var result = await _documentService.GetDetailAsync(userId, IsReviewer, documentId, cancellationToken);
+        return result.Access switch
+        {
+            MembershipAccess.NotFound => NotFound(),
+            MembershipAccess.Forbidden => Forbid(),
+            _ => Ok(result.Document)
+        };
     }
 
     [HttpPost]

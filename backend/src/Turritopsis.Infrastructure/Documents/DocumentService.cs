@@ -107,6 +107,55 @@ public class DocumentService : IDocumentService
         return MembershipAccess.Granted;
     }
 
+    public async Task<DocumentListResult> ListForDossierAsync(Guid userId, bool isReviewer, Guid dossierId, CancellationToken cancellationToken)
+    {
+        var dossier = await _db.Dossiers.FirstOrDefaultAsync(d => d.Id == dossierId, cancellationToken);
+        if (dossier is null) return new DocumentListResult(MembershipAccess.NotFound, Array.Empty<DocumentDto>());
+
+        if (!isReviewer)
+        {
+            var membership = await FindMembershipAsync(userId, cancellationToken);
+            if (membership is null || membership.CompanyId != dossier.CompanyId)
+            {
+                return new DocumentListResult(MembershipAccess.Forbidden, Array.Empty<DocumentDto>());
+            }
+        }
+
+        var documents = await _db.Documents
+            .Where(d => d.CompanyId == dossier.CompanyId)
+            .OrderByDescending(d => d.CreatedAt)
+            .Select(d => new DocumentDto(d.Id, d.QuestionCode, d.Label, d.TextContent, d.FileName, d.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+        return new DocumentListResult(MembershipAccess.Granted, documents);
+    }
+
+    public async Task<DocumentDetailResult> GetDetailAsync(Guid userId, bool isReviewer, Guid documentId, CancellationToken cancellationToken)
+    {
+        var document = await _db.Documents.FirstOrDefaultAsync(d => d.Id == documentId, cancellationToken);
+        if (document is null) return new DocumentDetailResult(MembershipAccess.NotFound, null);
+
+        if (!isReviewer)
+        {
+            var membership = await FindMembershipAsync(userId, cancellationToken);
+            if (membership is null || membership.CompanyId != document.CompanyId)
+            {
+                return new DocumentDetailResult(MembershipAccess.Forbidden, null);
+            }
+        }
+
+        string? fileBase64 = null;
+        if (document.StoragePath is not null)
+        {
+            var bytes = await _fileStorage.ReadAsync(document.StoragePath, cancellationToken);
+            if (bytes is not null) fileBase64 = Convert.ToBase64String(bytes);
+        }
+
+        return new DocumentDetailResult(
+            MembershipAccess.Granted,
+            new DocumentDetailDto(document.Id, document.QuestionCode, document.Label, document.TextContent, document.FileName, fileBase64, document.CreatedAt));
+    }
+
     private Task<CompanyUser?> FindMembershipAsync(Guid userId, CancellationToken cancellationToken) =>
         _db.CompanyUsers.FirstOrDefaultAsync(cu => cu.UserId == userId, cancellationToken);
 }

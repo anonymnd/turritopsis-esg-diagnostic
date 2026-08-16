@@ -40,6 +40,25 @@ export async function deleteDocument(id: string): Promise<void> {
   await httpClient.delete(`/documents/${id}`);
 }
 
+export async function listDocumentsForDossier(dossierId: string): Promise<ProofDocument[]> {
+  const { data } = await httpClient.get<ProofDocument[]>(`/dossiers/${dossierId}/documents`);
+  return data;
+}
+
+export async function downloadDocument(id: string, fileName: string): Promise<void> {
+  const { data } = await httpClient.get<ProofDocument & { fileBase64: string | null }>(`/documents/${id}`);
+  if (!data.fileBase64) return;
+
+  const bytes = Uint8Array.from(atob(data.fileBase64), (c) => c.charCodeAt(0));
+  const blob = new Blob([bytes]);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

@@ -34,4 +34,11 @@ public class LocalFileStorage : IFileStorage
         }
         return Task.CompletedTask;
     }
+
+    public async Task<byte[]?> ReadAsync(string storagePath, CancellationToken cancellationToken)
+    {
+        var fullPath = Path.Combine(_rootPath, storagePath.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(fullPath)) return null;
+        return await File.ReadAllBytesAsync(fullPath, cancellationToken);
+    }
 }
