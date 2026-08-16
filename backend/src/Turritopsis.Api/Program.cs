@@ -143,11 +143,23 @@ using (var scope = app.Services.CreateScope())
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         if (adminUser is null)
         {
-            adminUser = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
-            await userManager.CreateAsync(adminUser, adminPassword);
+            var candidate = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
+            var createResult = await userManager.CreateAsync(candidate, adminPassword);
+            if (!createResult.Succeeded)
+            {
+                app.Logger.LogWarning(
+                    "AdminSeed: could not create admin account for {Email}: {Errors}",
+                    adminEmail,
+                    string.Join("; ", createResult.Errors.Select(e => e.Description)));
+                adminUser = null;
+            }
+            else
+            {
+                adminUser = candidate;
+            }
         }
 
-        if (!await userManager.IsInRoleAsync(adminUser, "admin"))
+        if (adminUser is not null && !await userManager.IsInRoleAsync(adminUser, "admin"))
         {
             await userManager.AddToRoleAsync(adminUser, "admin");
         }
