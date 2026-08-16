@@ -15,6 +15,10 @@
 .brand {
   font-family: var(--font-heading);
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .brandTag {

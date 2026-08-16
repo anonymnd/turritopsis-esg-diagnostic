@@ -39,9 +39,9 @@ export default function ReviewerLoginPage() {
   return (
     <div className={styles.page}>
       <div className={styles.wrap}>
-        <span className={styles.brand}>
+        <Link to="/" className={styles.brand}>
           <BrandLogo size={24} />
-        </span>
+        </Link>
         <div className={styles.kicker}>Acces interne</div>
         <h3 className={styles.title}>Connexion equipe</h3>
         <form onSubmit={handleSubmit}>

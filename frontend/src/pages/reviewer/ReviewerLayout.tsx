@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
 import BrandLogo from "../../shared/components/BrandLogo";
 import styles from "./reviewer-layout.module.css";
@@ -9,9 +9,9 @@ export default function ReviewerLayout() {
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
-        <span className={styles.brand}>
+        <Link to="/" className={styles.brand}>
           <BrandLogo size={26} /> <span className={styles.brandTag}>· Reviseur</span>
-        </span>
+        </Link>
         <NavLink to="/reviewer" end className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}>
           File d'attente
         </NavLink>

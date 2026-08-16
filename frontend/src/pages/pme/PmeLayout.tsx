@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
 import BrandLogo from "../../shared/components/BrandLogo";
 import styles from "./pme-layout.module.css";
@@ -18,7 +18,9 @@ export default function PmeLayout() {
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
-        <BrandLogo size={26} />
+        <Link to="/" className={styles.brandLink}>
+          <BrandLogo size={26} />
+        </Link>
         <span className={styles.companyName}>Espace PME</span>
         <button className={styles.logout} onClick={logout}>
           Deconnexion

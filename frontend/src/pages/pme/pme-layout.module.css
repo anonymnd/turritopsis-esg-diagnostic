@@ -15,6 +15,13 @@
   gap: 16px;
 }
 
+.brandLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
 .companyName {
   font-size: 13px;
   color: var(--ink-muted);
