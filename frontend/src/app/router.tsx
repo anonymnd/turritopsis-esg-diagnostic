@@ -12,7 +12,10 @@ import ReportPage from "../pages/pme/report/ReportPage";
 import ReviewerLayout from "../pages/reviewer/ReviewerLayout";
 import QueuePage from "../pages/reviewer/queue/QueuePage";
 import DossierDetailPage from "../pages/reviewer/detail/DossierDetailPage";
-import AdminPage from "../pages/admin/AdminPage";
+import AdminLayout from "../pages/admin/AdminLayout";
+import OverviewPage from "../pages/admin/OverviewPage";
+import ReviewersPage from "../pages/admin/ReviewersPage";
+import CompaniesPage from "../pages/admin/CompaniesPage";
 import RequireAuth from "./RequireAuth";
 import RequireCompanyProfile from "./RequireCompanyProfile";
 import RequireRole from "./RequireRole";
@@ -65,9 +68,14 @@ export const router = createBrowserRouter([
         path: "admin",
         element: (
           <RequireRole roles={["admin"]}>
-            <AdminPage />
+            <AdminLayout />
           </RequireRole>
-        )
+        ),
+        children: [
+          { index: true, element: <OverviewPage /> },
+          { path: "reviewers", element: <ReviewersPage /> },
+          { path: "companies", element: <CompaniesPage /> }
+        ]
       }
     ]
   }
