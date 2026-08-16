@@ -67,4 +67,21 @@ public class AdminUsersService : IAdminUsersService
             .Select(u => new ReviewerDto(u.Id, u.Email ?? string.Empty))
             .ToList();
     }
+
+    public async Task<bool> RemoveRoleAsync(string email, string role, CancellationToken cancellationToken)
+    {
+        if (role != "reviewer" && role != "admin")
+        {
+            return false;
+        }
+
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null || !await _userManager.IsInRoleAsync(user, role))
+        {
+            return false;
+        }
+
+        var result = await _userManager.RemoveFromRoleAsync(user, role);
+        return result.Succeeded;
+    }
 }
