@@ -43,7 +43,8 @@ public class ResendEmailService : IEmailService
             var response = await _http.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Email send to {To} failed with status {Status}", to, response.StatusCode);
+                var body = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Email send to {To} failed with status {Status}: {Body}", to, response.StatusCode, body);
             }
         }
         catch (Exception ex)
