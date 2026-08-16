@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
+import BrandLogo from "../../shared/components/BrandLogo";
 import styles from "./reviewer-login.module.css";
 
 export default function ReviewerLoginPage() {
@@ -28,7 +29,9 @@ export default function ReviewerLoginPage() {
   return (
     <div className={styles.page}>
       <div className={styles.wrap}>
-        <strong className={styles.brand}>TURRITOPSIS</strong>
+        <span className={styles.brand}>
+          <BrandLogo size={24} />
+        </span>
         <div className={styles.kicker}>Acces interne</div>
         <h3 className={styles.title}>Connexion reviseur</h3>
         <form onSubmit={handleSubmit}>

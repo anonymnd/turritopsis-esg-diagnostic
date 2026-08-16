@@ -97,7 +97,7 @@ export default function LandingPage() {
 
         <div className={styles.heroVisual}>
           <div className={styles.jellyfish}>
-            <JellyfishIllustration />
+            <img src="/logo-icon.png" alt="Turritopsis" className={styles.jellyfishImg} />
             <div className={styles.scoreCard}>
               <div className={styles.scoreCardHead}>
                 <span className={styles.scoreCardDot} />
@@ -196,47 +196,6 @@ function ScoreRing({ value }: { value: number }) {
         strokeDashoffset={offset}
         transform="rotate(-90 29 29)"
       />
-    </svg>
-  );
-}
-
-function JellyfishIllustration() {
-  return (
-    <svg viewBox="0 0 340 400" width="340" height="400">
-      <defs>
-        <radialGradient id="headGrad" cx="38%" cy="28%" r="70%">
-          <stop offset="0%" stopColor="#E9F7C9" />
-          <stop offset="30%" stopColor="#8FD17A" />
-          <stop offset="60%" stopColor="#2FA05A" />
-          <stop offset="100%" stopColor="#0B3E6B" />
-        </radialGradient>
-        <radialGradient id="gloss" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#fff" stopOpacity=".85" />
-          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="t1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#1668B0" />
-          <stop offset="100%" stopColor="#17B4D9" />
-        </linearGradient>
-        <linearGradient id="t2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2FA05A" />
-          <stop offset="100%" stopColor="#1668B0" />
-        </linearGradient>
-        <linearGradient id="t3" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6D4CC9" />
-          <stop offset="100%" stopColor="#17B4D9" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="170" cy="330" rx="90" ry="14" fill="#0B3E6B" opacity=".1" />
-      <ellipse cx="170" cy="110" rx="86" ry="70" fill="url(#headGrad)" />
-      <ellipse cx="140" cy="85" rx="34" ry="20" fill="url(#gloss)" />
-      <g fill="none" strokeWidth="5" strokeLinecap="round" opacity=".92">
-        <path className="tentacle" d="M118,155 C98,220 78,245 68,300" stroke="url(#t1)" />
-        <path className="tentacle" d="M142,164 C128,225 116,255 110,315" stroke="url(#t2)" />
-        <path className="tentacle" d="M170,168 C170,230 170,260 170,320" stroke="url(#t3)" />
-        <path className="tentacle" d="M198,164 C212,225 224,255 230,315" stroke="url(#t1)" />
-        <path className="tentacle" d="M222,155 C242,220 262,245 272,300" stroke="url(#t2)" />
-      </g>
     </svg>
   );
 }

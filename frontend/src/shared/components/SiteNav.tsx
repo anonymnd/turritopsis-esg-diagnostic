@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import BrandLogo from "./BrandLogo";
 import styles from "./SiteNav.module.css";
 
 export default function SiteNav() {
@@ -7,7 +8,7 @@ export default function SiteNav() {
   return (
     <header className={styles.nav}>
       <Link to="/" className={styles.brand}>
-        <strong>TURRITOPSIS</strong>
+        <BrandLogo />
       </Link>
       <nav className={styles.navLinks}>
         <Link to="/#steps">Fonctionnalites</Link>

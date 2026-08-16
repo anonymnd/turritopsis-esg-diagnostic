@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
+import BrandLogo from "../../shared/components/BrandLogo";
 import styles from "./pme-layout.module.css";
 
 const NAV_ITEMS = [
@@ -17,7 +18,7 @@ export default function PmeLayout() {
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
-        <strong>TURRITOPSIS</strong>
+        <BrandLogo size={26} />
         <span className={styles.companyName}>Espace PME</span>
         <button className={styles.logout} onClick={logout}>
           Deconnexion

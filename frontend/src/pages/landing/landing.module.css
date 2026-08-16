@@ -144,6 +144,12 @@
   animation: floaty 6s ease-in-out infinite;
 }
 
+.jellyfishImg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 20px 30px rgba(11, 62, 107, 0.18));
+}
+
 @keyframes floaty {
   0%,
   100% {
@@ -152,20 +158,6 @@
   50% {
     transform: translateY(-12px);
   }
-}
-
-@keyframes sway {
-  0%,
-  100% {
-    transform: rotate(-4deg) translateY(0);
-  }
-  50% {
-    transform: rotate(4deg) translateY(8px);
-  }
-}
-
-.tentacle {
-  animation: sway 4.8s ease-in-out infinite;
 }
 
 .scoreCard {
