@@ -77,11 +77,13 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-const string FrontendCorsPolicy = "FrontendDev";
+const string FrontendCorsPolicy = "Frontend";
+var frontendOrigins = (builder.Configuration["FrontendOrigins"] ?? "http://localhost:5173")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(frontendOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -104,11 +106,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ensure the platform-level roles exist. There is no self-service signup
-// for reviewer/admin — promoting a user to one of these roles is a manual
-// step (see docs/rewrite), this just guarantees the roles themselves exist.
 using (var scope = app.Services.CreateScope())
 {
+    // Apply pending migrations on startup so a fresh database (e.g. a new
+    // deploy target) ends up schema-complete without a manual step.
+    var db = scope.ServiceProvider.GetRequiredService<TurritopsisDbContext>();
+    await db.Database.MigrateAsync();
+
+    // Ensure the platform-level roles exist. There is no self-service signup
+    // for reviewer/admin — promoting a user to one of these roles is a manual
+    // step (see docs/rewrite), this just guarantees the roles themselves exist.
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     foreach (var role in new[] { "reviewer", "admin" })
     {
