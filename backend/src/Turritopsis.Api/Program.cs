@@ -141,7 +141,17 @@ using (var scope = app.Services.CreateScope())
     {
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser is null)
+        if (adminUser is not null && !await userManager.IsInRoleAsync(adminUser, "admin"))
+        {
+            // This email already belongs to some other account (a PME
+            // signup, most likely) — never blend that identity into admin
+            // access. Pick a dedicated AdminSeed email instead.
+            app.Logger.LogWarning(
+                "AdminSeed: {Email} already exists as a non-admin account — refusing to promote it. Use a dedicated email for AdminSeed:Email.",
+                adminEmail);
+            adminUser = null;
+        }
+        else if (adminUser is null)
         {
             var candidate = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
             var createResult = await userManager.CreateAsync(candidate, adminPassword);
