@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../features/auth/AuthContext";
+import { useAuth } from "../features/auth/index";
 
 // Reviewer/admin pages are unlisted, not just role-checked server-side — a
 // PME account that finds the URL should never even see the shell render.

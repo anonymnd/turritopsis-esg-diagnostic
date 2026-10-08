@@ -1,0 +1,19 @@
+.inbox { position: relative; font-size: 12px; }
+.inbox summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--green-dark); cursor: pointer; list-style: none; font-weight: 600; transition: background .2s; }
+.inbox summary::-webkit-details-marker { display: none; }
+.inbox summary:hover, .inbox[open] summary { background: var(--green-tint); }
+.count { display: grid; place-items: center; min-width: 20px; height: 20px; padding-inline: 4px; border-radius: 6px; background: var(--surface-2); color: var(--green-dark); font-size: 10px; font-variant-numeric: tabular-nums; }
+.panel { position: absolute; right: 0; top: calc(100% + 12px); z-index: 60; width: min(380px, 85vw); max-height: min(480px, 70dvh); overflow: auto; overscroll-behavior: contain; padding: 24px; background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); }
+.panelHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.panelHeading strong { font-size: 14px; }
+.panelHeading > span { color: var(--ink-muted); font-size: 10px; }
+.panel button { min-height: 44px; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--green-tint); color: var(--green-dark); font: inherit; margin: 0 8px 8px 0; }
+.panel button:disabled { opacity: .6; cursor: not-allowed; }
+.panel p { color: var(--ink-muted); font-size: 12px; line-height: 1.8; }
+.panel ul { list-style: none; padding: 0; margin: 16px 0 0; }
+.panel li { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.panel li:last-child { border-bottom: 0; }
+.panel a { display: block; color: var(--green-dark); font-weight: 600; line-height: 1.7; min-height: 44px; overflow-wrap: anywhere; }
+.panel time { display: block; margin-top: 8px; font-size: 10px; color: var(--ink-muted); }
+@media (max-width: 768px) { .inbox summary { width: 44px; padding: 10px; justify-content: center; position: relative; } .summaryLabel { display: none; } .count { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; font-size: 9px; border: 1px solid var(--border); } .panel { position: fixed; left: 16px; right: 16px; top: 84px; width: auto; max-height: calc(100dvh - 108px); padding: 20px; } }
+@media (prefers-reduced-motion: reduce) { .inbox summary { transition: none; } }

@@ -15,11 +15,14 @@ export interface Dossier {
   submittedAt: string;
   reviewedAt: string | null;
   updatedAt: string;
+  currentRevisionId: string | null;
+  revisionNumber: number;
 }
 
 export interface DossierNote {
   id: string;
   dossierId: string;
+  revisionId: string | null;
   questionCode: string | null;
   text: string;
   createdAt: string;
@@ -45,8 +48,8 @@ export async function getDossier(id: string): Promise<Dossier> {
   return data;
 }
 
-export async function updateDossier(id: string, status: DossierStatus, finalScore?: number, recommendations?: string): Promise<Dossier> {
-  const { data } = await httpClient.put<Dossier>(`/dossiers/${id}`, { status, finalScore, recommendations });
+export async function updateDossier(id: string, status: DossierStatus, finalScore?: number, recommendations?: string, revisionId?: string | null): Promise<Dossier> {
+  const { data } = await httpClient.put<Dossier>(`/dossiers/${id}`, { status, finalScore, recommendations, revisionId });
   return data;
 }
 
@@ -55,6 +58,20 @@ export async function getNotes(dossierId: string): Promise<DossierNote[]> {
   return data;
 }
 
-export async function addNote(dossierId: string, text: string): Promise<void> {
-  await httpClient.post(`/dossiers/${dossierId}/notes`, { text });
+export async function addNote(dossierId: string, text: string, revisionId?: string | null): Promise<void> {
+  await httpClient.post(`/dossiers/${dossierId}/notes`, { text, revisionId });
+}
+
+export interface DossierRevision {
+ id: string; dossierId: string; number: number; submittedBy: string; submittedAt: string;
+ snapshotJson: string; declaredScore: number | null; reviewedScore: number | null;
+ status: DossierStatus; finalScore: number | null; recommendations: string | null;
+ reviewerId: string | null; reviewedAt: string | null;
+}
+export async function getRevisions(id: string): Promise<DossierRevision[]> {
+ const {data}=await httpClient.get<DossierRevision[]>(`/dossiers/${id}/revisions`);return data;
+}
+
+export async function getDossierHistory(): Promise<Dossier[]> {
+ const {data}=await httpClient.get<Dossier[]>("/dossiers/history");return data;
 }

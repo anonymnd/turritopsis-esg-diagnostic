@@ -1,6 +1,13 @@
 import { httpClient } from "../../shared/api-client/httpClient";
 
+export interface AiPrivacyInfo {
+  mode: "signals-only" | "local-only";
+  rawDocumentTextSent: boolean;
+  requiresHumanVerification: boolean;
+}
+
 export interface QuestionReviewResult {
+  privacy?: AiPrivacyInfo;
   suggestedScore: number | null;
   confidence: number;
   proofStrength: string;
@@ -15,6 +22,7 @@ export interface DossierFlag {
 }
 
 export interface DossierReviewResult {
+  privacy?: AiPrivacyInfo;
   assessment: string;
   summary: string;
   recommendedScore: number | null;
@@ -31,7 +39,7 @@ export async function reviewQuestion(payload: {
   return data;
 }
 
-export async function reviewDossier(dossierId: string): Promise<DossierReviewResult> {
-  const { data } = await httpClient.post<DossierReviewResult>(`/ai/review-dossier/${dossierId}`);
+export async function reviewDossier(dossierId: string, revisionId?: string | null): Promise<DossierReviewResult> {
+  const { data } = await httpClient.post<DossierReviewResult>(`/ai/review-dossier/${dossierId}`, undefined, {params: {revisionId}});
   return data;
 }

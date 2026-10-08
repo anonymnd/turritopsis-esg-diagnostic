@@ -1,5 +1,5 @@
 /* Design tokens ported from the confirmed Claude Design prototype
-   (docs/rewrite — do not hand-pick new colors here without going back
+   (docs/architecture.md — do not hand-pick new colors here without going back
    through that approval flow). */
 :root {
   --bg: #f6f9f7;
