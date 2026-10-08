@@ -1,67 +1,26 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, FileText, Leaf, ScanSearch, ShieldCheck, Users } from "lucide-react";
+import { ArrowDown, ArrowRight, Check, FileText, Leaf, ShieldCheck, Users } from "lucide-react";
 import { AuthModal } from "../../auth";
 import SiteNav from "../../../shared/components/SiteNav";
+import BrandLogo from "../../../shared/components/BrandLogo";
 import styles from "./landing.module.css";
 
-const SECTORS = ["Textile", "Agroalimentaire", "Tourisme", "BTP", "Industrie"];
-
 const STEPS = [
-  {
-    icon: CheckCircle2,
-    color: "var(--pillar-e-dark)",
-    borderColor: "var(--pillar-e)",
-    title: "Questionnaire",
-    body: "27 criteres repartis en Environnement, Social et Gouvernance, adaptes a votre secteur d'activite."
-  },
-  {
-    icon: FileText,
-    color: "var(--pillar-s-dark)",
-    borderColor: "var(--pillar-s)",
-    title: "Preuves",
-    body: "Chaque reponse sensible peut etre appuyee par un document, une facture ou une note explicative."
-  },
-  {
-    icon: ScanSearch,
-    color: "var(--cyan-dark)",
-    borderColor: "var(--cyan)",
-    title: "Analyse IA",
-    body: "Un premier passage automatique repere les preuves faibles ou manquantes avant l'envoi au reviseur."
-  },
-  {
-    icon: ShieldCheck,
-    color: "var(--pillar-g-dark)",
-    borderColor: "var(--pillar-g)",
-    title: "Revue & rapport",
-    body: "Un reviseur humain valide ou rejette le dossier, fixe le score final et motive sa decision."
-  }
+  { image: "questionnaire", title: "Faites le point", body: "Répondez aux 27 critères ESG et décrivez les pratiques de votre entreprise.", label: "Questionnaire" },
+  { image: "evidence", title: "Ajoutez vos preuves", body: "Associez vos documents et vos notes aux réponses pour étayer votre diagnostic.", label: "Justificatifs" },
+  { image: "analysis", title: "Affinez votre dossier", body: "L’analyse vous aide à repérer les éléments faibles ou manquants avant la soumission.", label: "Analyse assistée" },
+  { image: "report", title: "Passez à l’action", body: "Après la revue humaine, retrouvez le score final et les recommandations dans votre rapport.", label: "Revue & rapport" }
 ];
-
 const PILLARS = [
-  {
-    icon: Leaf,
-    tint: "var(--pillar-e-tint)",
-    accent: "var(--pillar-e)",
-    accentDark: "var(--pillar-e-dark)",
-    title: "Environnement",
-    body: "Energie, eau, dechets, emissions de CO2, produits chimiques et biodiversite locale."
-  },
-  {
-    icon: Users,
-    tint: "var(--pillar-s-tint)",
-    accent: "var(--pillar-s)",
-    accentDark: "var(--pillar-s-dark)",
-    title: "Social",
-    body: "Securite au travail, remuneration, formation, non-discrimination et impact communautaire."
-  },
-  {
-    icon: ShieldCheck,
-    tint: "var(--pillar-g-tint)",
-    accent: "var(--pillar-g)",
-    accentDark: "var(--pillar-g-dark)",
-    title: "Gouvernance",
-    body: "Conseil d'administration, anti-corruption, transparence financiere et conformite fiscale."
-  }
+  { icon: Leaf, letter: "E", title: "Environnement", body: "Mesurez vos pratiques et leur impact sur les ressources.", topics: ["Énergie & émissions", "Eau & déchets", "Biodiversité"], className: "environment" },
+  { icon: Users, letter: "S", title: "Social", body: "Placez les personnes au cœur de vos engagements.", topics: ["Santé & sécurité", "Formation & équité", "Impact local"], className: "social" },
+  { icon: ShieldCheck, letter: "G", title: "Gouvernance", body: "Structurez une gestion responsable et transparente.", topics: ["Éthique & intégrité", "Transparence", "Conformité"], className: "governance" }
+];
+const FAQ = [
+  { question: "À qui s’adresse Turritopsis ?", answer: "Aux PME marocaines qui souhaitent faire le point sur leurs pratiques environnementales, sociales et de gouvernance, puis constituer un dossier accompagné de preuves." },
+  { question: "Quels documents puis-je ajouter ?", answer: "Vous pouvez joindre les justificatifs utiles à vos réponses : factures, politiques internes, attestations ou notes explicatives. Un justificatif peut aussi être composé uniquement de texte. La taille maximale d’une pièce jointe est de 4 Mo." },
+  { question: "Puis-je compléter mon diagnostic en plusieurs fois ?", answer: "Oui. Vos réponses et vos documents de travail sont enregistrés dans votre espace entreprise. Vous pouvez reprendre votre diagnostic avant de soumettre votre dossier." },
+  { question: "Qui valide le score final ?", answer: "Un réviseur humain examine le dossier, motive sa décision et fixe le score final. L’analyse assistée par IA aide à préparer la revue ; elle ne remplace pas cette validation." }
 ];
 
 export default function LandingPage() {
@@ -74,138 +33,39 @@ export default function LandingPage() {
     params.delete("auth");
     setSearchParams(params, { replace: true });
   }
+  const start = () => navigate("/?auth=signup");
 
   return (
-    <div>
+    <div className={styles.page}>
+      <a className={styles.skipLink} href="#main">Aller au contenu</a>
       <SiteNav />
       {showAuth && <AuthModal onClose={closeAuth} />}
-
-      <section className={styles.hero}>
-        <div>
-          <p className={styles.eyebrow}>Diagnostic ESG pour PME marocaines</p>
-          <h1 className={styles.heroTitle}>Un score ESG verifie, pas auto-proclame.</h1>
-          <p className={styles.heroLead}>
-            Repondez au questionnaire E/S/G, joignez vos preuves, et obtenez un score valide par un reviseur
-            humain — pas seulement calcule par un algorithme.
-          </p>
-          <div className={styles.heroActions}>
-            <button className={`${styles.pillButton} lift`} onClick={() => navigate("/?auth=signup")}>
-              Demarrer le diagnostic
-            </button>
-            <button className={`${styles.pillButtonOutline} lift`} onClick={() => navigate("/?auth=login")}>
-              J'ai deja un compte
-            </button>
-          </div>
-          <div className={styles.sectorTags}>
-            {SECTORS.map((sector) => (
-              <span key={sector} className={styles.sectorTag}>
-                {sector}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.heroVisual}>
-          <div className={styles.jellyfish}>
-            <img src="/logo-icon.png" alt="Turritopsis" className={styles.jellyfishImg} />
-            <div className={styles.scoreCard}>
-              <div className={styles.scoreCardHead}>
-                <span className={styles.scoreCardDot} />
-                <span className={styles.scoreCardLabel}>Dossier D-1042</span>
-              </div>
-              <div className={styles.scoreCardBody}>
-                <ScoreRing value={82} />
-                <div>
-                  <div className={styles.scoreCardValue}>82</div>
-                  <div className={styles.scoreCardCaption}>score exemple</div>
-                </div>
-              </div>
-              <div className={styles.scoreCardPillars}>
-                <span className={styles.scoreCardPillar} style={{ background: "var(--pillar-e-tint)", color: "var(--pillar-e-dark)" }}>
-                  68
-                </span>
-                <span className={styles.scoreCardPillar} style={{ background: "var(--pillar-s-tint)", color: "var(--pillar-s-dark)" }}>
-                  64
-                </span>
-                <span className={styles.scoreCardPillar} style={{ background: "var(--pillar-g-tint)", color: "var(--pillar-g-dark)" }}>
-                  48
-                </span>
-              </div>
+      <main id="main" tabIndex={-1}>
+        <section className={styles.hero} aria-labelledby="hero-title">
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}><span aria-hidden="true" />POUR LES PME MAROCAINES</p>
+            <h1 id="hero-title">Vos engagements.<br /><span>Un impact qui se mesure.</span></h1>
+            <p className={styles.heroLead}>Transformez vos pratiques en un diagnostic ESG clair, étayé par vos preuves et examiné par un réviseur humain.</p>
+            <div className={styles.heroActions}>
+              <button type="button" className={styles.primaryButton} onClick={start}>Démarrer mon diagnostic<ArrowRight size={18} aria-hidden="true" /></button>
+              <a className={styles.secondaryButton} href="#steps">Découvrir le parcours<ArrowDown size={17} aria-hidden="true" /></a>
             </div>
+            <div className={styles.heroReassurance}><ShieldCheck size={18} aria-hidden="true" /><span>Une analyse assistée. Une décision humaine.</span></div>
+            <div className={styles.sectors}><span>Votre secteur, vos enjeux.</span><div>{["Textile", "Agroalimentaire", "Tourisme", "BTP", "Industrie"].map(sector => <span key={sector}>{sector}</span>)}</div></div>
           </div>
-        </div>
-      </section>
-
-      <div id="steps" className={styles.sectionBand}>
-        <div className={styles.sectionInner}>
-          <h2 className={styles.sectionTitle}>Comment ca marche</h2>
-          <p className={styles.sectionLead}>Quatre etapes, du premier questionnaire jusqu'au rapport valide par un reviseur.</p>
-          <div className={styles.stepsGrid}>
-            {STEPS.map((step) => (
-              <article key={step.title} className={`${styles.stepCard} lift`} style={{ borderTopColor: step.borderColor }}>
-                <step.icon size={30} color={step.color} strokeWidth={2} className={styles.stepIcon} />
-                <h4>{step.title}</h4>
-                <p>{step.body}</p>
-              </article>
-            ))}
+          <div className={styles.heroVisual}>
+            <div className={styles.visualTop}><span><Leaf size={16} aria-hidden="true" />Votre démarche ESG</span><span className={styles.previewLabel}>Aperçu illustratif</span></div>
+            <div className={styles.earthScene}><span className={styles.orbit} aria-hidden="true" /><span className={styles.orbitInner} aria-hidden="true" /><img src="/logo-icon.png" alt="La Terre de Turritopsis, symbole d’un avenir durable" width="512" height="512" className={styles.earth} /><div className={styles.evidenceBadge}><span><FileText size={19} aria-hidden="true" /></span><div>Des engagements<strong>Appuyés par vos preuves</strong></div></div></div>
+            <div className={styles.previewCard}><div className={styles.previewHeading}><div><p>VOTRE DIAGNOSTIC</p><h2>Trois piliers. Une vision d’ensemble.</h2></div><ShieldCheck size={24} aria-hidden="true" /></div><div className={styles.previewPillars}>{PILLARS.map(pillar => <div key={pillar.letter} className={styles[pillar.className]}><pillar.icon size={18} aria-hidden="true" /><span>{pillar.title}</span><strong>{pillar.letter}</strong></div>)}</div><div className={styles.previewFoot}><Check size={16} aria-hidden="true" />Du questionnaire jusqu’au rapport.</div></div>
           </div>
-        </div>
-      </div>
-
-      <section id="pillars" className={styles.section}>
-        <h2 className={styles.sectionTitle}>Trois piliers, un score</h2>
-        <p className={styles.sectionLead}>Chaque critere du questionnaire appartient a l'un de ces trois piliers, ponderes dans le score final.</p>
-        <div className={styles.pillarsGrid}>
-          {PILLARS.map((pillar) => (
-            <article
-              key={pillar.title}
-              className={`${styles.pillarCard} lift`}
-              style={{ background: `linear-gradient(160deg, ${pillar.tint}, var(--surface) 70%)` }}
-            >
-              <div className={styles.pillarIcon} style={{ background: pillar.accent }}>
-                <pillar.icon size={26} color="#fff" strokeWidth={2} />
-              </div>
-              <h3 style={{ color: pillar.accentDark }}>{pillar.title}</h3>
-              <p style={{ color: pillar.accentDark }}>{pillar.body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <div className={styles.ctaBand}>
-        <h2>Le score de votre entreprise n'est provisoire que jusqu'a sa validation.</h2>
-        <button className={`${styles.pillButton} lift`} onClick={() => navigate("/?auth=signup")}>
-          Creer mon compte entreprise
-        </button>
-      </div>
-
-      <footer className={styles.footer}>
-        <strong>TURRITOPSIS</strong>
-        <span className={styles.footerCopy}>© 2026 Turritopsis — Institut Strategique de Developpement Durable</span>
-      </footer>
+        </section>
+        <div className={styles.facts} aria-label="Le diagnostic en quelques repères"><div><strong>27</strong><span>critères pour faire le point</span></div><div><strong>3</strong><span>piliers complémentaires</span></div><div><ShieldCheck size={30} aria-hidden="true" /><span>Un score final validé<br />par un réviseur humain</span></div></div>
+        <section id="steps" className={styles.section} aria-labelledby="steps-title"><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>UN PARCOURS, ÉTAPE PAR ÉTAPE</p><h2 id="steps-title">De vos pratiques<br />à votre prochain progrès.</h2></div><p>Un espace pour répondre, rassembler vos justificatifs et avancer jusqu’à la revue de votre dossier.</p></div><div className={styles.stepsGrid}>{STEPS.map((step, index) => <article key={step.title} className={styles.stepCard}><div className={styles.stepArt}><img src={`/images/dashboard/${step.image}.svg`} alt="" width="240" height="160" loading="lazy" /><span>0{index + 1}</span></div><p className={styles.stepLabel}>{step.label}</p><h3>{step.title}</h3><p>{step.body}</p></article>)}</div></section>
+        <section id="pillars" className={styles.pillarSection} aria-labelledby="pillars-title"><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>UNE APPROCHE ÉQUILIBRÉE</p><h2 id="pillars-title">Votre entreprise,<br />sous trois angles essentiels.</h2></div><p>Environnement, social et gouvernance : des dimensions complémentaires pour comprendre vos forces et vos pistes d’amélioration.</p></div><div className={styles.pillarsGrid}>{PILLARS.map(pillar => <article key={pillar.letter} className={`${styles.pillarCard} ${styles[pillar.className]}`}><div className={styles.pillarTop}><span className={styles.pillarIcon}><pillar.icon size={25} aria-hidden="true" /></span><span className={styles.pillarLetter} aria-hidden="true">{pillar.letter}</span></div><h3>{pillar.title}</h3><p>{pillar.body}</p><ul>{pillar.topics.map(topic => <li key={topic}><Check size={15} aria-hidden="true" />{topic}</li>)}</ul></article>)}</div></section>
+        <section id="questions" className={`${styles.section} ${styles.faqSection}`} aria-labelledby="faq-title"><div><p className={styles.eyebrow}>AVANT DE COMMENCER</p><h2 id="faq-title">Vos questions,<br />en toute simplicité.</h2><p className={styles.faqIntro}>Quelques repères pour aborder votre diagnostic sereinement.</p></div><div className={styles.faqList}>{FAQ.map(item => <details key={item.question}><summary>{item.question}<span aria-hidden="true">+</span></summary><p>{item.answer}</p></details>)}</div></section>
+        <section className={styles.cta} aria-labelledby="cta-title"><div><p className={styles.eyebrow}>LE PROCHAIN PAS VOUS APPARTIENT</p><h2 id="cta-title">Donnez une direction<br />à vos engagements.</h2><p>Commencez par faire le point. Avancez à votre rythme.</p><button type="button" className={styles.primaryButton} onClick={start}>Créer mon espace entreprise<ArrowRight size={18} aria-hidden="true" /></button></div><img src="/images/dashboard/impact.svg" alt="" width="280" height="220" loading="lazy" /></section>
+      </main>
+      <footer className={styles.footer}><div><BrandLogo size={32} /><p>De vos engagements à l’action.</p></div><nav aria-label="Navigation de pied de page"><a href="#steps">Le parcours</a><a href="#pillars">Piliers ESG</a><a href="#questions">Questions fréquentes</a></nav><p className={styles.copyright}>© 2026 Turritopsis<br />Diagnostic ESG pour PME marocaines</p></footer>
     </div>
-  );
-}
-
-function ScoreRing({ value }: { value: number }) {
-  const radius = 24;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (circumference * value) / 100;
-  return (
-    <svg width="58" height="58" viewBox="0 0 58 58">
-      <circle cx="29" cy="29" r={radius} fill="none" stroke="var(--surface-2)" strokeWidth="6" />
-      <circle
-        cx="29"
-        cy="29"
-        r={radius}
-        fill="none"
-        stroke="var(--blue)"
-        strokeWidth="6"
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform="rotate(-90 29 29)"
-      />
-    </svg>
   );
 }

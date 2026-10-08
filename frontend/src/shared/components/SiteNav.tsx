@@ -10,16 +10,17 @@ export default function SiteNav() {
       <Link to="/" className={styles.brand}>
         <BrandLogo />
       </Link>
-      <nav className={styles.navLinks}>
-        <Link to="/#steps">Fonctionnalites</Link>
-        <Link to="/#pillars">Piliers ESG</Link>
+      <nav className={styles.navLinks} aria-label="Navigation principale">
+        <a href="/#steps">Le parcours</a>
+        <a href="/#pillars">Piliers ESG</a>
+        <a href="/#questions">Questions</a>
       </nav>
       <div className={styles.navRight}>
         <Link to="/?auth=login" className={styles.navLogin}>
           Connexion
         </Link>
-        <button className={`${styles.pillButton} lift`} onClick={() => navigate("/?auth=signup")}>
-          Creer un compte
+        <button className={styles.pillButton} onClick={() => navigate("/?auth=signup")}>
+          Créer un compte
         </button>
       </div>
     </header>
