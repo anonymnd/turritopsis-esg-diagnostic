@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/appsettings.Development.json
+.vs/
+tests/
+
+**/.secrets/
+**/*firebase-adminsdk*.json
+**/*service-account*.json

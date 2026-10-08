@@ -1,4 +1,6 @@
 node_modules/
+backend/**/bin/
+backend/**/obj/
 dist/
 .env
 .env.*
@@ -22,3 +24,9 @@ data/*.csv
 data/*.json
 data/stagiaires/*.json
 !data/.gitkeep
+
+# Push build output and private Firebase credentials
+frontend/public/firebase-messaging-sw.js
+.secrets/
+*firebase-adminsdk*.json
+*service-account*.json
