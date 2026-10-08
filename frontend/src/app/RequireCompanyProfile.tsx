@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useCompany } from "../features/company/useCompany";
+import { useCompany } from "../features/company/index";
 
 // Questionnaire/Proofs need a complete company profile first — a dossier
 // built on an empty "who is this company" section isn't useful to a

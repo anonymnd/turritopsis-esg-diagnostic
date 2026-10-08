@@ -1,0 +1,346 @@
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addNote, getDossier, getNotes, getRevisions, updateDossier, type Dossier } from "../../../dossiers/index";
+import { downloadDocument, listDocumentsForDossier } from "../../../documents/index";
+import { reviewDossier, type DossierReviewResult } from "../../../ai/index";
+import { computeScores } from "../../../questionnaire/index";
+import { QUESTIONS } from "../../../questionnaire/index";
+import type { Answers } from "../../../questionnaire/index";
+import { apiErrorMessage } from "../../../../shared/api-client/httpClient";
+import styles from "./detail.module.css";
+
+const ASSESSMENT_LABEL: Record<string, string> = {
+  coherent: "Coherent",
+  "score probablement surestime": "Score probablement surestime",
+  "preuves insuffisantes": "Preuves insuffisantes",
+  "revue manuelle requise": "Revue manuelle requise"
+};
+
+const STATUS_STYLE: Record<Dossier["status"], { bg: string; fg: string; label: string }> = {
+  Submitted: { bg: "var(--status-progress-tint)", fg: "var(--status-progress)", label: "Soumis" },
+  InReview: { bg: "var(--status-warn-tint)", fg: "var(--status-warn)", label: "En cours" },
+  Validated: { bg: "var(--status-ok-tint)", fg: "var(--status-ok)", label: "Valide" },
+  Rejected: { bg: "var(--status-bad-tint)", fg: "var(--status-bad)", label: "Rejete" }
+};
+
+// Formats the AI's dossier review into an editable starting draft — the
+// reviewer owns whatever ends up here after this point, this is just a
+// time-saver so they aren't writing from a blank page.
+function formatAiAsRecommendations(result: DossierReviewResult): string {
+  const lines = [result.summary.trim()];
+  if (result.flaggedQuestions.length > 0) {
+    lines.push("", "A travailler en priorite :");
+    for (const flag of result.flaggedQuestions) {
+      const question = QUESTIONS.find((q) => q.code === flag.questionCode);
+      lines.push(`- ${flag.questionCode} (${question?.title ?? flag.questionCode}) : ${flag.reason}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+export default function DossierDetailPage() {
+  const { dossierId } = useParams<{ dossierId: string }>();
+  const queryClient = useQueryClient();
+  const [selectedRevisionId, setSelectedRevisionId] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [finalScoreInput, setFinalScoreInput] = useState("");
+  const [decision, setDecision] = useState<string | null>(null);
+  const [unavailableDocIds, setUnavailableDocIds] = useState<Set<string>>(new Set());
+  const [recommendationsText, setRecommendationsText] = useState("");
+
+  async function handleDownload(id: string, fileName: string) {
+    let ok = false;
+    try {ok = await downloadDocument(id, fileName, dossierId, activeRevisionId);} catch {ok=false;}
+    if (!ok) {
+      setUnavailableDocIds((prev) => new Set(prev).add(id));
+    }
+  }
+
+  const { data: liveDossier, isPending } = useQuery({
+    queryKey: ["dossier", dossierId],
+    queryFn: () => getDossier(dossierId!),
+    enabled: !!dossierId
+  });
+
+  const { data: revisions, isError: historyError } = useQuery({
+    queryKey: ["dossier-revisions", dossierId], queryFn: () => getRevisions(dossierId!), enabled: !!dossierId
+  });
+  const activeRevisionId = selectedRevisionId ?? liveDossier?.currentRevisionId;
+  const selectedRevision = revisions?.find(r => r.id === activeRevisionId);
+  const dossier = liveDossier && selectedRevision ? {...liveDossier, ...selectedRevision,
+    id: liveDossier.id, currentRevisionId: selectedRevision.id} : liveDossier;
+  const historical = !!selectedRevisionId && selectedRevisionId !== liveDossier?.currentRevisionId;
+
+  const { data: notes } = useQuery({
+    queryKey: ["dossier-notes", dossierId],
+    queryFn: () => getNotes(dossierId!),
+    enabled: !!dossierId
+  });
+
+  const { data: documents } = useQuery({
+    queryKey: ["dossier-documents", dossierId, activeRevisionId],
+    queryFn: () => listDocumentsForDossier(dossierId!, activeRevisionId),
+    enabled: !!dossierId
+  });
+
+  const noteMutation = useMutation({
+    mutationFn: () => addNote(dossierId!, noteText, activeRevisionId),
+    onSuccess: () => {
+      setNoteText("");
+      queryClient.invalidateQueries({ queryKey: ["dossier-notes", dossierId] });
+    },
+    onError: () => queryClient.invalidateQueries({ queryKey: ["dossier", dossierId] })
+  });
+
+  const aiMutation = useMutation({
+    mutationFn: (revisionId: string | null | undefined) => reviewDossier(dossierId!, revisionId)
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ status, finalScore }: { status: Dossier["status"]; finalScore?: number }) =>
+      updateDossier(dossierId!, status, finalScore, recommendationsText || undefined, activeRevisionId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["dossier", dossierId] });
+      queryClient.invalidateQueries({ queryKey: ["dossiers", "queue"] });
+      queryClient.invalidateQueries({ queryKey: ["dossier-revisions", dossierId] });
+      setDecision(variables.status === "Validated" ? "Dossier valide — score final enregistre." : variables.status === "InReview" ? "Revue commencee." : "Dossier rejete — une notification sera disponible pour la PME.");
+    },
+    onError: () => queryClient.invalidateQueries({ queryKey: ["dossier", dossierId] })
+  });
+
+  useEffect(() => {
+    setRecommendationsText(dossier?.recommendations ?? "");
+    setNoteText(""); setFinalScoreInput(""); setDecision(null);
+    setUnavailableDocIds(new Set());
+  }, [activeRevisionId, dossier?.recommendations]);
+  const aiData = aiMutation.variables === activeRevisionId ? aiMutation.data : undefined;
+
+  if (isPending || !dossier) {
+    return (
+      <div className={styles.wrap}>
+        <p>Chargement…</p>
+      </div>
+    );
+  }
+
+  let snapshot: Answers = {};
+  try {
+    snapshot = JSON.parse(dossier.snapshotJson) as Answers;
+  } catch {
+    snapshot = {};
+  }
+  const scores = computeScores(snapshot);
+  const status = STATUS_STYLE[dossier.status];
+  const decisionLocked = historical || dossier.status === "Validated" || dossier.status === "Rejected";
+  const notesLocked = historical || dossier.status === "Validated";
+
+  function validate() {
+    const finalScore = finalScoreInput ? Number(finalScoreInput) : scores.overall;
+    statusMutation.mutate({ status: "Validated", finalScore });
+  }
+
+  return (
+    <div className={styles.wrap}>
+      <Link to="/reviewer" className={styles.backLink}>
+        ← File d'attente
+      </Link>
+      <div className={styles.header}>
+        <h2>{dossier.companyName ?? dossier.companyId}</h2>
+        <span className={styles.tag} style={{ background: status.bg, color: status.fg }}>
+          {status.label}
+        </span>
+      </div>
+      <p className={styles.subtitle}>Soumis le {new Date(dossier.submittedAt).toLocaleDateString("fr-FR")}</p>
+
+      {!liveDossier?.currentRevisionId && <p role="status">Original submitted documents were not preserved.</p>}
+      {historyError && <p role="alert">Historique indisponible. Rechargez la page.</p>}
+      {!!revisions?.length && <label>Revision du dossier <select aria-label="Revision du dossier"
+        value={activeRevisionId ?? ""} onChange={e => setSelectedRevisionId(e.target.value)}>
+        {revisions.map(r => <option key={r.id} value={r.id}>Revision {r.number} — {new Date(r.submittedAt).toLocaleString("fr-FR")} — {STATUS_STYLE[r.status].label}</option>)}
+      </select></label>}
+      {historical && <p>Revision historique : consultation uniquement.</p>}
+
+      <div className={styles.scoreRow}>
+        <div className={styles.scoreBox}>
+          <b>{dossier.reviewedScore ?? scores.overall}</b>
+          <span>Global</span>
+        </div>
+        <div className={styles.scoreBoxPillar} style={{ background: "var(--pillar-e-tint)", color: "var(--pillar-e-dark)" }}>
+          <b>{scores.E}</b>
+          <span>E</span>
+        </div>
+        <div className={styles.scoreBoxPillar} style={{ background: "var(--pillar-s-tint)", color: "var(--pillar-s-dark)" }}>
+          <b>{scores.S}</b>
+          <span>S</span>
+        </div>
+        <div className={styles.scoreBoxPillar} style={{ background: "var(--pillar-g-tint)", color: "var(--pillar-g-dark)" }}>
+          <b>{scores.G}</b>
+          <span>G</span>
+        </div>
+      </div>
+
+      <h4>Analyse IA du dossier</h4>
+      <div className={styles.notesCard}>
+        {!aiData && !aiMutation.isPending && (
+          <div className={styles.aiPrompt}>
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--ink-muted)" }}>
+              L'IA recoit seulement les scores declares et des indices de preuve extraits localement.
+              Le texte et les noms de fichiers ne sont pas transmis au fournisseur IA.
+              Verifiez les documents originaux avant de valider le dossier.
+            </p>
+            <button type="button" className={styles.btnGhost} onClick={() => aiMutation.mutate(activeRevisionId)}>
+              Lancer l'analyse IA
+            </button>
+          </div>
+        )}
+        {aiMutation.isPending && <div className={styles.noteEmpty}>Analyse en cours…</div>}
+        {aiMutation.isError && (
+          <div className={styles.noteEmpty}>Analyse indisponible pour le moment. Reessayez dans un instant.</div>
+        )}
+        {aiData && (
+          <div className={styles.aiPrompt}>
+            <div className={styles.aiAssessmentRow}>
+              <span className={styles.aiAssessmentBadge}>{ASSESSMENT_LABEL[aiData.assessment] ?? aiData.assessment}</span>
+              {aiData.recommendedScore !== null && (
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  style={{ padding: "6px 14px", fontSize: 12 }}
+                  onClick={() => setFinalScoreInput(String(aiData!.recommendedScore))}
+                >
+                  Utiliser le score suggere ({aiData.recommendedScore})
+                </button>
+              )}
+            </div>
+            <p style={{ fontSize: 13, margin: "8px 0" }}>{aiData.summary}</p>
+            {aiData.flaggedQuestions.length > 0 && (
+              <ul className={styles.aiFlagList}>
+                {aiData.flaggedQuestions.map((flag) => {
+                  const question = QUESTIONS.find((q) => q.code === flag.questionCode);
+                  return (
+                    <li key={flag.questionCode}>
+                      <b>
+                        {flag.questionCode} — {question?.title ?? flag.questionCode}
+                      </b>
+                      : {flag.reason}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <button
+              type="button"
+              className={styles.btnGhost}
+              style={{ padding: "6px 14px", fontSize: 12, marginTop: 4 }}
+              onClick={() => setRecommendationsText(formatAiAsRecommendations(aiData!))}
+            >
+              Utiliser cette analyse comme recommandation
+            </button>
+          </div>
+        )}
+      </div>
+
+      <h4>Recommandations pour la PME</h4>
+      <div className={styles.notesCard}>
+        <div className={styles.aiPrompt}>
+          <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--ink-muted)" }}>
+            Visible par la PME une fois le dossier valide ou rejete — pourquoi ce score, et sur quoi
+            travailler. Pre-remplissez depuis l'analyse IA ci-dessus, puis reformulez librement.
+          </p>
+          <textarea
+            className={styles.recommendationsInput}
+            disabled={decisionLocked} value={recommendationsText}
+            onChange={(e) => setRecommendationsText(e.target.value)}
+            placeholder="Ex : Le dossier est globalement solide. A travailler en priorite : bilan carbone (E4), criteres sociaux fournisseurs (S9)…"
+            rows={6}
+          />
+        </div>
+      </div>
+
+      <h4>Preuves fournies</h4>
+      <div className={styles.notesCard}>
+        {documents && documents.length > 0 ? (
+          documents.map((doc) => {
+            const question = QUESTIONS.find((q) => q.code === doc.questionCode);
+            return (
+              <div key={doc.id} className={styles.note}>
+                <span style={{ color: "var(--ink-muted)", fontSize: 12 }}>
+                  {doc.questionCode} — {question?.title ?? doc.questionCode}
+                </span>
+                {doc.textContent && <p style={{ margin: "4px 0 0" }}>{doc.textContent}</p>}
+                {doc.fileName && !unavailableDocIds.has(doc.id) && (
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    style={{ padding: "6px 14px", marginTop: 6, fontSize: 12 }}
+                    onClick={() => handleDownload(doc.id, doc.fileName!)}
+                  >
+                    Telecharger — {doc.fileName}
+                  </button>
+                )}
+                {doc.fileName && unavailableDocIds.has(doc.id) && (
+                  <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--status-bad)" }}>
+                    Fichier indisponible ({doc.fileName}) — demandez a la PME de le re-televerser.
+                  </p>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className={styles.noteEmpty}>Aucune preuve fournie.</div>
+        )}
+      </div>
+
+      <h4>Commentaires</h4>
+      <div className={styles.notesCard}>
+        {notes && notes.length > 0 ? (
+          notes.filter(note => note.revisionId === (activeRevisionId ?? null)).map((note) => (
+            <div key={note.id} className={styles.note}>
+              <span style={{ color: "var(--ink-muted)", fontSize: 12 }}>{new Date(note.createdAt).toLocaleDateString("fr-FR")}</span>
+              <p style={{ margin: "4px 0 0" }}>{note.text}</p>
+            </div>
+          ))
+        ) : (
+          <div className={styles.noteEmpty}>Aucun commentaire pour le moment.</div>
+        )}
+      </div>
+
+      <div className={styles.noteForm}>
+        <textarea disabled={notesLocked} maxLength={2000} value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Ajouter un commentaire pour la PME…" />
+      </div>
+
+      {decisionLocked && <p>{notesLocked ? "Ce dossier valide est verrouille." : "Ce dossier doit etre resoumis par la PME avant une nouvelle decision."}</p>}
+      {statusMutation.isError && <p role="alert">{apiErrorMessage(statusMutation.error, "Impossible de modifier ce dossier. Rechargez-le et reessayez.")}</p>}
+      {noteMutation.isError && <p role="alert">{apiErrorMessage(noteMutation.error, "Impossible d'ajouter le commentaire.")}</p>}
+      <div className={styles.actions}>
+        {!historical && dossier.status === "Submitted" && <button type="button" className={styles.btnGhost} onClick={() => statusMutation.mutate({ status: "InReview" })} disabled={statusMutation.isPending || noteMutation.isPending}>Commencer la revue</button>}
+        <input
+          type="number"
+          min={0}
+          max={100}
+          disabled={decisionLocked}
+          value={finalScoreInput}
+          onChange={(e) => setFinalScoreInput(e.target.value)}
+          placeholder={`Score final (${scores.overall})`}
+          style={{ width: 160, padding: "10px 12px", borderRadius: 8, border: "1.5px solid var(--border)" }}
+        />
+        <button type="button" className={styles.btnGhost} onClick={() => noteMutation.mutate()} disabled={notesLocked || !noteText.trim() || noteMutation.isPending || statusMutation.isPending}>
+          Envoyer le commentaire
+        </button>
+        <button type="button" className={styles.btnPrimary} onClick={validate} disabled={decisionLocked || statusMutation.isPending || noteMutation.isPending}>
+          {statusMutation.isPending ? "Un instant…" : "Valider le dossier"}
+        </button>
+        <button
+          type="button"
+          className={styles.btnGhost}
+          onClick={() => statusMutation.mutate({ status: "Rejected" })}
+          disabled={decisionLocked || statusMutation.isPending || noteMutation.isPending}
+        >
+          {statusMutation.isPending ? "Un instant…" : "Rejeter"}
+        </button>
+        {decision && <span className={styles.decision}>{decision}</span>}
+      </div>
+    </div>
+  );
+}

@@ -15,10 +15,10 @@ export default function SiteNav() {
         <Link to="/#pillars">Piliers ESG</Link>
       </nav>
       <div className={styles.navRight}>
-        <Link to="/auth?tab=login" className={styles.navLogin}>
+        <Link to="/?auth=login" className={styles.navLogin}>
           Connexion
         </Link>
-        <button className={`${styles.pillButton} lift`} onClick={() => navigate("/auth?tab=signup")}>
+        <button className={`${styles.pillButton} lift`} onClick={() => navigate("/?auth=signup")}>
           Creer un compte
         </button>
       </div>

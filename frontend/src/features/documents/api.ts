@@ -7,6 +7,7 @@ export interface ProofDocument {
   textContent: string | null;
   fileName: string | null;
   createdAt: string;
+  sha256?: string | null;
 }
 
 export interface UploadProofPayload {
@@ -40,8 +41,8 @@ export async function deleteDocument(id: string): Promise<void> {
   await httpClient.delete(`/documents/${id}`);
 }
 
-export async function listDocumentsForDossier(dossierId: string): Promise<ProofDocument[]> {
-  const { data } = await httpClient.get<ProofDocument[]>(`/dossiers/${dossierId}/documents`);
+export async function listDocumentsForDossier(dossierId: string, revisionId?: string | null): Promise<ProofDocument[]> {
+  const { data } = await httpClient.get<ProofDocument[]>(`/dossiers/${dossierId}/documents`, {params: {revisionId}});
   return data;
 }
 
@@ -49,8 +50,8 @@ export async function listDocumentsForDossier(dossierId: string): Promise<ProofD
 // recoverable — e.g. a document uploaded before file storage moved to
 // the database, whose bytes never made it in. The caller decides how to
 // surface that instead of the button silently doing nothing.
-export async function downloadDocument(id: string, fileName: string): Promise<boolean> {
-  const { data } = await httpClient.get<ProofDocument & { fileBase64: string | null }>(`/documents/${id}`);
+export async function downloadDocument(id: string, fileName: string, dossierId?: string, revisionId?: string | null): Promise<boolean> {
+  const { data } = await httpClient.get<ProofDocument & { fileBase64: string | null }>(dossierId && revisionId ? `/dossiers/${dossierId}/revisions/${revisionId}/documents/${id}` : `/documents/${id}`);
   if (!data.fileBase64) return false;
 
   const bytes = Uint8Array.from(atob(data.fileBase64), (c) => c.charCodeAt(0));

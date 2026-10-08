@@ -1,0 +1,87 @@
+.wrap { max-width: 1440px; padding: 32px 40px 40px; margin: 0 auto; }
+.breadcrumbs { margin-bottom: 28px; }
+.breadcrumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; list-style: none; margin: 0; padding: 0; font-size: 12px; }
+.breadcrumbs li { display: flex; align-items: center; gap: 8px; }
+.breadcrumbs a { display: flex; align-items: center; min-height: 44px; color: var(--ink-muted); }
+.breadcrumbs span { color: var(--green-dark); font-weight: 600; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin-bottom: 32px; }
+.header h1 { font-size: clamp(26px, 2.4vw, 32px); line-height: 1.3; letter-spacing: -.04em; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .12em; color: var(--green-dark); margin: 0 0 12px; }
+.subtitle { color: var(--ink-muted); font-size: 14px; line-height: 1.8; max-width: 640px; margin: 16px 0 0; }
+.header img { width: 200px; height: auto; flex-shrink: 0; border-radius: var(--radius); }
+.primary { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 12px 20px; border: 0; border-radius: 10px; background: var(--green-dark); color: var(--surface); font-size: 13px; font-weight: 600; transition: background .2s; }
+.primary:hover { background: var(--ink); color: var(--surface); }
+.empty { display: flex; align-items: center; gap: 40px; background: var(--surface-2); border: 1px solid var(--border); padding: 40px; border-radius: 24px; margin-bottom: 32px; }
+.empty img { width: 240px; height: auto; flex-shrink: 0; }
+.empty h2 { font-size: 27px; line-height: 1.4; letter-spacing: -.03em; }
+.empty p:not(.eyebrow) { font-size: 14px; color: var(--ink-muted); line-height: 1.8; max-width: 580px; margin: 16px 0 24px; }
+.emptySteps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.emptySteps > a { display: flex; flex-direction: column; color: var(--ink); padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color .2s; }
+.emptySteps > a:hover { border-color: var(--green); }
+.stepNumber { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; color: var(--green-dark); background: var(--green-tint); font-size: 12px; font-weight: 700; margin-bottom: 20px; }
+.emptySteps h3 { font-size: 17px; line-height: 1.5; }
+.emptySteps p { color: var(--ink-muted); font-size: 13px; line-height: 1.8; margin: 12px 0 24px; }
+.emptySteps > a > span:last-child { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--green-dark); font-size: 12px; font-weight: 600; margin-top: auto; min-height: 44px; }
+.statusCard { display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.statusIcon, .sectionIcon { display: grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; color: var(--green-dark); background: var(--green-tint); }
+.statusCard h2 { font-size: 18px; line-height: 1.6; }
+.statusCard p { color: var(--ink-muted); font-size: 13px; line-height: 1.8; margin: 6px 0 0; }
+.statusCard > div { flex: 1; }
+.statusCard .primary { flex-shrink: 0; }
+.validated { background: var(--green-tint); }
+.validated .statusIcon { background: var(--surface); }
+.metadata { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 24px 0 32px; padding: 24px 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.metadata > div { padding: 0 24px; }
+.metadata > div + div { border-left: 1px solid var(--border); }
+.metadata dt { color: var(--ink-muted); font-size: 11px; margin-bottom: 8px; }
+.metadata dd { font-size: 13px; font-weight: 600; line-height: 1.7; margin: 0; overflow-wrap: anywhere; }
+.scoreCard { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 40px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 24px; margin-bottom: 32px; }
+.scoreCard h2 { font-size: 27px; letter-spacing: -.03em; line-height: 1.4; }
+.scoreCard p:not(.eyebrow) { font-size: 14px; line-height: 1.8; color: var(--ink-muted); margin: 12px 0 20px; }
+.humanBadge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 8px 12px; background: var(--surface); color: var(--green-dark); font-size: 11px; font-weight: 600; }
+.scoreValue { font: 700 56px var(--font-heading); color: var(--green-dark); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.scoreValue > span { font: 500 14px var(--font-body); color: var(--ink-muted); margin-left: 6px; letter-spacing: 0; }
+.sectionHeading { margin-bottom: 24px; }
+.sectionHeading h2 { font-size: 23px; letter-spacing: -.03em; line-height: 1.5; }
+.sectionHeading p:not(.eyebrow) { color: var(--ink-muted); font-size: 12px; line-height: 1.8; margin: 12px 0 0; }
+.pillarGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-bottom: 32px; }
+.E { --pillar: var(--pillar-e-dark); --tint: var(--pillar-e-tint); }
+.S { --pillar: var(--pillar-s-dark); --tint: var(--pillar-s-tint); }
+.G { --pillar: var(--pillar-g-dark); --tint: var(--pillar-g-tint); }
+.pillarCard { padding: 24px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm); }
+.pillarIcon { display: grid; place-items: center; width: 44px; height: 44px; background: var(--tint); color: var(--pillar); border-radius: 12px; margin-bottom: 20px; }
+.pillarCard h3 { font-size: 17px; margin-bottom: 20px; }
+.pillarCard strong { font: 600 32px var(--font-heading); color: var(--pillar); font-variant-numeric: tabular-nums; }
+.pillarCard small { font: 500 12px var(--font-body); margin-left: 4px; color: var(--ink-muted); }
+.pillarCard progress { display: block; width: 100%; height: 5px; margin-top: 16px; appearance: none; border: 0; background: var(--surface-2); accent-color: var(--pillar); border-radius: 8px; overflow: hidden; }
+.pillarCard progress::-webkit-progress-bar { background: var(--surface-2); }
+.pillarCard progress::-webkit-progress-value { background: var(--pillar); }
+.pillarCard progress::-moz-progress-bar { background: var(--pillar); }
+.recommendations { display: flex; align-items: flex-start; gap: 20px; padding: 32px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); margin-bottom: 32px; }
+.recommendations h2 { font-size: 21px; line-height: 1.6; }
+.recommendationsText { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; color: var(--ink-muted); line-height: 1.9; margin-top: 16px; }
+.historyCard { padding: 32px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.historyHeading { display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px; }
+.historyHeading h2 { font-size: 21px; line-height: 1.5; }
+.historyHeading p:not(.eyebrow) { font-size: 12px; color: var(--ink-muted); line-height: 1.8; margin: 8px 0 0; }
+.historyCard section { font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
+.historyCard section > h3 { font-size: 16px; margin-bottom: 16px; }
+.historyCard section > label { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 8px 24px 8px 0; font-size: 12px; font-weight: 600; max-width: 100%; }
+.historyCard select { max-width: 100%; min-height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 8px 12px; font: inherit; }
+.historyCard section > p { color: var(--ink-muted); }
+.historyCard article { padding: 20px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; margin-top: 16px; }
+.historyCard article p { white-space: pre-wrap; }
+.historyCard button { min-height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--green-dark); padding: 10px 16px; font: inherit; }
+.historyCard details { border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin: 20px 0; }
+.historyCard summary { display: list-item; min-height: 44px; padding: 8px 0; cursor: pointer; font-weight: 600; color: var(--green-dark); }
+.historyCard [role="status"] { padding: 16px; background: var(--status-warn-tint); border-radius: 10px; color: var(--ink); }
+.returnLinks { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 24px; }
+.returnLinks a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 12px; font-weight: 600; color: var(--green-dark); }
+.footer { display: flex; align-items: flex-start; gap: 8px; padding-top: 24px; margin-top: 32px; border-top: 1px solid var(--border); color: var(--ink-muted); font-size: 11px; line-height: 1.8; }
+.footer svg { flex-shrink: 0; }
+.printHeader, .signatureBlock { display: none; }
+@media (max-width: 1200px) { .wrap { padding: 24px; } .empty { padding: 32px; gap: 24px; } .empty img { width: 200px; } .emptySteps, .pillarGrid { gap: 16px; } .statusCard { flex-wrap: wrap; } .metadata > div { padding: 0 16px; } }
+@media (max-width: 768px) { .metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0; } .metadata > div { padding: 20px; } .metadata > div:nth-child(3) { border-left: 0; } .metadata > div:nth-child(n+3) { border-top: 1px solid var(--border); } .statusCard .primary { margin-left: 64px; } }
+@media (max-width: 600px) { .wrap { padding: 16px; } .header { flex-direction: column-reverse; align-items: flex-start; gap: 20px; } .header img { width: 144px; } .subtitle { font-size: 16px; } .empty { flex-direction: column; align-items: flex-start; padding: 24px; } .empty img { align-self: center; width: 180px; } .empty h2 { font-size: 24px; } .empty p:not(.eyebrow) { font-size: 16px; } .emptySteps, .pillarGrid { grid-template-columns: 1fr; } .statusCard { align-items: flex-start; padding: 20px; } .statusCard h2 { font-size: 16px; } .statusCard .primary { width: 100%; margin-left: 0; } .scoreCard { padding: 24px; flex-direction: column; align-items: flex-start; } .scoreCard h2 { font-size: 24px; } .recommendations { padding: 24px 20px; gap: 12px; } .recommendations h2 { font-size: 18px; } .historyCard { padding: 24px 20px; } .historyHeading { align-items: flex-start; } .historyHeading h2 { font-size: 18px; } .historyCard select { font-size: 16px; width: 100%; } .historyCard section > label { display: flex; margin-right: 0; } }
+@media (prefers-reduced-motion: reduce) { .primary, .emptySteps > a { transition: none; } }
+@media print { .wrap { padding: 0; max-width: none; } .printHeader { display: block; margin-bottom: 24px; } .printHeader img { width: auto; height: 36px; margin-bottom: 12px; } .printHeader h1 { font-size: 24px; } .printHeader p { font-size: 12px; color: var(--ink-muted); } .scoreCard, .statusCard, .pillarCard, .metadata, .recommendations { box-shadow: none; break-inside: avoid; } .scoreCard { padding: 24px; } .signatureBlock { display: flex; gap: 60px; margin-top: 60px; } .signatureBlock > div { flex: 1; max-width: 220px; padding-top: 8px; border-top: 1px solid var(--ink); font-size: 12px; } .pillarGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
