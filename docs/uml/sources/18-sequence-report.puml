@@ -1,0 +1,46 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — report page
+' Evidence: frontend/src/features/dossiers/pages/report/ReportPage.tsx; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierQueries.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Report visibility and PDF printing
+actor "Company member" as PME
+participant ReportPage as UI
+participant DossiersController as API
+participant DossierQueries as S
+participant "Owned repository / integration ports\nPostgreSQL adapters" as DB
+participant "Browser print dialog" as Print
+PME -> UI : /app/report
+UI -> API : GET /api/v1/dossiers/mine
+API -> S : GetForCompanyOwnerAsync(userId)
+S -> DB : membership; latest company dossier by CreatedAt
+S --> UI : DossierDto or null
+alt No dossier
+ UI --> PME : no submission message
+else Status != Validated
+ UI --> PME : status + recommendations if present
+else Validated
+ UI -> UI : parse snapshotJson (invalid JSON -> {})
+ UI -> UI : compute pillar scores from copied answers
+ UI -> UI : finalScore = dossier.finalScore ?? computed overall
+ UI --> PME : final score, E/S/G, recommendations, review date
+ PME -> UI : Download report (PDF)
+ UI -> Print : window.print()
+ Print --> PME : print / Save as PDF
+end
+note over UI,API
+ No server-side PDF generation or application certificate checkout.
+ Latest pending submission can hide an earlier validated report.
+end note
+@enduml

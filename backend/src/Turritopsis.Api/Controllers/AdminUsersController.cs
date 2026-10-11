@@ -7,7 +7,7 @@ using Turritopsis.Application.Admin.Models;
 namespace Turritopsis.Api.Controllers;
 
 // Admin-only: creating a reviewer account is deliberately not self-service
-// (see docs/rewrite) — this is the sole way a reviewer identity comes into
+// (see docs/architecture.md) — this is the sole way a reviewer identity comes into
 // existence, gated behind an admin JWT.
 [ApiController]
 [Authorize(Roles = "admin")]

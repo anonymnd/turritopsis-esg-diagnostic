@@ -336,6 +336,9 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("CurrentRevisionId")
+                        .HasColumnType("uuid");
+
                     b.Property<int?>("DeclaredScore")
                         .HasColumnType("integer");
 
@@ -354,6 +357,9 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ReviewerId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("integer");
+
                     b.Property<string>("SnapshotJson")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -371,6 +377,10 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -397,6 +407,9 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
                     b.Property<string>("QuestionCode")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("RevisionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -406,7 +419,65 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DossierId");
 
+                    b.HasIndex("RevisionId");
+
                     b.ToTable("DossierNotes");
+                });
+
+            modelBuilder.Entity("Turritopsis.Domain.Entities.DossierRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("DeclaredScore")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("DossierId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EvidenceSnapshotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("FinalScore")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Recommendations")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ReviewedScore")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SubmittedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DossierId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("DossierRevisions", (string)null);
                 });
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.EsgSnapshot", b =>
@@ -516,6 +587,267 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Turritopsis.Modules.Audit.Domain.AppNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DossierId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ReviewerInbox")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "ReviewerInbox", "CreatedAt");
+
+                    b.ToTable("Notifications", (string)null);
+                });
+
+            modelBuilder.Entity("Turritopsis.Modules.Audit.Domain.NotificationPushJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("LeaseToken")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("NotificationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ReviewerInbox")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotificationId", "SubscriptionId")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "NextAttemptAt", "LeaseUntil");
+
+                    b.ToTable("NotificationPushJobs", (string)null);
+                });
+
+            modelBuilder.Entity("Turritopsis.Modules.Audit.Domain.PushSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("ReviewerInbox")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasFilter("\"Active\"");
+
+                    b.HasIndex("UserId", "DeviceId")
+                        .IsUnique()
+                        .HasFilter("\"Active\"");
+
+                    b.HasIndex("CompanyId", "ReviewerInbox", "Active");
+
+                    b.ToTable("PushSubscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("Turritopsis.Modules.Documents.Domain.EvidenceSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CapturedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CapturedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("EvidenceSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("Turritopsis.Modules.Documents.Domain.EvidenceSnapshotItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OriginalDocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("QuestionCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Sha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("SnapshotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TextContent")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UploadedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SnapshotId");
+
+                    b.ToTable("EvidenceSnapshotItems", (string)null);
+                });
+
+            modelBuilder.Entity("Turritopsis.Modules.Reviews.Domain.ReviewOutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AggregateVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("DossierId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("LeaseToken")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DossierId", "AggregateVersion")
+                        .IsUnique();
+
+                    b.HasIndex("ProcessedAt", "NextAttemptAt", "LeaseUntil");
+
+                    b.ToTable("ReviewOutboxMessages", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -569,13 +901,11 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.Certificate", b =>
                 {
-                    b.HasOne("Turritopsis.Domain.Entities.Company", "Company")
+                    b.HasOne("Turritopsis.Domain.Entities.Company", null)
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.CompanyUser", b =>
@@ -591,24 +921,20 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.Document", b =>
                 {
-                    b.HasOne("Turritopsis.Domain.Entities.Company", "Company")
-                        .WithMany("Documents")
+                    b.HasOne("Turritopsis.Domain.Entities.Company", null)
+                        .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.Dossier", b =>
                 {
-                    b.HasOne("Turritopsis.Domain.Entities.Company", "Company")
-                        .WithMany("Dossiers")
+                    b.HasOne("Turritopsis.Domain.Entities.Company", null)
+                        .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.DossierNote", b =>
@@ -619,32 +945,53 @@ namespace Turritopsis.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Turritopsis.Domain.Entities.DossierRevision", null)
+                        .WithMany()
+                        .HasForeignKey("RevisionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Dossier");
+                });
+
+            modelBuilder.Entity("Turritopsis.Domain.Entities.DossierRevision", b =>
+                {
+                    b.HasOne("Turritopsis.Domain.Entities.Dossier", "Dossier")
+                        .WithMany("Revisions")
+                        .HasForeignKey("DossierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Dossier");
                 });
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.EsgSnapshot", b =>
                 {
-                    b.HasOne("Turritopsis.Domain.Entities.Company", "Company")
+                    b.HasOne("Turritopsis.Domain.Entities.Company", null)
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
 
-                    b.Navigation("Company");
+            modelBuilder.Entity("Turritopsis.Modules.Documents.Domain.EvidenceSnapshotItem", b =>
+                {
+                    b.HasOne("Turritopsis.Modules.Documents.Domain.EvidenceSnapshot", null)
+                        .WithMany()
+                        .HasForeignKey("SnapshotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.Company", b =>
                 {
-                    b.Navigation("Documents");
-
-                    b.Navigation("Dossiers");
-
                     b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Turritopsis.Domain.Entities.Dossier", b =>
                 {
                     b.Navigation("Notes");
+
+                    b.Navigation("Revisions");
                 });
 #pragma warning restore 612, 618
         }

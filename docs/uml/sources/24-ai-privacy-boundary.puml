@@ -1,0 +1,52 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — mandatory server-side minimization
+' Evidence: backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiEvidencePrivacyFilter.cs; backend/src/Modules/Turritopsis.Modules.Ai.Infrastructure/Adapters/AiOptions.cs; docs/AI-DATA-PRIVACY.md
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Enterprise evidence privacy boundary
+actor Company
+participant "Application UI" as UI
+box "Application server — original data boundary" #F3F6FA
+ participant "Authorized review endpoint" as API
+ participant "Local privacy projection" as Filter
+ database "Application evidence storage" as DB
+end box
+participant "External AI provider" as Provider
+actor "Authorized human reviewer" as Reviewer
+Company -> UI : submit proof text / files to application
+UI -> API : request provisional advice
+API -> Filter : inspect proof text locally\nnever use a remote model for filtering
+Filter -> Filter : public catalog allowlist\nfinite answer values\nfixed boolean mention extraction
+Filter --> API : criterion, public title, pillar, score, signals
+alt Local-only configured
+ API -> API : local heuristic review\nno provider request
+else Signals-only configured
+ API -> Provider : fixed instructions + minimized evidence signals
+ note over API,Provider
+  Excluded: source text, filenames, company/person names,
+  contacts, account/tax IDs, amounts, exact dates,
+  attachment bytes and arbitrary metadata.
+ end note
+ Provider --> API : cautious provisional advice
+end
+API --> UI : result + server-owned privacy metadata
+Reviewer -> DB : authorized access to original evidence
+DB --> Reviewer : documents and company context
+Reviewer -> API : human validation / rejection and final score
+note over Filter,Provider
+ Signals are mentions, not verified compliance.
+ Scores/signals still disclose limited business information.
+ Use local-only when these must also stay in the application.
+end note
+@enduml

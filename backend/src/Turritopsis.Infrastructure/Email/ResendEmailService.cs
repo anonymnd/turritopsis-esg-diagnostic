@@ -5,12 +5,7 @@ using Turritopsis.Application.Abstractions;
 
 namespace Turritopsis.Infrastructure.Email;
 
-// Bare HTTP call to Resend's API — same dependency-free style as
-// AiReviewService, and ports the exact call shape already proven in the
-// old Node backend's api/_shared.js sendEmail(). Fire-and-forget/
-// best-effort: a failed or disabled send must never fail the request
-// that triggered it (password reset, invite, etc.), same reasoning as
-// DossierService's audit-log writes.
+// Calls Resend directly over HTTP. Email delivery is best effort.
 public class ResendEmailService : IEmailService
 {
     private readonly HttpClient _http;

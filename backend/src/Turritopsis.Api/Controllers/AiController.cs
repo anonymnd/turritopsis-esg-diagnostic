@@ -20,13 +20,13 @@ public class AiController : ControllerBase
     private const int RateLimitPerMinute = 30;
 
     private readonly IAiReviewService _aiReviewService;
-    private readonly IDossierService _dossierService;
+    private readonly IDossierQueries _dossierService;
     private readonly ICurrentUserService _currentUser;
     private readonly SlidingWindowRateLimiter _rateLimiter;
 
     public AiController(
         IAiReviewService aiReviewService,
-        IDossierService dossierService,
+        IDossierQueries dossierService,
         ICurrentUserService currentUser,
         SlidingWindowRateLimiter rateLimiter)
     {
@@ -52,7 +52,7 @@ public class AiController : ControllerBase
     }
 
     [HttpPost("review-dossier/{dossierId:guid}")]
-    public async Task<IActionResult> ReviewDossier(Guid dossierId, CancellationToken cancellationToken)
+    public async Task<IActionResult> ReviewDossier(Guid dossierId, CancellationToken cancellationToken, [FromQuery] Guid? revisionId = null)
     {
         if (_currentUser.UserId is not { } userId) return Unauthorized();
         if (!IsReviewer) return Forbid();
@@ -61,7 +61,7 @@ public class AiController : ControllerBase
             return StatusCode(429, new { error = "Trop d'analyses en peu de temps, reessayez dans une minute." });
         }
 
-        var context = await _dossierService.GetAiContextAsync(userId, IsReviewer, dossierId, cancellationToken);
+        var context = await _dossierService.GetAiContextAsync(userId, IsReviewer, dossierId, cancellationToken, revisionId);
         if (context.Access == MembershipAccess.NotFound) return NotFound();
         if (context.Access == MembershipAccess.Forbidden) return Forbid();
 

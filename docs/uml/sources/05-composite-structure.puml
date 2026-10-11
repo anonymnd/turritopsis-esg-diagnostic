@@ -1,0 +1,40 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Design view of implemented object collaboration
+' Evidence: backend/src/Turritopsis.Api/Controllers/DossiersController.cs; backend/src/Turritopsis.Api/Controllers/AiController.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs; backend/src/Turritopsis.Api/Program.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Dossier review collaboration — composite structure
+left to right direction
+rectangle "review : ReviewRequestContext\n<<model boundary>>" as boundary {
+ portin "HTTP request" as input
+ portout "DTO response" as output
+ rectangle "controller : DossiersController" as ctl
+ rectangle "actor : ICurrentUserService" as usr
+ rectangle "dossiers : IDossierQueries / IDossierCommands" as ds
+ rectangle "documents : IDocumentService" as docs
+ rectangle "persistence : Owning module context" as db
+ input --> ctl
+ ctl --> usr : userId / reviewer roles
+ ctl --> ds : queue / dossier / notes / decision
+ ctl --> docs : proof list
+ ds --> db
+ docs --> db
+ ctl --> output
+}
+note bottom of boundary
+ Parts correspond to constructor-injected dependencies.
+ Dossier AI uses a separate AiController collaboration.
+ This boundary groups objects; it is not a deployed service.
+end note
+@enduml

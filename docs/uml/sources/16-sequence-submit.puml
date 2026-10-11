@@ -1,0 +1,54 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — implemented workflow patterns
+' Evidence: backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierCommands.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Infrastructure/Adapters/DossierRepository.cs; backend/src/Turritopsis.Api/Services/OutboxWorker.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Submit with a transactional outbox
+actor Company
+participant AnalysisPage as UI
+participant DossiersController as API
+participant DossierCommands as C
+participant "Membership / snapshot ports" as Ports
+participant Dossier as D
+participant DossierRepository as Repo
+database PostgreSQL as DB
+Company -> UI : Submit
+UI -> API : POST /dossiers
+API -> C : SubmitAsync
+C -> Ports : writable membership / current snapshot
+C -> Repo : latest dossier (tracked)
+Repo -> DB : read
+alt Latest dossier is InReview
+ C -> D : Submit
+ D --> C : transition rejected
+ C --> UI : 409 conflict
+else No dossier / latest Validated
+ C -> D : create new dossier / Submit
+else Latest Submitted / Rejected
+ C -> D : Submit / clear previous decision
+end
+opt Submission permitted
+ D -> D : increment Version / raise dossier.submitted
+ C -> Repo : SaveAsync
+ Repo -> DB : BEGIN; write dossier + ReviewOutboxMessages
+ alt Version / unique-version conflict
+  DB --> Repo : rollback complete transaction
+  Repo --> UI : 409 reload required
+ else Success
+  Repo -> DB : COMMIT
+  C --> UI : 200 DossierDto
+ end
+end
+ref over API,DB : 26 — asynchronous Outbox delivery
+@enduml

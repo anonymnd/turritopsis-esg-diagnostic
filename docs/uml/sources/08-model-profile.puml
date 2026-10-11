@@ -1,0 +1,49 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Proposed notation only — no runtime implementation
+' Evidence: backend/src/Modules/; backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiReviewService.cs; backend/src/Modules/Turritopsis.Modules.Documents.Infrastructure/Adapters/DatabaseFileStorage.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Documentation profile for ESG models
+package "ESGDocumentation <<profile>>" {
+ class "UML::Class" as ClassMeta <<metaclass>>
+ class "UML::Component" as ComponentMeta <<metaclass>>
+ class CompanyScoped <<stereotype>> {
+  tenantKey : String = "CompanyId"
+ }
+ class FrozenSubmission <<stereotype>> {
+  copiedField : String = "SnapshotJson"
+  evidenceFrozen : Boolean = false
+ }
+ class AdvisoryAI <<stereotype>> {
+  finalDecisionBy : String = "Reviewer"
+  fallback : String = "Heuristic"
+ }
+ class Scaffold <<stereotype>> {
+  workflowImplemented : Boolean = false
+ }
+ CompanyScoped --|> ClassMeta : <<extension>>
+ FrozenSubmission --|> ClassMeta : <<extension>>
+ Scaffold --|> ClassMeta : <<extension>>
+ AdvisoryAI --|> ComponentMeta : <<extension>>
+}
+note bottom of FrozenSubmission
+ Example application: Dossier.
+ Describes copying answers at submission;
+ does not claim database immutability.
+end note
+note bottom of Scaffold
+ Example application: Certificate entity.
+ No application payment/certificate workflow exists.
+end note
+@enduml

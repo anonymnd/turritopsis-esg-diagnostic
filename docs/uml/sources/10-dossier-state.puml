@@ -1,0 +1,43 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — implemented workflow patterns
+' Evidence: backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/DossierStates.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/Dossier.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierCommands.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Dossier lifecycle and enforced transitions
+state "Editable answers\n(no persisted Draft)" as Draft
+state Submitted
+state InReview
+state Rejected
+state Validated
+[*] --> Draft
+Draft --> Submitted : submit / freeze answers
+Submitted --> Submitted : resubmit / reset old review
+Submitted --> InReview : reviewer starts review
+Submitted --> Validated : reviewer validates / score required
+Submitted --> Rejected : reviewer rejects
+InReview --> InReview : update review
+InReview --> Validated : reviewer validates
+InReview --> Rejected : reviewer rejects
+Rejected --> Submitted : company corrects / resubmits
+Validated --> [*] : immutable closed dossier
+note right of Validated
+ A new company submission creates a separate dossier.
+ This validated row cannot change or receive notes.
+end note
+note left of InReview
+ Company resubmission returns 409 during review.
+ Stale concurrent writes return 409.
+ Invalid scores / status values return 400.
+end note
+@enduml

@@ -1,0 +1,64 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Illustrative data using application entities
+' Evidence: backend/src/Modules/; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Example submitted dossier — object snapshot
+object "atlas : Company" as c {
+ Id = company-01
+ Name = "Atlas Example PME"
+ Sector = "Services"
+}
+object "owner : ApplicationUser" as u {
+ Id = user-01
+ Email = "owner@example.test"
+}
+object "membership : CompanyUser" as m {
+ CompanyId = company-01
+ UserId = user-01
+ Role = Owner
+}
+object "live : EsgSnapshot" as s {
+ CompanyId = company-01
+ DataJson = { E1: {score: "1"} }
+}
+object "submission : Dossier" as d {
+ CompanyId = company-01
+ Status = Submitted
+ SnapshotJson = { E1: {score: "1"} }
+ SubmittedBy = user-01
+ FinalScore = null
+}
+object "proof : Document" as doc {
+ CompanyId = company-01
+ QuestionCode = "E1"
+ FileName = "policy.pdf"
+ StoragePath = blob-01
+}
+object "attachment : FileBlob" as b {
+ Id = blob-01
+ Content = [binary bytes]
+}
+c -- m
+m .. u : UserId
+c -- s
+c -- d
+c -- doc
+doc .. b : identifier reference
+s ..> d : copied at submission
+note bottom of d
+ Snapshot is copied, not a live reference.
+ Documents remain company-level records.
+end note
+@enduml

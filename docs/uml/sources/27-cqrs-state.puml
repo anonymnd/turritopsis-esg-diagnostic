@@ -1,0 +1,43 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Implemented command and query ports
+' Evidence: backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/IDossierService.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/DossierStates.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Infrastructure/ModuleRegistration.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title State and lightweight CQRS inside Reviews
+left to right direction
+[HTTP controllers] as HTTP
+package "Reviews Core" {
+ [IDossierCommands / DossierCommands] as Commands
+ [IDossierQueries / DossierQueries] as Queries
+ [Dossier aggregate] as Dossier
+ [State: Submitted / InReview / Rejected / Validated] as State
+ [DomainEvent ID-only payload] as Event
+ Commands --> Dossier
+ Dossier --> State : enforce transition
+ Dossier --> Event : raise after change
+}
+package "Reviews Infrastructure" {
+ [IDossierRepository / tracked writes] as Write
+ [IDossierReadRepository / AsNoTracking] as Read
+ [ReviewOutboxProcessor] as Outbox
+}
+database "Same PostgreSQL database" as DB
+HTTP --> Commands : POST / PUT
+HTTP --> Queries : GET
+Commands --> Write
+Queries --> Read
+Write --> DB : aggregate + event / one transaction
+Read --> DB : read projection
+Outbox --> DB : lease / retry / acknowledge
+@enduml

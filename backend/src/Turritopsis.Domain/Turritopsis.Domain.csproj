@@ -1,9 +1,1 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-</Project>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup><ItemGroup><ProjectReference Include="../Modules/Turritopsis.Modules.Companies.Core/Turritopsis.Modules.Companies.Core.csproj" /><ProjectReference Include="../Modules/Turritopsis.Modules.Diagnostics.Core/Turritopsis.Modules.Diagnostics.Core.csproj" /><ProjectReference Include="../Modules/Turritopsis.Modules.Documents.Core/Turritopsis.Modules.Documents.Core.csproj" /><ProjectReference Include="../Modules/Turritopsis.Modules.Reviews.Core/Turritopsis.Modules.Reviews.Core.csproj" /><ProjectReference Include="../Modules/Turritopsis.Modules.Audit.Core/Turritopsis.Modules.Audit.Core.csproj" /></ItemGroup></Project>

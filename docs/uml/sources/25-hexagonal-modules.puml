@@ -1,0 +1,75 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Implemented compile-time and EF model boundaries
+' Evidence: backend/src/Turritopsis.SharedKernel/ModulePorts.cs; backend/src/Turritopsis.Api/Modules/ApplicationModules.cs; backend/tests/Turritopsis.ModuleChecks/Program.cs; scripts/check-architecture.mjs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Hexagonal module ownership and communication
+left to right direction
+actor "HTTP controllers" as API
+package "Companies module" {
+ [Company use cases] as Companies
+ [ICompanyRepository] as CompanyPort
+ [CompaniesDbContext\nCompanies + CompanyUsers] as CompanyDb
+ Companies --> CompanyPort
+ CompanyPort <|.. CompanyDb
+}
+package "Reviews module" {
+ [Dossier use cases] as Reviews
+ [IDossierRepository] as ReviewPort
+ [ReviewsDbContext\nDossiers + Notes + Certificates + Outbox] as ReviewDb
+ Reviews --> ReviewPort
+ ReviewPort <|.. ReviewDb
+}
+package "Diagnostics module" {
+ [Snapshot use cases] as Snapshot
+ [DiagnosticsDbContext\nEsgSnapshots] as SnapshotDb
+ Snapshot --> SnapshotDb : repository port
+}
+package "Documents module" {
+ [Evidence use cases / readers] as Evidence
+ [DocumentsDbContext\nDocuments + FileBlobs] as DocumentDb
+ Evidence --> DocumentDb : repository / storage ports
+}
+package "Identity module" {
+ [Auth use cases] as Auth
+ [IdentityModuleDbContext\nAspNet tables] as IdentityDb
+ Auth --> IdentityDb : identity account adapter
+}
+package "Audit module" {
+ [IAuditTrail adapter] as Audit
+ [AuditDbContext\nAuditLogs + Notifications + PushSubscriptions + PushJobs] as AuditDb
+ Audit --> AuditDb
+}
+database "One PostgreSQL database" as DB
+API --> Reviews
+API --> Auth
+API --> Evidence
+Reviews --> Companies : ICompanyDirectory\nDTO membership / names
+Reviews --> Snapshot : ISnapshotReader\nJSON snapshot
+Reviews --> Evidence : ICompanyEvidenceReader\ntext DTOs
+Reviews --> Audit : Domain Events via Outbox / dispatcher
+Evidence --> ReviewDb : IDossierCompanyReader adapter\nreturns company ID only
+Auth --> Companies : ICompanyRegistration
+CompanyDb --> DB
+ReviewDb --> DB
+SnapshotDb --> DB
+DocumentDb --> DB
+IdentityDb --> DB
+AuditDb --> DB
+note bottom of DB
+ Tables retain their names and public schema for compatibility.
+ Existing physical foreign keys remain in the database.
+ Shared credentials are not a database permission boundary.
+end note
+@enduml

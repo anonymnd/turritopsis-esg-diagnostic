@@ -11,7 +11,7 @@ public class EsgSnapshotConfiguration : IEntityTypeConfiguration<EsgSnapshot>
         builder.Property(s => s.DataJson).HasColumnType("jsonb");
         builder.HasIndex(s => s.CompanyId).IsUnique();
 
-        builder.HasOne(s => s.Company)
+        builder.HasOne<Company>()
             .WithMany()
             .HasForeignKey(s => s.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);

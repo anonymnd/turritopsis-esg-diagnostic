@@ -1,0 +1,59 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Implemented integration; Firebase credentials needed for live delivery
+' Evidence: backend/src/Modules/Turritopsis.Modules.Audit.Infrastructure/Adapters/PushQueueProcessor.cs; backend/src/Modules/Turritopsis.Modules.Audit.Infrastructure/Firebase/FirebasePushSender.cs; frontend/src/features/notifications/firebase-messaging-sw.ts; docs/FIREBASE-PUSH-SETUP.md
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Firebase push through a durable notification queue
+actor User
+participant "React push controls" as UI
+participant "Authenticated subscription API" as API
+database "Audit owned PushSubscriptions / PushJobs" as DB
+participant PushQueueWorker as Worker
+participant "Membership / identity ports" as Access
+participant "Firebase Admin SDK / FCM" as FCM
+participant "Browser service worker" as SW
+User -> UI : enable push / grant browser permission
+UI -> FCM : getToken with public VAPID key
+UI -> API : register deviceId + token with JWT
+API -> Access : determine current user / permitted audience
+API -> DB : persist immutable device subscription
+API --> UI : subscription ID only
+UI -> SW : persist active subscription binding in IndexedDB
+ref over API,DB : Domain Outbox handler commits notification + per-device jobs atomically
+Worker -> DB : claim pending job / SKIP LOCKED / 2-minute lease
+Worker -> Access : recheck current recipient permission
+alt Expired / revoked device / access changed
+ Worker -> DB : mark Expired or Cancelled
+else Authorized
+ Worker -> FCM : token + notificationId + subscriptionId + safe route
+ alt Accepted
+  Worker -> DB : mark Sent if lease still owned
+  FCM -> SW : background data-only message
+  SW -> SW : check active binding / display fixed generic text
+ else Temporary error
+  Worker -> DB : backoff / retry / dead letter after 8 attempts
+ else Unregistered token
+  Worker -> DB : disable subscription / dead letter
+ end
+end
+User -> UI : logout
+UI -> SW : clear active binding / suppress old-account delivery
+UI -> API : revoke owned subscription
+UI -> FCM : delete token
+note over DB,FCM
+ Queue is durable; Firebase acceptance is not proof of display.
+ Crash redelivery is possible; notification tags replace visible duplicates.
+ No document text, company names, scores or reviewer comments go to FCM.
+end note
+@enduml

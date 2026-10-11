@@ -1,0 +1,54 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Supported topology — not verification of live hosting
+' Evidence: backend/Dockerfile; backend/docker-compose.yml; backend/src/Turritopsis.Api/Program.cs; frontend/src/shared/api-client/httpClient.ts
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Application deployment topology
+node "User device" {
+ node "Web browser" as browser {
+  artifact "React TypeScript SPA\nfrontend build assets" as spa
+ }
+}
+node "Static frontend host\n(provider configurable)" as host {
+ artifact "HTML / JS / CSS" as assets
+}
+node "Backend host" {
+ node "Container / .NET 8 runtime\nPORT or 8080" as runtime {
+  artifact "Turritopsis.Api.dll" as apiDll
+  artifact "Application / Infrastructure / Domain DLLs" as libs
+ }
+}
+node "Database host" {
+ database "PostgreSQL" as db {
+  artifact "Identity + ESG tables" as tables
+  artifact "FileBlobs attachment bytes" as files
+ }
+}
+cloud "Configured chat-completions provider" as ai
+cloud "Resend email service" as mail
+host --> browser : serve static assets
+spa --> runtime : HTTP(S) /api/v1\nBearer JWT / CORS
+runtime --> db : Npgsql / connection string
+runtime --> ai : HTTPS (when API key configured)
+runtime --> mail : HTTPS (when email enabled)
+note bottom of runtime
+ Startup applies EF migrations and ensures reviewer/admin roles.
+ Admin seed runs only when configured.
+ Hosting ingress / TLS must be configured by the deployment.
+end note
+note bottom of db
+ Local docker-compose supplies PostgreSQL 16,
+ port 5432 and a named data volume.
+end note
+@enduml

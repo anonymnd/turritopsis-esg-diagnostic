@@ -1,0 +1,51 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — account separation
+' Evidence: backend/src/Turritopsis.Api/Controllers/AdminUsersController.cs; backend/src/Modules/Turritopsis.Modules.Administration.Core/Application/AdminUsersService.cs; backend/src/Turritopsis.Api/Program.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Administrator creates a reviewer
+actor Admin
+participant ReviewersPage as UI
+participant "JWT / role middleware" as Guard
+participant AdminUsersController as API
+participant "CreateReviewer validator" as V
+participant AdminUsersService as S
+participant "IIdentityAccounts\nIdentity adapter" as I
+participant "Owned repository / integration ports\nPostgreSQL adapters" as DB
+Admin -> UI : new reviewer email/password
+UI -> Guard : POST /api/v1/admin/reviewers + JWT
+alt Missing / invalid JWT or not admin
+ Guard --> UI : 401 / 403
+else Admin
+ Guard -> API : request
+ API -> V : validate
+ API -> S : CreateReviewerAsync(actorId, request)\n[valid input]
+ S -> I : FindByEmailAsync
+ alt Existing email
+  S --> UI : 400 errors
+ else Unused email
+  S -> I : CreateAsync(user, password)
+  I -> DB : Identity user
+  S -> I : AddToRoleAsync(user, "reviewer")
+  I -> DB : Identity role membership
+  S -> DB : best-effort AuditLog("reviewer_created")
+  S --> API : success + userId
+  API --> UI : 200
+ end
+end
+note over S,I
+ No self-service reviewer/admin signup.
+ Role removal is separate DELETE /api/v1/admin/roles.
+end note
+@enduml

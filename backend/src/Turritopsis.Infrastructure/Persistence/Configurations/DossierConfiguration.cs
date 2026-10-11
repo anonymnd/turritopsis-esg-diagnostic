@@ -12,8 +12,8 @@ public class DossierConfiguration : IEntityTypeConfiguration<Dossier>
         builder.Property(d => d.SnapshotJson).HasColumnType("jsonb");
         builder.HasIndex(d => new { d.CompanyId, d.Status });
 
-        builder.HasOne(d => d.Company)
-            .WithMany(c => c.Dossiers)
+        builder.HasOne<Company>()
+            .WithMany()
             .HasForeignKey(d => d.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
     }

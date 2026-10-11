@@ -4,22 +4,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5174",
-    "dev:test": "vite --mode test --host 127.0.0.1 --port 5174",
-    "start": "npm run api:hosted",
-    "build": "vite build",
-    "build:test": "vite build --mode test",
-    "build:production": "vite build --mode production",
-    "api:ollama": "node scripts/ollama-api.js",
-    "api:hosted": "node scripts/hosted-api.js",
-    "preview": "vite preview --host 127.0.0.1"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.112.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "lucide-react": "^0.468.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "vite": "^7.0.0"
+    "dev": "npm --prefix frontend run dev -- --host 127.0.0.1 --port 5173",
+    "dev:api": "dotnet run --project backend/src/Turritopsis.Api --launch-profile http",
+    "build": "npm --prefix frontend run build",
+    "build:api": "dotnet build backend/Turritopsis.sln",
+    "test:privacy": "dotnet run --project backend/tests/Turritopsis.PrivacyChecks",
+    "lint": "npm --prefix frontend run lint",
+    "preview": "npm --prefix frontend run preview -- --host 127.0.0.1",
+    "check:architecture": "node scripts/check-architecture.mjs",
+    "check": "npm run check:architecture && npm run build && npm run lint && npm run build:api && npm run test:privacy && npm run test:modules && npm run test:push",
+    "test:modules": "dotnet run --project backend/tests/Turritopsis.ModuleChecks",
+    "test:modules:db": "dotnet run --project backend/tests/Turritopsis.ModuleChecks -- --database",
+    "test:push": "npm --prefix frontend run test:push",
+    "test:e2e": "npm --prefix frontend run test:e2e"
   }
 }

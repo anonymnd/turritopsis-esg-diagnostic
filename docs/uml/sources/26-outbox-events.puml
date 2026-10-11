@@ -1,0 +1,43 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Implemented at-least-once delivery
+' Evidence: backend/src/Turritopsis.Api/Services/OutboxWorker.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Infrastructure/Adapters/ReviewOutboxProcessor.cs; backend/src/Modules/Turritopsis.Modules.Audit.Infrastructure/Adapters/DossierEventHandler.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Durable Domain Events and internal notifications
+participant OutboxWorker as Worker
+participant ReviewOutboxProcessor as Processor
+database "Reviews owned outbox" as Outbox
+participant DomainEventDispatcher as Dispatcher
+participant "Audit module event handler" as Audit
+database "AuditLogs + Notifications + PushJobs" as Effects
+Worker -> Processor : ProcessBatchAsync (new DI scope)
+Processor -> Outbox : BEGIN / pending first event per dossier\nFOR UPDATE SKIP LOCKED
+Processor -> Outbox : persist Attempts + lease token (2 min)
+Processor -> Outbox : COMMIT claim
+Processor -> Dispatcher : DispatchAsync (minimal ID-only event)
+Dispatcher -> Audit : HandleAsync
+Audit -> Effects : BEGIN / insert audit + notification + per-device push jobs\nON CONFLICT(event ID) DO NOTHING
+Audit -> Effects : COMMIT both effects
+alt All handlers succeed
+ Processor -> Outbox : acknowledge if lease token still owned
+else Failure / interruption
+ Processor -> Outbox : persist retry backoff / exception type only
+ note over Processor,Effects
+  Effects may already have committed before interruption.
+  Redelivery is safe because their event ID is unique.
+  A crashed lease expires and another worker can recover it.
+  Later events for the same dossier wait for acknowledgement.
+ end note
+end
+@enduml

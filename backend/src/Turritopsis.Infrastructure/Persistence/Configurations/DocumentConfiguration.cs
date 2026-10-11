@@ -11,8 +11,8 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(d => d.QuestionCode).HasMaxLength(20).IsRequired();
         builder.HasIndex(d => new { d.CompanyId, d.QuestionCode });
 
-        builder.HasOne(d => d.Company)
-            .WithMany(c => c.Documents)
+        builder.HasOne<Company>()
+            .WithMany()
             .HasForeignKey(d => d.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
     }

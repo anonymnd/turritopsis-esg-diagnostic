@@ -4,6 +4,7 @@ Turritopsis accompagne les PME marocaines dans l’évaluation de leurs pratique
 
 ## Fonctionnalités
 
+
 - Profil entreprise et questionnaire ESG.
 - Ajout de justificatifs et analyse assistée par IA.
 - Soumission des dossiers à une revue humaine.

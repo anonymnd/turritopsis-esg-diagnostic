@@ -18,11 +18,20 @@ interface SnapshotResponse {
 export async function getSnapshot(): Promise<Answers> {
   const { data } = await httpClient.get<SnapshotResponse | null>("/snapshots");
   if (!data) return {};
+
+  let answers: unknown;
   try {
-    return JSON.parse(data.dataJson) as Answers;
-  } catch {
-    return {};
+    answers = JSON.parse(data.dataJson);
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    throw new Error("Saved questionnaire responses contain invalid JSON.", { cause: error });
   }
+
+  if (typeof answers !== "object" || answers === null || Array.isArray(answers)) {
+    throw new Error("Saved questionnaire responses must be a JSON object.");
+  }
+
+  return answers as Answers;
 }
 
 export async function saveSnapshot(answers: Answers): Promise<void> {

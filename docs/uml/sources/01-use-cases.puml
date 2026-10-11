@@ -1,0 +1,78 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — implemented capabilities
+' Evidence: frontend/src/app/router.tsx; backend/src/Turritopsis.Api/Controllers/DossiersController.cs; backend/src/Turritopsis.Api/Controllers/AdminUsersController.cs; backend/src/Modules/Turritopsis.Modules.Documents.Core/Application/DocumentService.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Application use cases
+left to right direction
+actor Visitor
+actor "Company member" as Member
+actor "Owner / collaborator" as Writer
+actor Viewer
+actor Reviewer
+actor Admin
+Writer --|> Member
+Viewer --|> Member
+Admin --|> Reviewer
+rectangle "Turritopsis ESG Diagnostic — .NET application" {
+ usecase "Read public presentation" as Public
+ usecase "Register company account" as Register
+ usecase "Log in / reset password" as Auth
+ usecase "View company, answers,\nproofs and dossier status" as Read
+ usecase "Update company profile" as Profile
+ usecase "Answer ESG questionnaire" as Answer
+ usecase "Upload / delete evidence" as Proof
+ usecase "Request question AI advice" as Advice
+ usecase "Apply suggested answer" as Apply
+ usecase "Submit / resubmit dossier" as Submit
+ usecase "View validated report\nand print / save PDF" as Report
+ usecase "View review queue / history" as Queue
+ usecase "Inspect dossier and proofs" as Inspect
+ usecase "Request dossier AI advice" as DAi
+ usecase "Add reviewer comment" as Comment
+ usecase "Validate / reject with\nscore and recommendations" as Decide
+ usecase "View administrative overview" as Overview
+ usecase "Create / list reviewers" as Reviewers
+ usecase "Remove platform role\n(API capability)" as Revoke
+}
+Visitor --> Public
+Visitor --> Register
+Visitor --> Auth
+Member --> Read
+Member --> Report
+Writer --> Profile
+Writer --> Answer
+Writer --> Proof
+Member --> Advice
+Writer --> Apply
+Writer --> Submit
+Reviewer --> Queue
+Reviewer --> Inspect
+Reviewer --> DAi
+Reviewer --> Comment
+Reviewer --> Decide
+Admin --> Overview
+Admin --> Reviewers
+Admin --> Revoke
+Apply ..> Advice : <<extend>>
+DAi ..> Inspect : <<extend>>
+note bottom of Submit
+ Snapshot may be empty; completeness is not
+ enforced by SubmitAsync. Viewer writes denied.
+end note
+note bottom of Report
+ Final report displayed only for Validated.
+ Payments/certificates have no application controller.
+end note
+@enduml

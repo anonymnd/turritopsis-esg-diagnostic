@@ -1,0 +1,55 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — answers and calculation
+' Evidence: frontend/src/features/questionnaire/pages/QuestionnairePage.tsx; frontend/src/features/questionnaire/scoring.ts; backend/src/Modules/Turritopsis.Modules.Diagnostics.Core/Application/SnapshotService.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Questionnaire autosave and scoring
+actor "Owner / collaborator" as PME
+participant QuestionnairePage as UI
+participant "Questionnaire API client" as Client
+participant SnapshotsController as API
+participant SnapshotService as S
+participant "Owned repository / integration ports\nPostgreSQL adapters" as DB
+participant "computeScores()" as Scores
+UI -> API : GET /api/v1/snapshots + JWT
+API -> S : GetForUserAsync(userId)
+S -> DB : resolve membership + current snapshot
+S --> UI : dataJson or null
+loop Each answer choice
+ PME -> UI : choose 1 / 0.5 / 0 / NA
+ UI -> UI : update local answers
+ UI -> Client : saveSnapshot(answers)
+ Client -> API : PUT /api/v1/snapshots {dataJson}
+ API -> S : UpsertForUserAsync(userId, dataJson)
+ S -> DB : first membership
+ alt Missing membership / Viewer
+  S --> API : Forbidden
+  API --> UI : 403
+ else Writable company membership
+  S -> DB : insert or update one snapshot per company
+  S --> API : SnapshotDto
+  API --> Client : 200
+  Client --> UI : invalidate snapshot query
+ end
+end
+UI -> Scores : answers (when score view needs them)
+Scores -> Scores : for E/S/G: retain 1, 0.5, 0 only
+Scores -> Scores : pillar = round(mean * 100), empty = 0
+Scores -> Scores : overall = round((E + S + G) / 3)
+Scores --> UI : E, S, G, overall
+note over UI,S
+ The JSON snapshot is persisted; the server does not
+ recompute the declared submission scores.
+end note
+@enduml

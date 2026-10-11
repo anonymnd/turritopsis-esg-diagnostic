@@ -1,0 +1,70 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — file storage
+' Evidence: backend/src/Modules/Turritopsis.Modules.Documents.Core/Application/DocumentService.cs; backend/src/Modules/Turritopsis.Modules.Documents.Infrastructure/Adapters/DatabaseFileStorage.cs; backend/src/Turritopsis.Api/Controllers/DocumentsController.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Evidence upload, retrieval and deletion
+actor "Company writer" as PME
+participant ProofsPage as UI
+participant DocumentsController as API
+participant DocumentService as S
+participant DatabaseFileStorage as Files
+participant "Owned repository / integration ports\nPostgreSQL adapters" as DB
+PME -> UI : note + optional file
+UI -> API : POST /api/v1/documents\nquestionCode, textContent, fileName, fileBase64
+API -> S : UploadAsync(userId, request)
+S -> DB : resolve membership
+alt Missing membership / Viewer
+ S --> API : Forbidden
+ API --> UI : 403
+else Allowed
+ opt fileBase64 and fileName present
+  S -> S : decode base64; check <= 4 MiB
+  break Invalid base64 / too large
+   S --> API : exception; request aborts
+   API --> UI : too large -> 400; invalid base64 -> unhandled FormatException
+  end
+   S -> Files : SaveAsync(companyId, name, bytes)
+   Files -> DB : insert FileBlob
+   alt Save succeeds
+    Files --> S : blob Id as storagePath
+   else Attachment save fails
+    Files --> S : exception
+    S -> S : catch; clear storagePath and fileName
+   end
+ end
+ S -> DB : insert Document (text + optional blob reference)
+ S --> UI : DocumentDto
+end
+== Separate authorized retrieval ==
+UI -> API : GET /api/v1/documents/{id}
+API -> S : GetDetailAsync(userId, isReviewer, id)
+S -> DB : load document; check tenant / role
+opt Attached bytes exist
+ S -> Files : ReadAsync(storagePath)
+ Files -> DB : select FileBlob
+ Files --> S : byte[] or null
+end
+S --> UI : detail + optional fileBase64 (or 403/404)
+== Separate writer deletion ==
+UI -> API : DELETE /api/v1/documents/{id}
+API -> S : DeleteAsync(userId, id)
+S -> DB : check writable membership + same company
+opt Stored file
+ S -> Files : DeleteAsync(storagePath)
+ Files -> DB : delete blob
+end
+S -> DB : delete document
+S --> UI : access result
+@enduml

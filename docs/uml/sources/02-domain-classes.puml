@@ -1,0 +1,165 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — code and EF mappings
+' Evidence: backend/src/Turritopsis.Infrastructure/Persistence/Configurations/; backend/src/Modules/; backend/src/Modules/; backend/src/Modules/Turritopsis.Modules.Identity.Infrastructure/Adapters/ApplicationUser.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Domain classes and persisted relationships
+class Company {
+ +Id : Guid
+ +Name : string
+ +Sector : string
+ +City : string?
+ +Ice : string?
+ +EmployeeRange : string?
+ +Website : string?
+ +Phone : string?
+ +ActivityDescription : string?
+ +CreatedAt : DateTimeOffset
+}
+class CompanyUser {
+ +Id : Guid
+ +CompanyId : Guid
+ +UserId : Guid
+ +Role : CompanyRole
+ +CreatedAt : DateTimeOffset
+}
+class EsgSnapshot {
+ +Id : Guid
+ +CompanyId : Guid
+ +DataJson : string = "{}"
+ +UpdatedAt : DateTimeOffset
+}
+class Document {
+ +Id : Guid
+ +CompanyId : Guid
+ +QuestionCode : string
+ +Label : string?
+ +TextContent : string?
+ +StoragePath : string?
+ +FileName : string?
+ +UploadedBy : Guid?
+ +CreatedAt : DateTimeOffset
+}
+class FileBlob {
+ +Id : Guid
+ +Content : byte[]
+ +CreatedAt : DateTimeOffset
+}
+class Dossier {
+ +Id : Guid
+ +CompanyId : Guid
+ +Status : DossierStatus (private set)
+ +Version : long (concurrency token)
+ +DeclaredScore : int?
+ +ReviewedScore : int?
+ +FinalScore : int?
+ +Recommendations : string?
+ +SnapshotJson : string = "{}"
+ +SubmittedBy : Guid?
+ +ReviewerId : Guid?
+ +SubmittedAt : DateTimeOffset
+ +ReviewedAt : DateTimeOffset?
+ +UpdatedAt : DateTimeOffset
+ +CreatedAt : DateTimeOffset
+}
+class DossierNote {
+ +Id : Guid
+ +DossierId : Guid
+ +AuthorId : Guid?
+ +QuestionCode : string?
+ +Text : string
+ +CreatedAt : DateTimeOffset
+}
+class Certificate <<scaffold>> {
+ +Id : Guid
+ +CompanyId : Guid
+ +DossierId : Guid
+ +Active : bool
+ +ExpiresAt : DateTimeOffset?
+ +StripeSessionId : string?
+ +CreatedAt : DateTimeOffset
+}
+class AuditLog {
+ +Id : Guid
+ +ActorId : Guid?
+ +CompanyId : Guid?
+ +Action : string
+ +DetailsJson : string
+ +CreatedAt : DateTimeOffset
+}
+class ReviewOutboxMessage {
+ +Id : Guid (event ID)
+ +DossierId : Guid
+ +AggregateVersion : long
+ +PayloadJson : jsonb (ID-only event)
+ +Attempts : int
+ +NextAttemptAt : DateTimeOffset
+ +LeaseToken : Guid?
+ +LeaseUntil : DateTimeOffset?
+ +ProcessedAt : DateTimeOffset?
+ +LastError : string? (exception type)
+}
+class AppNotification {
+ +Id : Guid (event ID)
+ +DossierId : Guid
+ +CompanyId : Guid
+ +ReviewerInbox : bool
+ +Type : string
+ +Title : string (fixed wording)
+ +CreatedAt : DateTimeOffset
+}
+ReviewOutboxMessage ..> Dossier : DossierId / ordered Version
+AppNotification ..> Dossier : DossierId
+AppNotification ..> Company : CompanyId / audience
+class "IdentityUser<Guid>" as IU <<framework>>
+class ApplicationUser
+ApplicationUser --|> IU
+enum CompanyRole {
+ Owner
+ Collaborator
+ Viewer
+}
+enum DossierStatus {
+ Submitted
+ InReview
+ Validated
+ Rejected
+}
+Company "1" -- "0..*" CompanyUser : Members
+Company "1" -- "0..1" EsgSnapshot : current answers
+Company "1" -- "0..*" Document : Documents
+Company "1" -- "0..*" Dossier : Dossiers
+Company "1" -- "0..*" Certificate
+Dossier "1" -- "0..*" DossierNote : Notes
+CompanyUser ..> ApplicationUser : UserId
+Document ..> FileBlob : StoragePath = blob Id
+Certificate ..> Dossier : DossierId (no configured FK)
+AuditLog ..> Company : CompanyId?
+AuditLog ..> ApplicationUser : ActorId?
+Dossier ..> ApplicationUser : SubmittedBy? / ReviewerId?
+DossierNote ..> ApplicationUser : AuthorId?
+Document ..> ApplicationUser : UploadedBy?
+CompanyUser ..> CompanyRole
+Dossier ..> DossierStatus
+note bottom of CompanyUser
+ Unique (CompanyId, UserId).
+ Services resolve first membership by UserId;
+ multiple-company selection is not implemented.
+end note
+note bottom of EsgSnapshot
+ Unique CompanyId; DataJson is jsonb.
+ Questionnaire is a code catalog, not an EF table.
+ Answers copied into Dossier.SnapshotJson.
+end note
+@enduml

@@ -25,6 +25,10 @@ public class TurritopsisDbContext : IdentityDbContext<ApplicationUser, IdentityR
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        Turritopsis.Modules.Reviews.Infrastructure.ReviewPersistenceModel.ConfigureWorkflow(builder);
+        Turritopsis.Modules.Audit.Infrastructure.AuditPersistenceModel.ConfigureNotifications(builder);
+        Turritopsis.Modules.Reviews.Infrastructure.RevisionPersistenceModel.Configure(builder);
+        Turritopsis.Modules.Documents.Infrastructure.EvidencePersistenceModel.Configure(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(TurritopsisDbContext).Assembly);
     }
 }

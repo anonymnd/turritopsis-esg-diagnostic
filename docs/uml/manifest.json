@@ -1,0 +1,346 @@
+[
+  {
+    "id": "01-use-cases",
+    "title": "Application use cases",
+    "type": "Use case",
+    "scope": "Application — implemented capabilities",
+    "description": "Actors and available actions. Company roles govern writes; platform reviewer/admin roles govern review. Membership provisioning for collaborators/viewers is outside the implemented UI.",
+    "evidence": [
+      "frontend/src/app/router.tsx",
+      "backend/src/Turritopsis.Api/Controllers/DossiersController.cs",
+      "backend/src/Turritopsis.Api/Controllers/AdminUsersController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Documents.Core/Application/DocumentService.cs"
+    ]
+  },
+  {
+    "id": "02-domain-classes",
+    "title": "Domain classes and persisted relationships",
+    "type": "Class",
+    "scope": "Application — code and EF mappings",
+    "description": "Persisted domain entities including Outbox and internal Notifications, Identity user and enums. Solid associations represent configured domain foreign keys; dotted links are identifier references without configured foreign keys.",
+    "evidence": [
+      "backend/src/Turritopsis.Infrastructure/Persistence/Configurations/",
+      "backend/src/Modules/",
+      "backend/src/Modules/",
+      "backend/src/Modules/Turritopsis.Modules.Identity.Infrastructure/Adapters/ApplicationUser.cs"
+    ]
+  },
+  {
+    "id": "03-object-example",
+    "title": "Example submitted dossier — object snapshot",
+    "type": "Object",
+    "scope": "Illustrative data using application entities",
+    "description": "Fictional objects demonstrate membership, a mutable snapshot, a submitted copy, and an evidence attachment. These are examples, not extracted customer records.",
+    "evidence": [
+      "backend/src/Modules/",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs"
+    ]
+  },
+  {
+    "id": "04-components",
+    "title": "Application runtime components",
+    "type": "Component",
+    "scope": "Application — implemented wiring",
+    "description": "React feature areas call versioned controllers. Infrastructure implements application interfaces; AI and email are optional external integrations.",
+    "evidence": [
+      "frontend/src/app/router.tsx",
+      "backend/src/Turritopsis.Api/Modules/ApplicationModules.cs",
+      "backend/src/Turritopsis.Infrastructure/Persistence/TurritopsisDbContext.cs"
+    ]
+  },
+  {
+    "id": "05-composite-structure",
+    "title": "Dossier review collaboration — composite structure",
+    "type": "Composite structure",
+    "scope": "Design view of implemented object collaboration",
+    "description": "Internal collaborating parts of a review request. The outer ReviewRequestContext is a modeling boundary, not a C# class.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Controllers/DossiersController.cs",
+      "backend/src/Turritopsis.Api/Controllers/AiController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs",
+      "backend/src/Turritopsis.Api/Program.cs"
+    ]
+  },
+  {
+    "id": "06-packages",
+    "title": "Source packages and project dependencies",
+    "type": "Package",
+    "scope": "Application — source organization",
+    "description": "Actual project-reference directions and frontend module grouping. Domain does not depend on infrastructure.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Turritopsis.Api.csproj",
+      "backend/src/Turritopsis.Application/Turritopsis.Application.csproj",
+      "backend/src/Turritopsis.Infrastructure/Turritopsis.Infrastructure.csproj",
+      "frontend/src/app/router.tsx",
+      "backend/src/Turritopsis.Api/Modules/ApplicationModules.cs"
+    ]
+  },
+  {
+    "id": "07-deployment",
+    "title": "Application deployment topology",
+    "type": "Deployment",
+    "scope": "Supported topology — not verification of live hosting",
+    "description": "Deployable artifacts inferred from the Dockerfile, EF configuration and frontend API client. Provider names are intentionally unspecified.",
+    "evidence": [
+      "backend/Dockerfile",
+      "backend/docker-compose.yml",
+      "backend/src/Turritopsis.Api/Program.cs",
+      "frontend/src/shared/api-client/httpClient.ts"
+    ]
+  },
+  {
+    "id": "08-model-profile",
+    "title": "Documentation profile for ESG models",
+    "type": "Profile",
+    "scope": "Proposed notation only — no runtime implementation",
+    "description": "A small UML profile formalizes documentary stereotypes. This is a modeling aid, not an implemented application feature or a claimed profile already present in the repository.",
+    "evidence": [
+      "backend/src/Modules/",
+      "backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiReviewService.cs",
+      "backend/src/Modules/Turritopsis.Modules.Documents.Infrastructure/Adapters/DatabaseFileStorage.cs"
+    ]
+  },
+  {
+    "id": "09-activity-diagnostic",
+    "title": "Diagnostic and human review workflow",
+    "type": "Activity",
+    "scope": "Application — typical user journey",
+    "description": "End-to-end activity with optional AI advice and the rejection/resubmission loop. Completion is a user journey, not a backend submission prerequisite.",
+    "evidence": [
+      "frontend/src/features/dossiers/pages/analysis/AnalysisPage.tsx",
+      "frontend/src/features/documents/pages/ProofsPage.tsx",
+      "frontend/src/features/review/pages/detail/DossierDetailPage.tsx",
+      "frontend/src/features/dossiers/pages/report/ReportPage.tsx"
+    ]
+  },
+  {
+    "id": "10-dossier-state",
+    "title": "Dossier lifecycle and enforced transitions",
+    "type": "State machine",
+    "scope": "Application — implemented workflow patterns",
+    "description": "Domain State implementations enforce transitions and lock validated records. A later submission creates another dossier.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/DossierStates.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/Dossier.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierCommands.cs"
+    ]
+  },
+  {
+    "id": "11-sequence-registration",
+    "title": "Company account registration",
+    "type": "Sequence",
+    "scope": "Application — registration path",
+    "description": "Input validation, Identity account creation, company/membership transaction and JWT issuance. The Identity user is created before the company transaction.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Controllers/AuthController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Identity.Core/Application/AuthService.cs",
+      "backend/src/Modules/Turritopsis.Modules.Identity.Infrastructure/Adapters/JwtTokenGenerator.cs"
+    ]
+  },
+  {
+    "id": "12-sequence-login",
+    "title": "Login and protected API access",
+    "type": "Sequence",
+    "scope": "Application — authentication",
+    "description": "Company membership and platform roles are distinct. Axios attaches the JWT and clears the local session on HTTP 401; there is no implemented refresh endpoint.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Identity.Core/Application/AuthService.cs",
+      "backend/src/Turritopsis.Api/Program.cs",
+      "frontend/src/shared/api-client/httpClient.ts"
+    ]
+  },
+  {
+    "id": "13-sequence-questionnaire",
+    "title": "Questionnaire autosave and scoring",
+    "type": "Sequence",
+    "scope": "Application — answers and calculation",
+    "description": "Each choice triggers snapshot upsert; the server rejects viewer writes. Scoring excludes N/A and unanswered values and averages the three rounded pillar scores.",
+    "evidence": [
+      "frontend/src/features/questionnaire/pages/QuestionnairePage.tsx",
+      "frontend/src/features/questionnaire/scoring.ts",
+      "backend/src/Modules/Turritopsis.Modules.Diagnostics.Core/Application/SnapshotService.cs"
+    ]
+  },
+  {
+    "id": "14-sequence-evidence",
+    "title": "Evidence upload, retrieval and deletion",
+    "type": "Sequence",
+    "scope": "Application — file storage",
+    "description": "Optional files are base64 encoded, capped at 4 MiB decoded, and saved as FileBlob bytes. Attachment-save failure preserves text. Retrieval checks company membership or reviewer/admin access.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Documents.Core/Application/DocumentService.cs",
+      "backend/src/Modules/Turritopsis.Modules.Documents.Infrastructure/Adapters/DatabaseFileStorage.cs",
+      "backend/src/Turritopsis.Api/Controllers/DocumentsController.cs"
+    ]
+  },
+  {
+    "id": "15-sequence-ai",
+    "title": "AI advice and heuristic fallback",
+    "type": "Sequence",
+    "scope": "Application — advisory AI",
+    "description": "Per-question advice is authenticated; whole-dossier advice is reviewer/admin-only. A mandatory local privacy projection excludes source text/filenames from provider requests. Local-only mode skips provider calls.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Controllers/AiController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiReviewService.cs",
+      "backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiEvidencePrivacyFilter.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierQueries.cs",
+      "frontend/src/features/documents/pages/ProofsPage.tsx"
+    ]
+  },
+  {
+    "id": "16-sequence-submit",
+    "title": "Submit with a transactional outbox",
+    "type": "Sequence",
+    "scope": "Application — implemented workflow patterns",
+    "description": "Submission freezes answers, applies State rules and persists minimal domain events atomically. Audit and notifications are asynchronous.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierCommands.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Infrastructure/Adapters/DossierRepository.cs",
+      "backend/src/Turritopsis.Api/Services/OutboxWorker.cs"
+    ]
+  },
+  {
+    "id": "17-sequence-review",
+    "title": "Human review with state and concurrency guards",
+    "type": "Sequence",
+    "scope": "Application — implemented workflow patterns",
+    "description": "Reads use query ports. Commands enforce State rules, optimistic versions and atomic dossier/note plus event storage.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Controllers/DossiersController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierQueries.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierCommands.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/Dossier.cs"
+    ]
+  },
+  {
+    "id": "18-sequence-report",
+    "title": "Report visibility and PDF printing",
+    "type": "Sequence",
+    "scope": "Application — report page",
+    "description": "The company sees the latest dossier. A validated report uses the reviewer score when present, with pillar scores recalculated from the copied answers. PDF output uses browser printing.",
+    "evidence": [
+      "frontend/src/features/dossiers/pages/report/ReportPage.tsx",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierQueries.cs"
+    ]
+  },
+  {
+    "id": "19-sequence-admin",
+    "title": "Administrator creates a reviewer",
+    "type": "Sequence",
+    "scope": "Application — account separation",
+    "description": "Only an admin can create reviewer accounts. Existing emails are rejected to avoid combining company and reviewer identities. Audit logging is best effort.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Controllers/AdminUsersController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Administration.Core/Application/AdminUsersService.cs",
+      "backend/src/Turritopsis.Api/Program.cs"
+    ]
+  },
+  {
+    "id": "20-sequence-password-reset",
+    "title": "Password reset with generic response",
+    "type": "Sequence",
+    "scope": "Application — password reset",
+    "description": "The request response is deliberately generic, including throttled/nonexistent accounts. Email is optional and best effort; the reset step validates the Identity token.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Controllers/AuthController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Identity.Core/Application/AuthService.cs",
+      "backend/src/Turritopsis.Infrastructure/Email/ResendEmailService.cs"
+    ]
+  },
+  {
+    "id": "21-communication",
+    "title": "Submission collaboration — numbered messages",
+    "type": "Communication",
+    "scope": "Application — submit interaction",
+    "description": "Object links and numbered messages show the same successful submission collaboration as the submission sequence diagram.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Controllers/DossiersController.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs"
+    ]
+  },
+  {
+    "id": "22-interaction-overview",
+    "title": "Diagnostic interaction overview",
+    "type": "Interaction overview",
+    "scope": "Application — interactions composed into a journey",
+    "description": "UML activity control flow connects referenced interaction frames. Numbers point to detailed sequence diagrams in this pack.",
+    "evidence": [
+      "frontend/src/app/router.tsx",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs",
+      "frontend/src/features/dossiers/pages/report/ReportPage.tsx"
+    ]
+  },
+  {
+    "id": "23-timing",
+    "title": "Illustrative submission and review timing",
+    "type": "Timing",
+    "scope": "Illustrative event order — no measured durations",
+    "description": "Shows the relative state changes of answers, dossier status and report availability. Time units are arbitrary event positions, not measured latency or service-level commitments.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs",
+      "frontend/src/features/dossiers/pages/report/ReportPage.tsx"
+    ]
+  },
+  {
+    "id": "24-ai-privacy-boundary",
+    "title": "Enterprise evidence privacy boundary",
+    "type": "Sequence",
+    "scope": "Application — mandatory server-side minimization",
+    "description": "Original documents stay within the application/reviewer path. External AI receives only public criterion metadata, a finite score and boolean evidence mentions. Local-only mode performs no provider review request.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiEvidencePrivacyFilter.cs",
+      "backend/src/Modules/Turritopsis.Modules.Ai.Infrastructure/Adapters/AiOptions.cs",
+      "docs/AI-DATA-PRIVACY.md"
+    ]
+  },
+  {
+    "id": "25-hexagonal-modules",
+    "title": "Hexagonal module ownership and communication",
+    "type": "Component",
+    "scope": "Implemented compile-time and EF model boundaries",
+    "description": "Modules own core use cases and isolated runtime contexts. Cross-module collaboration uses DTO ports. Database tables and migration history are retained; this is code isolation, not separate database credentials.",
+    "evidence": [
+      "backend/src/Turritopsis.SharedKernel/ModulePorts.cs",
+      "backend/src/Turritopsis.Api/Modules/ApplicationModules.cs",
+      "backend/tests/Turritopsis.ModuleChecks/Program.cs",
+      "scripts/check-architecture.mjs"
+    ]
+  },
+  {
+    "id": "26-outbox-events",
+    "title": "Durable Domain Events and internal notifications",
+    "type": "Sequence",
+    "scope": "Implemented at-least-once delivery",
+    "description": "A short row lease allows concurrent workers. Retry state and aggregate order survive restarts. Event IDs deduplicate audit and notification effects.",
+    "evidence": [
+      "backend/src/Turritopsis.Api/Services/OutboxWorker.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Infrastructure/Adapters/ReviewOutboxProcessor.cs",
+      "backend/src/Modules/Turritopsis.Modules.Audit.Infrastructure/Adapters/DossierEventHandler.cs"
+    ]
+  },
+  {
+    "id": "27-cqrs-state",
+    "title": "State and lightweight CQRS inside Reviews",
+    "type": "Component",
+    "scope": "Implemented command and query ports",
+    "description": "Commands use tracked stateful aggregates and the outbox. Queries return DTOs with no tracked entities. Both share one database; no Strategy pattern was added.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/IDossierService.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/DossierStates.cs",
+      "backend/src/Modules/Turritopsis.Modules.Reviews.Infrastructure/ModuleRegistration.cs"
+    ]
+  },
+  {
+    "id": "28-firebase-push-queue",
+    "title": "Firebase push through a durable notification queue",
+    "type": "Sequence",
+    "scope": "Implemented integration; Firebase credentials needed for live delivery",
+    "description": "Opt-in device registration and leased PostgreSQL jobs deliver generic ID-only alerts. Access is rechecked, failures retry/dead-letter and logout suppresses old-account messages.",
+    "evidence": [
+      "backend/src/Modules/Turritopsis.Modules.Audit.Infrastructure/Adapters/PushQueueProcessor.cs",
+      "backend/src/Modules/Turritopsis.Modules.Audit.Infrastructure/Firebase/FirebasePushSender.cs",
+      "frontend/src/features/notifications/firebase-messaging-sw.ts",
+      "docs/FIREBASE-PUSH-SETUP.md"
+    ]
+  }
+]

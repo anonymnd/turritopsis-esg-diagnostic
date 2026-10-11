@@ -1,0 +1,64 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — typical user journey
+' Evidence: frontend/src/features/dossiers/pages/analysis/AnalysisPage.tsx; frontend/src/features/documents/pages/ProofsPage.tsx; frontend/src/features/review/pages/detail/DossierDetailPage.tsx; frontend/src/features/dossiers/pages/report/ReportPage.tsx
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Diagnostic and human review workflow
+start
+partition PME {
+ :Register or log in;
+ :Complete company profile;
+ :Select ESG answers and autosave;
+ :Add evidence text / files;
+ if (Request question advice?) then (yes)
+  :Read AI or heuristic suggestion;
+  if (Accept suggestion?) then (yes)
+   :Save suggested score into live answers;
+  endif
+ endif
+ :Inspect provisional E/S/G score;
+ :Submit current snapshot;
+}
+repeat
+ partition Reviewer {
+  :Open dossier from queue;
+  :Inspect copied answers and current company proofs;
+  if (Request dossier AI advice?) then (yes)
+   :Read assessment and flagged criteria;
+   :Optionally use suggested score / recommendation draft;
+  endif
+  :Choose human decision and recommendations;
+  if (Accept dossier?) then (yes)
+   :Save Validated + final score;
+  else (no)
+   :Save Rejected + recommendations;
+   :Optionally add reviewer note;
+  endif
+ }
+ if (Validated?) then (yes)
+  partition PME {
+   :Read validated report;
+   :Print or save PDF using browser;
+  }
+  stop
+ else (no)
+  partition PME {
+   :Read reviewer feedback;
+   :Update answers / evidence;
+   :Resubmit existing non-validated dossier;
+  }
+ endif
+repeat while (Resubmitted?) is (yes)
+stop
+@enduml

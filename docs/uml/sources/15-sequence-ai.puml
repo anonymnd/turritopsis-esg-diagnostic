@@ -1,0 +1,71 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — advisory AI
+' Evidence: backend/src/Turritopsis.Api/Controllers/AiController.cs; backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiReviewService.cs; backend/src/Modules/Turritopsis.Modules.Ai.Core/Application/AiEvidencePrivacyFilter.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierQueries.cs; frontend/src/features/documents/pages/ProofsPage.tsx
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title AI advice and heuristic fallback
+actor "PME / reviewer" as User
+participant "Proofs / dossier detail page" as UI
+participant AiController as API
+participant SlidingWindowRateLimiter as Limit
+participant DossierQueries as DS
+participant "Owned repository / integration ports\nPostgreSQL adapters" as DB
+participant AiReviewService as AI
+participant AiEvidencePrivacyFilter as Privacy
+participant "Chat-completions provider" as Provider
+User -> UI : request advice
+alt Question review
+ UI -> API : POST /api/v1/ai/review-question\nquestion + selected score + proof text
+else Whole dossier review
+ UI -> API : POST /api/v1/ai/review-dossier/{id}
+ API -> API : require reviewer/admin
+end
+API -> Limit : acquire per-user endpoint bucket\n30 requests / minute
+alt Rate exceeded
+ API --> UI : 429
+else Allowed and authorized
+ opt Whole dossier review
+  API -> DS : GetAiContextAsync
+  DS -> DB : copied answers + current company documents
+  DS --> API : notes + first matching document text per code\n(internal application context only)
+ end
+ API -> AI : ReviewQuestionAsync / ReviewDossierAsync
+ AI -> Privacy : project raw context locally
+ Privacy --> AI : canonical criterion / finite score / boolean signals
+ alt AllowRemote=false or API key absent
+  AI -> AI : keyword heuristic
+ else Provider configured
+  AI -> Provider : IAiProvider.ReviewAsync -> POST /chat/completions\nminimized signals only; no proof text / filenames
+  alt Valid response
+   Provider --> AI : JSON advice
+   AI -> AI : parse response
+  else HTTP / parsing failure
+   Provider --> AI : error / unusable response
+   AI -> AI : log exception type only; heuristic fallback
+  end
+ end
+ AI --> API : suggested score, confidence / flags, summary
+ API --> UI : 200 advice
+ UI --> User : show recommendation
+ opt User explicitly accepts
+  UI -> UI : PME applies answer OR reviewer drafts decision
+ end
+end
+note over API,AI
+ Diagram groups shared logic. Dossier context loading
+ requires dossier existence and reviewer authorization.
+ No automatic final decision; no binary file extraction.
+ Raw proof text never enters a provider prompt.
+end note
+@enduml

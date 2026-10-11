@@ -1,0 +1,50 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — source organization
+' Evidence: backend/src/Turritopsis.Api/Turritopsis.Api.csproj; backend/src/Turritopsis.Application/Turritopsis.Application.csproj; backend/src/Turritopsis.Infrastructure/Turritopsis.Infrastructure.csproj; frontend/src/app/router.tsx; backend/src/Turritopsis.Api/Modules/ApplicationModules.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Source packages and project dependencies
+left to right direction
+package "frontend/src" {
+ package "app / lazy route composition" as App
+ package "features / public interfaces" as Features
+ package "shared / neutral session / transport" as Shared
+ App ..> Features
+ Features ..> Shared
+}
+package "ASP.NET Core host" as Api
+package "SharedKernel\nintegration DTOs / ports" as Kernel
+package "Owned module Core assemblies" as Core {
+ [Entities / business use cases]
+ [Inbound / repository ports]
+}
+package "Owned module Infrastructure assemblies" as Infra {
+ [Internal repositories / contexts]
+ [Public module registrations]
+}
+package "Compatibility assemblies\nApplication / Domain / Infrastructure" as Compat
+Api ..> Compat : endpoint namespaces / composition
+Compat ..> Core
+Compat ..> Infra
+Infra ..> Core : own module only
+Core ..> Kernel
+note bottom of Core
+ Pure business code has no EF Core, Npgsql or ASP.NET imports.
+ Reviews additionally references AI's public criterion/context types.
+end note
+note bottom of Compat
+ Existing migration history remains centralized.
+ Runtime use cases never receive its combined DbContext.
+end note
+@enduml

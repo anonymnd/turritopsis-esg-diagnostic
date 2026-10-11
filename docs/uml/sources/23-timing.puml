@@ -1,0 +1,53 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Illustrative event order — no measured durations
+' Evidence: backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs; frontend/src/features/dossiers/pages/report/ReportPage.tsx
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Illustrative submission and review timing
+robust "Live answers" as Answers
+robust "Dossier record" as Dossier
+robust "Report page" as Report
+scale 10 as 120 pixels
+@0
+Answers is "Editable"
+Dossier is "Absent"
+Report is "No dossier"
+@10
+Answers is "Editable"
+Dossier is "Submitted"
+Report is "Pending"
+@20
+Dossier is "Rejected"
+Report is "Feedback"
+@30
+Answers is "Revised"
+@40
+Dossier is "Submitted"
+Report is "Pending"
+@50
+Dossier is "Validated"
+Report is "Final report"
+@60
+Answers is "Editable"
+@80
+Dossier is "Validated"
+Report is "Final report"
+@10
+Answers -> Dossier : copy answers on submit
+@40
+Answers -> Dossier : replace copy on resubmit
+@50
+Dossier -> Report : final score + advice
+note top of Dossier : Same row reused until validated; event units are illustrative
+@enduml

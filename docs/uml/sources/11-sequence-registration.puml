@@ -1,0 +1,53 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — registration path
+' Evidence: backend/src/Turritopsis.Api/Controllers/AuthController.cs; backend/src/Modules/Turritopsis.Modules.Identity.Core/Application/AuthService.cs; backend/src/Modules/Turritopsis.Modules.Identity.Infrastructure/Adapters/JwtTokenGenerator.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Company account registration
+actor PME
+participant AuthPage as UI
+participant AuthController as API
+participant "Register validator" as V
+participant AuthService as S
+participant "IIdentityAccounts\nIdentity adapter" as I
+participant "Owned repository / integration ports\nPostgreSQL adapters" as DB
+participant JwtTokenGenerator as JWT
+PME -> UI : Company details + email/password
+UI -> API : POST /api/v1/auth/register
+API -> V : ValidateAsync(request)
+alt Invalid input
+ API --> UI : ValidationProblem
+else Valid input
+ API -> S : RegisterAsync(request)
+ S -> I : FindByEmailAsync(email)
+ alt Email exists / Identity creation fails
+  S --> API : AuthResult.Fail
+  API --> UI : 400 errors
+ else New account
+  S -> I : CreateAsync(user, password)
+  I -> DB : persist Identity user
+  S -> DB : ICompanyRegistration.CreateOwnedCompanyAsync
+  DB -> DB : Companies adapter transaction\ninsert Company + owner; commit
+  S -> JWT : Generate(user, no platform roles)
+  JWT --> S : token + expiry
+  S --> API : userId, companyId, token
+  API --> UI : 200 auth result
+  UI --> PME : Authenticated workspace
+ end
+end
+note over I,DB
+ Identity creation precedes the company transaction;
+ these writes are not one atomic registration transaction.
+end note
+@enduml

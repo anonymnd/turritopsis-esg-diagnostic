@@ -1,0 +1,63 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — implemented wiring
+' Evidence: frontend/src/app/router.tsx; backend/src/Turritopsis.Api/Modules/ApplicationModules.cs; backend/src/Turritopsis.Infrastructure/Persistence/TurritopsisDbContext.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Application runtime components
+left to right direction
+package "React TypeScript SPA" {
+ [Feature pages / lazy routes] as UI
+ [Shared Axios transport] as Http
+ UI --> Http
+}
+package "ASP.NET Core host" {
+ [Versioned controllers\nHTTP inbound adapters] as API
+ [Module composition / JWT / CORS] as Host
+}
+package "Module cores — no EF / HTTP framework" {
+ [Companies / Identity use cases] as Identity
+ [Diagnostics / Documents use cases] as Evidence
+ [Reviews / Administration use cases] as Reviews
+ [AI orchestration + privacy projection] as Ai
+ [Shared DTO integration ports] as Contracts
+}
+package "Module infrastructure adapters" {
+ [Owned EF repositories\n6 isolated contexts] as Repos
+ [Identity / JWT adapter] as IdentityAdapter
+ [AI provider HTTP adapter] as AiAdapter
+ [Email HTTP adapter] as Email
+}
+database "One PostgreSQL database\nExisting tables / migration history" as DB
+Http --> API
+API --> Identity
+API --> Evidence
+API --> Reviews
+API --> Ai
+Identity --> Contracts
+Evidence --> Contracts
+Reviews --> Contracts
+Identity --> Repos : repository port
+Identity --> IdentityAdapter : identity / token ports
+Identity --> Email : email port
+Evidence --> Repos : repository / storage ports
+Reviews --> Repos : repository port
+Ai --> AiAdapter : minimized evidence only\nIAiProvider
+Repos --> DB
+IdentityAdapter --> DB
+note bottom of Contracts
+ Modules exchange DTOs and IDs through interfaces.
+ No cross-module DbContext or EF entity navigation.
+ The combined context is used only for existing migrations.
+end note
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — authentication
+' Evidence: backend/src/Modules/Turritopsis.Modules.Identity.Core/Application/AuthService.cs; backend/src/Turritopsis.Api/Program.cs; frontend/src/shared/api-client/httpClient.ts
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Login and protected API access
+actor User
+participant "Auth / reviewer login page" as UI
+participant AuthController as Auth
+participant AuthService as S
+participant "IIdentityAccounts\nIdentity adapter" as I
+participant "Owned repository / integration ports\nPostgreSQL adapters" as DB
+participant JwtTokenGenerator as JWT
+participant "JWT middleware + protected controller" as API
+User -> UI : email/password
+UI -> Auth : POST /api/v1/auth/login
+Auth -> S : LoginAsync
+S -> I : FindByEmail + CheckPassword
+alt Wrong credentials
+ S --> Auth : failure
+ Auth --> UI : 401
+else Valid credentials
+ S -> I : GetRolesAsync(user)
+ S -> DB : first company membership (if any)
+ S -> JWT : Generate(user, platform roles)
+ S --> Auth : JWT + expiry + companyId + roles
+ Auth --> UI : 200
+ UI -> UI : persist session
+ UI -> API : next request + Authorization: Bearer JWT
+ API -> API : validate signature, issuer, audience, expiry\nthen check endpoint roles / membership
+ alt Authorized
+  API --> UI : resource DTO
+ else JWT invalid / expired
+  API --> UI : 401
+  UI -> UI : clearSession()
+ else Authenticated but insufficient access
+  API --> UI : 403
+ end
+end
+@enduml

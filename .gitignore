@@ -5,14 +5,10 @@ dist/
 .env
 .env.*
 .env.example
-!.env.production.example
-!.env.test.example
 *.log
 .claude/
 .dist/
 scripts/*
-!scripts/hosted-api.js
-!scripts/ollama-api.js
 public/agadir-salon-leads.json
 public/google-maps-search-queries.csv
 public/template-previews/
@@ -25,8 +21,15 @@ data/*.json
 data/stagiaires/*.json
 !data/.gitkeep
 
+!frontend/.env.example
+!scripts/check-architecture.mjs
+
 # Push build output and private Firebase credentials
 frontend/public/firebase-messaging-sw.js
 .secrets/
 *firebase-adminsdk*.json
 *service-account*.json
+
+# Synthetic browser test outputs
+frontend/playwright-report/
+frontend/test-results/

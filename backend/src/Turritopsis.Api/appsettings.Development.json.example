@@ -15,6 +15,7 @@
     "ExpiryMinutes": 60
   },
   "Ai": {
+    "AllowRemote": true,
     "Provider": "groq",
     "BaseUrl": "https://api.groq.com/openai/v1",
     "Model": "llama-3.3-70b-versatile",

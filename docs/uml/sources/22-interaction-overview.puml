@@ -1,0 +1,36 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — interactions composed into a journey
+' Evidence: frontend/src/app/router.tsx; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierService.cs; frontend/src/features/dossiers/pages/report/ReportPage.tsx
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Diagnostic interaction overview
+start
+if (New company account?) then (yes)
+ :<<interaction>>\n11 Registration;
+else (no)
+ :<<interaction>>\n12 Login;
+endif
+:Complete company profile;
+repeat
+ :<<interaction>>\n13 Questionnaire autosave;
+ :<<interaction>>\n14 Evidence upload;
+ if (Need question advice?) then (yes)
+  :<<interaction>>\n15 AI advice and fallback;
+ endif
+ :<<interaction>>\n16 Submit / resubmit;
+ :<<interaction>>\n17 Human review and decision;
+repeat while (Rejected and company chooses to revise?) is (yes)
+:<<interaction>>\n18 Report status / validated report;
+stop
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+' Turritopsis ESG Diagnostic | repository inspection 2026-10-07
+' Scope: Application — implemented workflow patterns
+' Evidence: backend/src/Turritopsis.Api/Controllers/DossiersController.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierQueries.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Application/DossierCommands.cs; backend/src/Modules/Turritopsis.Modules.Reviews.Core/Domain/Dossier.cs
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #30465E
+skinparam packageBackgroundColor #F3F6FA
+skinparam classBackgroundColor #F3F6FA
+skinparam componentBackgroundColor #F3F6FA
+skinparam noteBackgroundColor #FFF5DF
+skinparam noteBorderColor #C79C56
+skinparam sequenceMessageAlign center
+hide empty members
+title Human review with state and concurrency guards
+actor Reviewer
+participant DossierDetailPage as UI
+participant DossiersController as API
+participant DossierQueries as Q
+participant DossierCommands as C
+participant Dossier as D
+participant DossierRepository as Repo
+database PostgreSQL as DB
+Reviewer -> UI : open dossier
+UI -> API : GET dossier / notes / evidence
+API -> Q : authorized read queries
+Q -> DB : AsNoTracking dossier / notes
+Q --> UI : read DTOs
+opt Start review
+ UI -> API : PUT status=InReview
+ API -> C : UpdateStatusAsync
+end
+Reviewer -> UI : validate / reject / comment
+UI -> API : PUT decision or POST note
+API -> API : reviewer/admin authorization
+API -> C : execute command
+C -> Repo : load tracked dossier
+C -> D : Review or RecordNote
+alt Invalid score / status
+ D --> UI : 400 validation error
+else Closed state / stale concurrent version
+ D --> UI : 409 conflict
+else Allowed
+ D -> D : update state / increment Version / raise minimal event
+ C -> Repo : SaveAsync (including note when applicable)
+ Repo -> DB : dossier + note + outbox in one transaction
+ DB --> Repo : COMMIT
+ C --> UI : 200 DTO / 204 note
+end
+ref over API,DB : 26 — audit and internal notification delivery
+@enduml

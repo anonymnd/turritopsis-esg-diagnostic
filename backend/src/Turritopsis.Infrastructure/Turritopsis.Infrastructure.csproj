@@ -2,7 +2,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Turritopsis.Application\Turritopsis.Application.csproj" />
-  </ItemGroup>
+  <ProjectReference Include="../Modules/Turritopsis.Modules.Companies.Infrastructure/Turritopsis.Modules.Companies.Infrastructure.csproj" />
+<ProjectReference Include="../Modules/Turritopsis.Modules.Identity.Infrastructure/Turritopsis.Modules.Identity.Infrastructure.csproj" />
+<ProjectReference Include="../Modules/Turritopsis.Modules.Diagnostics.Infrastructure/Turritopsis.Modules.Diagnostics.Infrastructure.csproj" />
+<ProjectReference Include="../Modules/Turritopsis.Modules.Documents.Infrastructure/Turritopsis.Modules.Documents.Infrastructure.csproj" />
+<ProjectReference Include="../Modules/Turritopsis.Modules.Reviews.Infrastructure/Turritopsis.Modules.Reviews.Infrastructure.csproj" />
+<ProjectReference Include="../Modules/Turritopsis.Modules.Audit.Infrastructure/Turritopsis.Modules.Audit.Infrastructure.csproj" />
+<ProjectReference Include="../Modules/Turritopsis.Modules.Ai.Infrastructure/Turritopsis.Modules.Ai.Infrastructure.csproj" />
+</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
