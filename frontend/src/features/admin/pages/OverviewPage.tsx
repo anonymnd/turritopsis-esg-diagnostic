@@ -1,93 +1,38 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { getAdminOverview, getReviewers } from "../api";
 import { PushQueueHealth } from "../../notifications/index";
+import WorkspacePageHeader from "../../../shared/components/WorkspacePageHeader";
 import styles from "./admin.module.css";
 
+const STATUS_LABELS: Record<string, string> = { Submitted: "Soumis", InReview: "En cours de revue", Validated: "Validé", Rejected: "À compléter", "Aucun dossier": "Aucun dossier" };
+
 export default function OverviewPage() {
-  const { data, isPending, isError } = useQuery({ queryKey: ["admin", "overview"], queryFn: getAdminOverview });
-  const { data: reviewers } = useQuery({ queryKey: ["admin", "reviewers"], queryFn: getReviewers });
-
-  if (isPending) return <p>Chargement…</p>;
-  if (isError || !data) return <p>Acces reserve aux comptes administrateur.</p>;
-
-  const submitted = data.companies.filter((c) => c.dossierStatus).length;
-  const statusCounts = data.companies.reduce<Record<string, number>>((acc, c) => {
-    const key = c.dossierStatus ?? "Aucun dossier";
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  return (
-    <div className={styles.wrap}>
-      <h2>Vue d'ensemble</h2>
-      <PushQueueHealth />
-
-      <div className={styles.statGrid}>
-        <div className={styles.statTile}>
-          <strong>{data.companies.length}</strong>
-          <span>Entreprises</span>
-        </div>
-        <div className={styles.statTile}>
-          <strong>{reviewers?.length ?? "—"}</strong>
-          <span>Reviseurs</span>
-        </div>
-        <div className={styles.statTile}>
-          <strong>{submitted}</strong>
-          <span>Dossiers soumis</span>
-        </div>
+  const overview = useQuery({ queryKey: ["admin", "overview"], queryFn: getAdminOverview });
+  const reviewers = useQuery({ queryKey: ["admin", "reviewers"], queryFn: getReviewers });
+  const data = overview.data;
+  const statusCounts = data?.companies.reduce<Record<string, number>>((acc, company) => {
+    const key = company.dossierStatus ?? "Aucun dossier"; acc[key] = (acc[key] ?? 0) + 1; return acc;
+  }, {}) ?? {};
+  return <div className={styles.wrap}>
+    <WorkspacePageHeader title="Vue d'ensemble" eyebrow="PILOTAGE DE LA PLATEFORME" image="analysis" description="Suivez les entreprises, l’équipe de revue et les dernières activités de votre plateforme ESG." breadcrumbs={[{ label: "Espace équipe", to: "/reviewer" }, { label: "Administration" }]} />
+    {overview.isPending ? <div className={styles.empty} role="status">Chargement de la vue d’ensemble…</div> : overview.isError || !data ? <div className={styles.error} role="alert"><p>Impossible de charger la vue d’ensemble.</p><button className={styles.secondary} onClick={() => void overview.refetch()}>Réessayer</button></div> : <>
+      <section className={styles.statGrid} aria-label="Indicateurs de la plateforme">
+        <Link className={styles.statTile} to="/reviewer/admin/companies"><img src="/images/dashboard/company.svg" alt="" width="160" height="90" /><span>Entreprises</span><strong>{data.companies.length}</strong><small>Consulter les entreprises <ArrowRight size={15} aria-hidden="true" /></small></Link>
+        <Link className={styles.statTile} to="/reviewer/admin/reviewers"><img src="/images/dashboard/questionnaire.svg" alt="" width="160" height="90" /><span>Reviseurs</span><strong>{reviewers.isPending ? "…" : reviewers.isError ? "Indisponible" : reviewers.data?.length ?? 0}</strong><small>Gérer l’équipe de revue <ArrowRight size={15} aria-hidden="true" /></small></Link>
+        <Link className={styles.statTile} to="/reviewer/all"><img src="/images/dashboard/report.svg" alt="" width="160" height="90" /><span>Dossiers soumis</span><strong>{data.companies.filter(company => company.dossierStatus).length}</strong><small>Explorer les dossiers <ArrowRight size={15} aria-hidden="true" /></small></Link>
+      </section>
+      {reviewers.isError && <div className={styles.error} role="alert"><p>Le nombre de réviseurs est indisponible.</p><button className={styles.secondary} onClick={() => void reviewers.refetch()}>Réessayer les réviseurs</button></div>}
+      <div className={styles.overviewGrid}>
+        <section className={styles.section} aria-labelledby="status-title"><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>LE PARCOURS DES ENTREPRISES</p><h2 id="status-title">Répartition par statut</h2></div></div>
+          {Object.keys(statusCounts).length ? <ul className={styles.statusList}>{Object.entries(statusCounts).map(([status, count]) => <li key={status}><span>{STATUS_LABELS[status] ?? status}</span><strong>{count}</strong></li>)}</ul> : <p className={styles.hint}>Aucune entreprise pour le moment.</p>}
+        </section>
+        <section className={styles.section} aria-labelledby="activity-title"><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>UNE TRACE DES ACTIONS</p><h2 id="activity-title">Activité récente</h2></div></div>
+          {data.auditLog.length ? <ol className={styles.activityList}>{data.auditLog.slice(0, 8).map(entry => <li key={entry.id}><span className={styles.activityMark} aria-hidden="true"><ShieldCheck size={17} /></span><div><p>{entry.action}</p><time dateTime={entry.createdAt}>{new Date(entry.createdAt).toLocaleString("fr-FR")}</time></div></li>)}</ol> : <p className={styles.hint}>Aucune activité pour le moment.</p>}
+        </section>
       </div>
-
-      <div className={styles.section}>
-        <h3>Repartition par statut</h3>
-        <div className={styles.table}>
-          <table>
-            <thead>
-              <tr>
-                <th>Statut</th>
-                <th>Entreprises</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(statusCounts).map(([status, count]) => (
-                <tr key={status}>
-                  <td>{status}</td>
-                  <td style={{ fontWeight: 700 }}>{count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <h3>Activite recente</h3>
-        <div className={styles.table}>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.auditLog.length === 0 ? (
-                <tr>
-                  <td colSpan={2} style={{ color: "var(--ink-muted)" }}>
-                    Aucune entree.
-                  </td>
-                </tr>
-              ) : (
-                data.auditLog.slice(0, 8).map((entry) => (
-                  <tr key={entry.id}>
-                    <td style={{ color: "var(--ink-muted)" }}>{new Date(entry.createdAt).toLocaleString("fr-FR")}</td>
-                    <td>{entry.action}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+    </>}
+    <div className={`${styles.section} ${styles.queueHealth}`}><PushQueueHealth /></div>
+  </div>;
 }

@@ -8,6 +8,7 @@ import { computeScores } from "../../../questionnaire/index";
 import { QUESTIONS } from "../../../questionnaire/index";
 import type { Answers } from "../../../questionnaire/index";
 import { apiErrorMessage } from "../../../../shared/api-client/httpClient";
+import WorkspacePageHeader from "../../../../shared/components/WorkspacePageHeader";
 import styles from "./detail.module.css";
 
 const ASSESSMENT_LABEL: Record<string, string> = {
@@ -57,7 +58,7 @@ export default function DossierDetailPage() {
     }
   }
 
-  const { data: liveDossier, isPending } = useQuery({
+  const { data: liveDossier, isPending, isError: dossierError, refetch } = useQuery({
     queryKey: ["dossier", dossierId],
     queryFn: () => getDossier(dossierId!),
     enabled: !!dossierId
@@ -116,13 +117,14 @@ export default function DossierDetailPage() {
   }, [activeRevisionId, dossier?.recommendations]);
   const aiData = aiMutation.variables === activeRevisionId ? aiMutation.data : undefined;
 
-  if (isPending || !dossier) {
+  if (isPending) {
     return (
       <div className={styles.wrap}>
-        <p>Chargement…</p>
+        <p role="status">Chargement du dossier…</p>
       </div>
     );
   }
+  if (dossierError || !dossier) return <div className={styles.wrap}><Link to="/reviewer" className={styles.backLink}>← File d'attente</Link><div role="alert"><p>Ce dossier est indisponible ou inaccessible.</p><button className={styles.btnGhost} onClick={() => void refetch()}>Réessayer</button></div></div>;
 
   let snapshot: Answers = {};
   try {
@@ -142,24 +144,20 @@ export default function DossierDetailPage() {
 
   return (
     <div className={styles.wrap}>
-      <Link to="/reviewer" className={styles.backLink}>
-        ← File d'attente
-      </Link>
+      <WorkspacePageHeader title={dossier.companyName ?? dossier.companyId} description="Consultez les réponses et les preuves soumises, puis motivez votre décision. Le score final reste une validation humaine." eyebrow="EXAMEN DU DOSSIER ESG" image="evidence" breadcrumbs={[{label: "File d'attente", to: "/reviewer"}, {label: "Dossier entreprise"}]} />
       <div className={styles.header}>
-        <h2>{dossier.companyName ?? dossier.companyId}</h2>
+        <p className={styles.subtitle}>Soumis le {new Date(dossier.submittedAt).toLocaleDateString("fr-FR")}</p>
         <span className={styles.tag} style={{ background: status.bg, color: status.fg }}>
           {status.label}
         </span>
       </div>
-      <p className={styles.subtitle}>Soumis le {new Date(dossier.submittedAt).toLocaleDateString("fr-FR")}</p>
-
-      {!liveDossier?.currentRevisionId && <p role="status">Original submitted documents were not preserved.</p>}
+      {!liveDossier?.currentRevisionId && <p className={styles.notice} role="status">Original submitted documents were not preserved.</p>}
       {historyError && <p role="alert">Historique indisponible. Rechargez la page.</p>}
-      {!!revisions?.length && <label>Revision du dossier <select aria-label="Revision du dossier"
+      {!!revisions?.length && <label className={styles.revision}>Revision du dossier <select aria-label="Revision du dossier"
         value={activeRevisionId ?? ""} onChange={e => setSelectedRevisionId(e.target.value)}>
         {revisions.map(r => <option key={r.id} value={r.id}>Revision {r.number} — {new Date(r.submittedAt).toLocaleString("fr-FR")} — {STATUS_STYLE[r.status].label}</option>)}
       </select></label>}
-      {historical && <p>Revision historique : consultation uniquement.</p>}
+      {historical && <p className={styles.notice}>Revision historique : consultation uniquement.</p>}
 
       <div className={styles.scoreRow}>
         <div className={styles.scoreBox}>
@@ -180,7 +178,7 @@ export default function DossierDetailPage() {
         </div>
       </div>
 
-      <h4>Analyse IA du dossier</h4>
+      <h2>Analyse IA du dossier</h2>
       <div className={styles.notesCard}>
         {!aiData && !aiMutation.isPending && (
           <div className={styles.aiPrompt}>
@@ -241,7 +239,7 @@ export default function DossierDetailPage() {
         )}
       </div>
 
-      <h4>Recommandations pour la PME</h4>
+      <h2>Recommandations pour la PME</h2>
       <div className={styles.notesCard}>
         <div className={styles.aiPrompt}>
           <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--ink-muted)" }}>
@@ -249,6 +247,7 @@ export default function DossierDetailPage() {
             travailler. Pre-remplissez depuis l'analyse IA ci-dessus, puis reformulez librement.
           </p>
           <textarea
+            aria-label="Recommandations pour la PME"
             className={styles.recommendationsInput}
             disabled={decisionLocked} value={recommendationsText}
             onChange={(e) => setRecommendationsText(e.target.value)}
@@ -258,7 +257,7 @@ export default function DossierDetailPage() {
         </div>
       </div>
 
-      <h4>Preuves fournies</h4>
+      <h2>Preuves fournies</h2>
       <div className={styles.notesCard}>
         {documents && documents.length > 0 ? (
           documents.map((doc) => {
@@ -292,7 +291,7 @@ export default function DossierDetailPage() {
         )}
       </div>
 
-      <h4>Commentaires</h4>
+      <h2>Commentaires</h2>
       <div className={styles.notesCard}>
         {notes && notes.length > 0 ? (
           notes.filter(note => note.revisionId === (activeRevisionId ?? null)).map((note) => (
@@ -307,7 +306,8 @@ export default function DossierDetailPage() {
       </div>
 
       <div className={styles.noteForm}>
-        <textarea disabled={notesLocked} maxLength={2000} value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Ajouter un commentaire pour la PME…" />
+        <label htmlFor="review-note">Votre commentaire pour l’entreprise</label>
+        <textarea id="review-note" disabled={notesLocked} maxLength={2000} value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Ajouter un commentaire pour la PME…" />
       </div>
 
       {decisionLocked && <p>{notesLocked ? "Ce dossier valide est verrouille." : "Ce dossier doit etre resoumis par la PME avant une nouvelle decision."}</p>}
@@ -315,7 +315,7 @@ export default function DossierDetailPage() {
       {noteMutation.isError && <p role="alert">{apiErrorMessage(noteMutation.error, "Impossible d'ajouter le commentaire.")}</p>}
       <div className={styles.actions}>
         {!historical && dossier.status === "Submitted" && <button type="button" className={styles.btnGhost} onClick={() => statusMutation.mutate({ status: "InReview" })} disabled={statusMutation.isPending || noteMutation.isPending}>Commencer la revue</button>}
-        <input
+        <label className={styles.scoreLabel}>Score final / 100<input
           type="number"
           min={0}
           max={100}
@@ -323,8 +323,7 @@ export default function DossierDetailPage() {
           value={finalScoreInput}
           onChange={(e) => setFinalScoreInput(e.target.value)}
           placeholder={`Score final (${scores.overall})`}
-          style={{ width: 160, padding: "10px 12px", borderRadius: 8, border: "1.5px solid var(--border)" }}
-        />
+        /></label>
         <button type="button" className={styles.btnGhost} onClick={() => noteMutation.mutate()} disabled={notesLocked || !noteText.trim() || noteMutation.isPending || statusMutation.isPending}>
           Envoyer le commentaire
         </button>

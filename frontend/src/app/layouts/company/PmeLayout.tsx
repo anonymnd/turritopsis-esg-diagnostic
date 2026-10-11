@@ -5,7 +5,7 @@ import { useAuth } from "../../../features/auth/index";
 import { useCompany } from "../../../features/company/index";
 import { NotificationInbox } from "../../../features/notifications/index";
 import BrandLogo from "../../../shared/components/BrandLogo";
-import styles from "./pme-layout.module.css";
+import styles from "../workspace.module.css";
 
 const NAV_ITEMS = [
   { to: "/app", label: "Tableau de bord", icon: LayoutDashboard, end: true },
